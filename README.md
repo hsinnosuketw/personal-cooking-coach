@@ -53,6 +53,33 @@ machine unless you start the server with `--token` and give it out. Only the
 two pages and the files they link to are served: the git history, logs and
 any keys in the folder return 404.
 
+## Onion Sweat Challenge (`play.html`): gameplay → dataset → AI chef
+
+A playable 3D stove with a goal: sweat the Pasta onion to translucent
+(colour ≈ 0.30) without browning or scorching it, salt it while wet, and
+serve before 600 s — faster scores more. Too much heat scorches the onion
+before it browns, sooner with uneven dice. Keys: ←/→ heat, S salt, W water,
+Enter serve, Space start.
+
+```bash
+python3 serve.py            # play at http://127.0.0.1:8000/play.html
+python3 -m chef stats       # what the dataset holds
+python3 -m chef evaluate    # learn a world model from the rounds, let the AI chef cook
+```
+
+Every 5 s of cooking is logged as (state, action, next state). **Save to
+dataset** stores the round in `gameplay/episodes/`; the server validates it
+and recomputes the score. `chef evaluate` trains a world model on those
+rounds only, so it never sees the game's rules (`chef/physics.py`). It holds
+out a fifth of the rounds to measure prediction error. Then an AI chef that
+plans with the learned model plays 20 rounds in the real engine, and its
+best runs are written to `ai_chef_runs.json` for the in-game replay.
+
+The current `ai_chef_runs.json` was trained on scripted bot rounds
+(`python3 -m chef bots`, then `evaluate --with-bots`). Those only prove the
+pipeline works. Play real rounds, then rerun `python3 -m chef evaluate` to
+get numbers worth reporting.
+
 ## Real student data (ASSISTments)
 
 Network is blocked in this environment, so the pipeline is validated on
