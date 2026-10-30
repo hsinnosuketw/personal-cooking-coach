@@ -1,0 +1,93 @@
+{
+  "split": "dev",
+  "synthetic": true,
+  "note": "Hand-written structured cases used to develop the rules (plan C04/E06). Not real footage. The held-out test split must come from real recordings, be frozen with a hash before any run (plan C08), and never be used for tuning.",
+  "cases": [
+    {"case_id": "pasta_browning_in_sweat_step", "recipe_id": "pasta_pomodoro", "category": "correct",
+     "why": "Onions should stay translucent here; at heat 7 and this dryness they will brown within two minutes.",
+     "events": [{"event_id": "e1", "ts": 400, "source": "replay", "step_id": "sweat_onion",
+                 "facts": {"onion_color": 0.42, "moisture": 0.4, "heat_level": 7, "salted": true}}],
+     "acceptable": ["lower_heat", "add_water_splash", "advance_step"], "high_risk": ["raise_heat"]},
+
+    {"case_id": "pasta_smoke", "recipe_id": "pasta_pomodoro", "category": "correct",
+     "why": "Visible smoke: cool the pan before anything else.",
+     "events": [{"event_id": "e1", "ts": 300, "source": "replay", "step_id": "sweat_onion",
+                 "facts": {"onion_color": 0.5, "smoke": true, "heat_level": 9, "salted": true}}],
+     "acceptable": ["lower_heat"], "high_risk": ["raise_heat", "continue_observe"]},
+
+    {"case_id": "pasta_uneven_dice", "recipe_id": "pasta_pomodoro", "category": "correct",
+     "why": "Uneven pieces are still on the board: fixing the cut now is cheap, later it means scorched small bits.",
+     "events": [{"event_id": "e1", "ts": 60, "source": "replay", "step_id": "dice_onion",
+                 "facts": {"cut_uniformity": "uneven"}}],
+     "acceptable": ["recut_onion"], "high_risk": []},
+
+    {"case_id": "pasta_high_heat_uneven_pieces", "recipe_id": "pasta_pomodoro", "category": "correct",
+     "why": "Heat 8 with uneven pieces: small bits scorch soon. Moving on to garlic at this heat would burn the garlic.",
+     "events": [{"event_id": "e1", "ts": 380, "source": "replay", "step_id": "sweat_onion",
+                 "facts": {"onion_color": 0.36, "moisture": 0.42, "heat_level": 8, "salted": true,
+                           "cut_uniformity": "uneven"}}],
+     "acceptable": ["lower_heat", "add_water_splash"], "high_risk": ["raise_heat", "continue_observe"]},
+
+    {"case_id": "pasta_sweating_fine", "recipe_id": "pasta_pomodoro", "category": "normal",
+     "why": "Gentle heat, salted, onions softening on schedule: nothing to change.",
+     "events": [{"event_id": "e1", "ts": 120, "source": "replay", "step_id": "sweat_onion",
+                 "facts": {"onion_color": 0.15, "moisture": 0.85, "heat_level": 4, "salted": true}}],
+     "acceptable": ["continue_observe"], "high_risk": ["raise_heat"]},
+
+    {"case_id": "pasta_low_and_slow", "recipe_id": "pasta_pomodoro", "category": "normal",
+     "why": "Low heat is slower but correct for sweating; pushing the heat is an unnecessary change.",
+     "events": [{"event_id": "e1", "ts": 200, "source": "replay", "step_id": "sweat_onion",
+                 "facts": {"onion_color": 0.22, "moisture": 0.7, "heat_level": 3, "salted": true}}],
+     "acceptable": ["continue_observe"], "high_risk": []},
+
+    {"case_id": "pasta_heat_unknown_matters", "recipe_id": "pasta_pomodoro", "category": "clarify",
+     "why": "Same pan, opposite advice at heat 3 versus heat 8: find out before advising.",
+     "events": [{"event_id": "e1", "ts": 330, "source": "replay", "step_id": "sweat_onion",
+                 "facts": {"onion_color": 0.35, "moisture": 0.5, "salted": true}}],
+     "acceptable": ["ask_heat_level", "lower_heat"], "high_risk": ["raise_heat"]},
+
+    {"case_id": "pasta_heat_reports_conflict", "recipe_id": "pasta_pomodoro", "category": "clarify",
+     "why": "The cook says heat 3 but the helper reads 8 seconds later: the conflict must not be guessed away.",
+     "events": [{"event_id": "e1", "ts": 330, "source": "transcript", "step_id": "sweat_onion",
+                 "facts": {"heat_level": 3}},
+                {"event_id": "e2", "ts": 336, "source": "manual",
+                 "facts": {"heat_level": 8, "onion_color": 0.33, "moisture": 0.48, "salted": true}}],
+     "acceptable": ["ask_heat_level", "lower_heat"], "high_risk": ["raise_heat"]},
+
+    {"case_id": "curry_deep_brown_hot_pan", "recipe_id": "curry_onion", "category": "correct",
+     "why": "At deep golden-brown on heat 7 the onions burn within a minute; adding the aromatics now stops the browning.",
+     "events": [{"event_id": "e1", "ts": 900, "source": "replay", "step_id": "brown_onion",
+                 "facts": {"onion_color": 0.84, "moisture": 0.1, "heat_level": 7, "salted": false}}],
+     "acceptable": ["advance_step", "lower_heat", "add_water_splash"], "high_risk": ["raise_heat", "continue_observe"]},
+
+    {"case_id": "curry_seasoned_cook_at_target", "recipe_id": "curry_onion", "category": "normal",
+     "why": "This cook moved on unprompted at the right moment in Pasta; at the browning target on low heat, leave them to judge it.",
+     "history": {"recipe_id": "pasta_pomodoro", "events": [
+       {"event_id": "h1", "ts": 0, "source": "replay", "step_id": "sweat_onion",
+        "facts": {"onion_color": 0.15, "moisture": 0.85, "heat_level": 4, "salted": true}},
+       {"event_id": "h2", "ts": 400, "source": "replay", "step_id": "add_garlic",
+        "facts": {"step_done": true, "outcome": "good", "onion_color": 0.3, "moisture": 0.5}},
+       {"event_id": "h3", "ts": 460, "source": "replay", "step_id": "add_tomatoes",
+        "facts": {"step_done": true, "outcome": "good"}}]},
+     "events": [{"event_id": "e1", "ts": 1300, "source": "replay", "step_id": "brown_onion",
+                 "facts": {"onion_color": 0.72, "moisture": 0.3, "heat_level": 3, "salted": true}}],
+     "acceptable": ["continue_observe"], "high_risk": ["raise_heat"]},
+
+    {"case_id": "curry_translucent_is_not_done", "recipe_id": "curry_onion", "category": "normal",
+     "why": "Pasta habit check: translucent was the Pasta target, but Curry wants deep golden-brown. Moving on now applies the wrong recipe's goal; salting now delays browning.",
+     "history": {"recipe_id": "pasta_pomodoro", "events": [
+       {"event_id": "h1", "ts": 0, "source": "replay", "step_id": "sweat_onion",
+        "facts": {"onion_color": 0.15, "moisture": 0.85, "heat_level": 4, "salted": true}},
+       {"event_id": "h2", "ts": 400, "source": "replay", "step_id": "add_garlic",
+        "facts": {"step_done": true, "outcome": "good", "onion_color": 0.3, "moisture": 0.5}}]},
+     "events": [{"event_id": "e1", "ts": 700, "source": "replay", "step_id": "brown_onion",
+                 "facts": {"onion_color": 0.35, "moisture": 0.4, "heat_level": 5, "salted": false}}],
+     "acceptable": ["continue_observe"], "high_risk": ["advance_step"]},
+
+    {"case_id": "curry_heat_unknown_matters", "recipe_id": "curry_onion", "category": "clarify",
+     "why": "Golden and drying: at heat 3 it is on track, at heat 8 it overshoots into burnt within two minutes.",
+     "events": [{"event_id": "e1", "ts": 800, "source": "replay", "step_id": "brown_onion",
+                 "facts": {"onion_color": 0.6, "moisture": 0.3, "salted": false}}],
+     "acceptable": ["ask_heat_level", "lower_heat"], "high_risk": ["raise_heat"]}
+  ]
+}

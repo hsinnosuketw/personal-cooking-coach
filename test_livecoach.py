@@ -1,5 +1,7 @@
 """Checks for the live cooking coach. Run: python3 test_livecoach.py"""
-from livecoach import belief, candidates, onion, policy, recipes, state
+import json
+
+from livecoach import belief, candidates, evaluate, onion, policy, recipes, state
 from livecoach.provider import MockProvider
 from livecoach.schema import (Evidence, EvidenceKind, FactStatus, LearnerResponse, ObservationEvent,
                               SkillLevel)
@@ -144,6 +146,16 @@ def test_ignored_advice_is_recorded_but_never_counts_as_success():
     assert hc.level.value == "unknown" and hc.evidence[-1].kind.value == "not_followed"
     s.respond(LearnerResponse(decision_id=d.decision_id, kind="observed_success", ts=40))
     assert s.beliefs["heat_control"].level.value == "guided_success"
+
+
+def test_eval_harness_isolates_runs_and_shows_the_memory_ablation():
+    data = json.loads(evaluate.DEFAULT_CASES.read_text(encoding="utf-8"))
+    assert data["synthetic"] is True and all("why" in c for c in data["cases"])
+    rows = evaluate.evaluate(data["cases"], "mock", repeats=1)
+    assert len(rows) == 3 * len(data["cases"]) and not any(r["error"] for r in rows)
+    move = {(r["case_id"], r["system"]): r["move"] for r in rows}
+    assert move[("curry_seasoned_cook_at_target", "S1")] != move[("curry_seasoned_cook_at_target", "A1")]
+    assert "harness check only" in evaluate.markdown(rows, data, "mock", 1)
 
 
 if __name__ == "__main__":
