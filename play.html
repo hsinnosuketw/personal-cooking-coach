@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onion Sweat Challenge</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --ink:#f2ece1; --dim:#c9bda9; --line:#4a3d2c; --gold:#e9c46a; --orange:#f0703a; --teal:#37c4b1; --red:#e5484d; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #14100b; color: var(--ink);
+    font-family: "Avenir Next", "PingFang TC", system-ui, sans-serif; }
+  #scene { position: fixed; inset: 0; }
+  .hud { position: fixed; z-index: 5; background: rgba(24,19,13,.9); border: 1px solid var(--line);
+    border-radius: 12px; padding: .6rem .8rem; font-size: .85rem; }
+  #goal { top: 10px; left: 10px; right: 10px; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  #goal h1 { font-size: 1.05rem; margin: 0; font-family: Palatino, Georgia, serif; }
+  #goal p { margin: 0; color: var(--dim); }
+  #gauges { top: 78px; left: 10px; width: 250px; }
+  .g { margin: .35rem 0; } .g b { float: right; }
+  .bar { position: relative; height: 12px; border-radius: 6px; background: #3a2f20; overflow: hidden; margin-top: .2rem; }
+  .bar > i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--orange); }
+  .band { position: absolute; top: 0; bottom: 0; background: rgba(55,196,177,.45); }
+  #board { top: 78px; right: 10px; width: 250px; }
+  #board ol { margin: .3rem 0; padding-left: 1.3rem; } #board li { margin: .15rem 0; }
+  #controls { bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+  button { font: inherit; font-weight: 700; cursor: pointer; border-radius: 8px; padding: .45rem .8rem;
+    border: 2px solid var(--line); background: #2c2318; color: var(--ink); }
+  button.hot { background: var(--gold); border-color: var(--gold); color: #231a08; }
+  button:disabled { opacity: .45; cursor: default; }
+  #heatOut { font-size: 1.4rem; font-weight: 800; min-width: 2ch; text-align: center; }
+  #result { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(420px, 92vw); display: none; text-align: center; font-size: .95rem; }
+  #result h2 { margin: .2rem 0 .5rem; font-family: Palatino, Georgia, serif; }
+  #result .big { font-size: 2.4rem; font-weight: 800; color: var(--gold); }
+  #result input { font: inherit; padding: .35rem; border-radius: 6px; border: 1px solid var(--line); background: #2c2318; color: var(--ink); width: 9rem; }
+  #caption { top: 70px; left: 50%; transform: translateX(-50%); display: none; font-weight: 700; max-width: 92vw; text-align: center; }
+  .muted { color: var(--dim); font-size: .78rem; }
+  @media (max-width: 760px) {
+    #controls { left: 8px; right: 8px; bottom: 8px; transform: none; gap: .3rem; padding: .45rem; }
+    #controls button { padding: .3rem .5rem; font-size: .78rem; }
+    #gauges, #board { top: auto; bottom: 118px; width: calc(50% - 12px); font-size: .7rem; padding: .45rem .55rem; }
+    #gauges { left: 8px; } #board { right: 8px; }
+    #goal p { font-size: .72rem; }
+    #caption { top: 120px; font-size: .78rem; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="hud" id="goal">
+  <h1>Onion Sweat Challenge · 炒洋蔥挑戰</h1>
+  <p>Goal: onion <b>translucent</b> (colour ≈ 0.30), <b>not browned</b> (&gt; 0.45), <b>not scorched</b>, salted while wet. Serve before 600 s — faster scores more.</p>
+</div>
+<div class="hud" id="gauges">
+  <div class="g">Time <b id="tOut">0 s</b></div>
+  <div class="g">Colour <b id="cOut">0.05</b><div class="bar"><span class="band" style="left:25%;width:10%"></span><i id="cBar"></i></div></div>
+  <div class="g">Moisture <b id="mOut">1.00</b><div class="bar"><i id="mBar" style="background:var(--teal)"></i></div></div>
+  <div class="g">Scorch <b id="sOut">0.00</b><div class="bar"><i id="sBar" style="background:var(--red)"></i></div></div>
+  <div class="g">Salt <b id="saltOut">not yet</b></div>
+  <div class="g">Dice <b id="diceOut">—</b></div>
+  <div class="g muted" id="scoreNow">Score if served now: —</div>
+</div>
+<div class="hud" id="board">
+  <b>Leaderboard</b> <span class="muted" id="rounds"></span>
+  <ol id="top"><li class="muted">no rounds yet</li></ol>
+  <div class="muted" id="aiLine"></div>
+  <button id="aiBtn" type="button" style="margin-top:.5rem;width:100%">▶ Watch the AI chef</button>
+</div>
+<div class="hud" id="caption"></div>
+<div class="hud" id="controls">
+  <button class="hot" id="startBtn" type="button">Start (Space)</button>
+  <button id="downBtn" type="button" disabled>− heat (←)</button>
+  <span id="heatOut">5</span>
+  <button id="upBtn" type="button" disabled>+ heat (→)</button>
+  <button id="saltBtn" type="button" disabled>Salt (S)</button>
+  <button id="waterBtn" type="button" disabled>Splash water (W)</button>
+  <button class="hot" id="serveBtn" type="button" disabled>Serve (Enter)</button>
+</div>
+<div class="hud" id="result">
+  <h2 id="resTitle">Served!</h2>
+  <div class="big" id="resScore">0</div>
+  <p id="resParts" class="muted"></p>
+  <p><input id="name" maxlength="24" placeholder="your name"> <button class="hot" id="saveBtn" type="button">Save to dataset</button></p>
+  <p class="muted" id="saveNote">Saved rounds train the AI chef's world model.</p>
+  <button id="againBtn" type="button">Play again</button>
+</div>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+const $ = id => document.getElementById(id);
+
+// ---------- Game rules: line-for-line port of chef/physics.py ----------
+const DT = 5, TIME_LIMIT = 600, TARGET = 0.30, MAX_COLOR = 0.45, TIME_SCALE = 10;
+const r4 = v => Math.round(v * 1e4) / 1e4;
+const scorchRate = (heat, cut) => 0.0006 * Math.pow(Math.max(0, heat - (5.5 - 4 * cut)), 1.5) * (1 + 2 * cut);
+function newState() {
+  return { color: 0.05, moisture: 1.0, heat: 5, salted: false, salted_wet: false,
+           cut_cv: Math.round((0.05 + Math.random() * 0.3) * 1000) / 1000, scorch: 0 };
+}
+function tick(s, heat, salt, water) {   // physics.tick
+  const o = { ...s, heat: Math.min(9, Math.max(1, heat)) };
+  if (salt && !o.salted) { o.salted = true; o.salted_wet = o.moisture > 0.6; }
+  if (water) { o.moisture = Math.min(1, o.moisture + 0.25); o.color = Math.max(0, o.color - 0.03); }
+  o.scorch += DT * scorchRate(o.heat, o.cut_cv);
+  const brownBelow = o.salted_wet ? 0.35 : 0.45;   // livecoach/onion.py simulate()
+  for (let i = 0; i < DT; i++) {
+    o.moisture = Math.max(0, o.moisture - 0.00025 * o.heat);
+    if (o.moisture > brownBelow) o.color += 0.0008 * o.heat * Math.max(0, 0.30 - o.color) / 0.30;
+    else o.color += 0.00018 * Math.pow(Math.max(0, o.heat - 2), 1.5) * (1 + o.cut_cv);
+  }
+  o.color = r4(Math.min(1, o.color)); o.moisture = r4(o.moisture); o.scorch = r4(o.scorch);
+  return o;
+}
+function score(s, t) {                  // physics.score
+  let q = Math.max(0, 1 - Math.abs(s.color - TARGET) / TARGET) * 100;
+  if (s.color > MAX_COLOR) q *= 0.3;
+  q *= Math.max(0, 1 - s.scorch);
+  const salt = s.salted ? (s.salted_wet ? 10 : 0) : -15;
+  return { total: Math.round((q + salt - t / 30) * 10) / 10, quality: Math.round(q * 10) / 10, salt, time: Math.round(-t / 3) / 10 };
+}
+
+// ---------- Scene ----------
+const canvas = $("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x14100b);
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 5.2, 5.4);
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 1.1, 0); controls.maxPolarAngle = Math.PI * 0.45; controls.minDistance = 3; controls.maxDistance = 12;
+scene.add(new THREE.HemisphereLight(0xfff2dd, 0x2a1f14, 0.9));
+const key = new THREE.DirectionalLight(0xffe2b8, 1.6); key.position.set(3, 7, 4); key.castShadow = true; scene.add(key);
+const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, ...o });
+const counter = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 3.2), mat(0x8a5f3a)); counter.position.y = 0.5; counter.receiveShadow = true; scene.add(counter);
+const stove = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.25, 2.2), mat(0x9aa2ad, { metalness: 0.8, roughness: 0.3 })); stove.position.y = 1.12; scene.add(stove);
+const pan = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.05, 0.28, 40, 1, true), mat(0x2b2b2e, { metalness: 0.6, side: THREE.DoubleSide }));
+pan.position.y = 1.42; pan.castShadow = true; scene.add(pan);
+const panBase = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.04, 40), mat(0x232326, { metalness: 0.6 })); panBase.position.y = 1.29; scene.add(panBase);
+const handle = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.16), mat(0x1c1c1e)); handle.position.set(1.9, 1.5, 0); scene.add(handle);
+const flames = [], LOW_FLAME = new THREE.Color(0x4f8cff), HIGH_FLAME = new THREE.Color(0xff7a1a);
+for (let i = 0; i < 12; i++) {
+  const f = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.3, 8), new THREE.MeshBasicMaterial({ color: 0x4f8cff, transparent: true, opacity: 0.85 }));
+  const a = i / 12 * Math.PI * 2; f.position.set(Math.cos(a) * 0.75, 1.27, Math.sin(a) * 0.75); scene.add(f); flames.push(f);
+}
+// onion pieces: size spread follows the dice evenness; small pieces brown and scorch first
+const N = 70, pieceGeo = new THREE.BoxGeometry(1, 1, 1);
+const pieces = new THREE.InstancedMesh(pieceGeo, mat(0xffffff, { roughness: 0.5 }), N); pieces.castShadow = true; scene.add(pieces);
+const pieceSize = Array.from({ length: N }, () => Math.random() * 2 - 1);  // -1 small ... +1 large
+const piecePos = Array.from({ length: N }, () => { const r = Math.sqrt(Math.random()) * 0.92, a = Math.random() * Math.PI * 2; return [Math.cos(a) * r, Math.sin(a) * r, Math.random() * Math.PI]; });
+const STOPS = [[0, 0xf4f0e4], [0.3, 0xeadfa8], [0.6, 0xd9a441], [0.8, 0x8a5a2b], [1, 0x1a1410]].map(([v, c]) => [v, new THREE.Color(c)]);
+function ramp(v) {
+  v = Math.min(1, Math.max(0, v));
+  for (let i = 1; i < STOPS.length; i++) if (v <= STOPS[i][0]) {
+    const [a, ca] = STOPS[i - 1], [b, cb] = STOPS[i];
+    return ca.clone().lerp(cb, (v - a) / (b - a));
+  }
+  return STOPS.at(-1)[1].clone();
+}
+const m4 = new THREE.Matrix4(), q4 = new THREE.Quaternion(), e4 = new THREE.Euler();
+function drawPieces(s) {
+  const ranked = pieceSize.map((f, i) => [f, i]).sort((x, y) => x[0] - y[0]);
+  const scorched = new Set(ranked.slice(0, Math.round(Math.min(1, s.scorch * 1.5) * N)).map(x => x[1]));
+  for (let i = 0; i < N; i++) {
+    const f = pieceSize[i], size = 0.13 * (1 + 2.2 * s.cut_cv * f), [x, z, rot] = piecePos[i];
+    e4.set(rot, rot * 0.7, 0); q4.setFromEuler(e4);
+    m4.compose(new THREE.Vector3(x, 1.36 + size / 2, z), q4, new THREE.Vector3(size, size * 0.8, size));
+    pieces.setMatrixAt(i, m4);
+    const c = s.color + (s.color > 0.25 ? -f * s.cut_cv * 0.25 : 0);
+    pieces.setColorAt(i, scorched.has(i) ? new THREE.Color(0x15110d) : ramp(c));
+  }
+  pieces.instanceMatrix.needsUpdate = true; pieces.instanceColor.needsUpdate = true;
+}
+function puffs(color, n) {
+  const g = new THREE.BufferGeometry(), p = new Float32Array(n * 3);
+  g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ color, size: 0.12, transparent: true, opacity: 0.6, depthWrite: false }));
+  pts.userData = { life: new Float32Array(n).fill(-1), n }; scene.add(pts); return pts;
+}
+const steam = puffs(0xffffff, 80), smoke = puffs(0x2a2622, 60);
+function emit(pts, rate, dt) {
+  const u = pts.userData, p = pts.geometry.attributes.position.array;
+  for (let i = 0; i < u.n; i++) {
+    if (u.life[i] < 0) { if (Math.random() < rate * dt) { u.life[i] = 0; p[i*3] = (Math.random()-.5)*1.6; p[i*3+1] = 1.5; p[i*3+2] = (Math.random()-.5)*1.6; } else { p[i*3+1] = -10; } continue; }
+    u.life[i] += dt; p[i*3+1] += dt * 0.9; p[i*3] += Math.sin(u.life[i] * 3 + i) * dt * 0.2;
+    if (u.life[i] > 2) u.life[i] = -1;
+  }
+  pts.geometry.attributes.position.needsUpdate = true;
+}
+
+// ---------- Game loop + logging ----------
+let s = newState(), t = 0, mode = "idle", acc = 0, transitions = [], pending = { heat: 5, salt: false, water: false };
+let replay = null, last = performance.now(), lastSaved = null;
+function hud() {
+  $("tOut").textContent = `${t} s / ${TIME_LIMIT}`;
+  $("cOut").textContent = s.color.toFixed(2); $("cBar").style.width = `${s.color * 100}%`;
+  $("mOut").textContent = s.moisture.toFixed(2); $("mBar").style.width = `${s.moisture * 100}%`;
+  $("sOut").textContent = s.scorch.toFixed(2); $("sBar").style.width = `${Math.min(1, s.scorch) * 100}%`;
+  $("saltOut").textContent = s.salted ? (s.salted_wet ? "in, while wet ✓" : "in, but late") : "not yet";
+  $("diceOut").textContent = s.cut_cv < 0.15 ? "even" : s.cut_cv < 0.25 ? "a bit uneven" : "uneven — watch the heat";
+  $("heatOut").textContent = mode === "replay" ? s.heat : pending.heat;
+  $("scoreNow").textContent = `Score if served now: ${score(s, t).total}`;
+  drawPieces(s);
+}
+function setButtons(on) { for (const id of ["downBtn", "upBtn", "saltBtn", "waterBtn", "serveBtn"]) $(id).disabled = !on; $("startBtn").disabled = on; }
+function start() {
+  replay = null; s = newState(); t = 0; acc = 0; transitions = []; pending = { heat: 5, salt: false, water: false };
+  mode = "play"; setButtons(true); $("result").style.display = "none"; $("caption").style.display = "none"; hud();
+}
+function stepGame() {   // one logged transition, exactly as chef/physics.tick
+  const before = s, a = { heat: pending.heat, salt: pending.salt, water: pending.water };
+  s = tick(s, a.heat, a.salt, a.water);
+  transitions.push({ t, s: before, a, s2: s });
+  pending.salt = false; pending.water = false; t += DT;
+  if (t >= TIME_LIMIT) serve();
+}
+function serve() {
+  if (mode !== "play") return;
+  mode = "done"; setButtons(false);
+  const sc = score(s, t);
+  $("resTitle").textContent = s.scorch > 0.3 ? "Scorched…" : s.color > MAX_COLOR ? "Browned — wrong dish" : s.color < 0.2 ? "Still raw" : "Served!";
+  $("resScore").textContent = sc.total;
+  $("resParts").textContent = `quality ${sc.quality} · salt ${sc.salt >= 0 ? "+" : ""}${sc.salt} · time ${sc.time} (${t} s, ${transitions.length} logged steps)`;
+  $("saveBtn").disabled = false; $("saveNote").textContent = "Saved rounds train the AI chef's world model.";
+  $("result").style.display = "block";
+}
+async function save() {
+  $("saveBtn").disabled = true;
+  const body = { player: $("name").value || "player", transitions, final: { t, state: s } };
+  try {
+    const r = await fetch("/api/episodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    $("saveNote").textContent = `Saved to the dataset (${d.leaderboard.human_rounds} human rounds so far).`;
+    showBoard(d.leaderboard);
+  } catch (e) {
+    $("saveNote").textContent = "Couldn't save: " + (location.protocol === "file:" ? "open this page via python3 serve.py" : e.message);
+    $("saveBtn").disabled = false;
+  }
+}
+function showBoard(b) {
+  $("rounds").textContent = `(${b.human_rounds} human rounds)`;
+  $("top").innerHTML = b.top.length ? b.top.map(r => `<li>${r.player.replace(/[<>&]/g, "")} — <b>${r.score}</b></li>`).join("") : `<li class="muted">no rounds yet — be the first</li>`;
+  $("aiLine").textContent = b.ai ? `AI chef average: ${b.ai.mean} (trained on ${b.ai.trained_on.human_rounds} human + ${b.ai.trained_on.synthetic_rounds} synthetic rounds)` : "AI chef not trained yet.";
+}
+async function watchAI() {
+  try {
+    const d = await (await fetch("ai_chef_runs.json")).json();
+    watchAI.i = ((watchAI.i ?? -1) + 1) % d.runs.length;
+    const run = d.runs[watchAI.i];
+    replay = { run, k: 0, acc: 0 }; mode = "replay"; setButtons(false); $("startBtn").disabled = false;
+    $("result").style.display = "none"; s = run.transitions[0].s; t = 0; hud();
+    $("caption").style.display = "block"; $("caption").textContent = "AI chef cooking…";
+  } catch (e) { $("aiLine").textContent = "No AI chef runs yet: run python3 -m chef evaluate"; }
+}
+function stepReplay() {
+  const tr = replay.run.transitions[replay.k++];
+  if (!tr) {
+    const f = replay.run.final;
+    $("caption").textContent = `AI chef served at ${f.t} s — score ${f.score.total} (colour ${f.state.color.toFixed(2)}, scorch ${f.state.scorch.toFixed(2)})`;
+    mode = "idle"; replay = null; return;
+  }
+  const a = tr.a, acts = [`heat ${a.heat}`, a.salt && "salt", a.water && "water"].filter(Boolean);
+  s = tr.s2; t = tr.t + DT;
+  $("caption").textContent = `AI chef · ${t} s · ${acts.join(" + ")} · dice ${tr.s.cut_cv < 0.15 ? "even" : "uneven"}`;
+}
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (mode === "play") { acc += dt * TIME_SCALE; while (acc >= DT && mode === "play") { acc -= DT; stepGame(); } hud(); }
+  if (mode === "replay") { replay.acc += dt * TIME_SCALE; while (replay && replay.acc >= DT) { replay.acc -= DT; stepReplay(); } hud(); }
+  const h = mode === "replay" ? s.heat : pending.heat;
+  flames.forEach((f, i) => { f.scale.setScalar(0.4 + h / 9 * (0.9 + 0.2 * Math.sin(now / 80 + i))); f.material.color.copy(LOW_FLAME).lerp(HIGH_FLAME, Math.max(0, (h - 6) / 3)); });  // gas stays blue, roars orange
+  emit(steam, mode === "idle" ? 0 : s.moisture * h * 0.6, dt);
+  emit(smoke, (s.color > MAX_COLOR || s.scorch > 0.02) ? 6 + s.scorch * 20 : 0, dt);
+  controls.update(); renderer.render(scene, camera); requestAnimationFrame(frame);
+}
+// ---------- Input ----------
+const heatBy = d => { if (mode === "play") { pending.heat = Math.min(9, Math.max(1, pending.heat + d)); hud(); } };
+$("startBtn").onclick = start; $("downBtn").onclick = () => heatBy(-1); $("upBtn").onclick = () => heatBy(1);
+$("saltBtn").onclick = () => { if (mode === "play" && !s.salted) pending.salt = true; };
+$("waterBtn").onclick = () => { if (mode === "play") pending.water = true; };
+$("serveBtn").onclick = serve; $("saveBtn").onclick = save; $("againBtn").onclick = start; $("aiBtn").onclick = watchAI;
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowLeft" || e.key === "a") heatBy(-1);
+  else if (e.key === "ArrowRight" || e.key === "d") heatBy(1);
+  else if (e.key === "s") $("saltBtn").onclick();
+  else if (e.key === "w") $("waterBtn").onclick();
+  else if (e.key === "Enter") serve();
+  else if (e.key === " " && mode !== "play") { e.preventDefault(); start(); }
+});
+addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+hud(); requestAnimationFrame(frame);
+fetch("/api/leaderboard").then(r => r.json()).then(showBoard).catch(() => { $("aiLine").textContent = "Open via python3 serve.py to save rounds."; });
+window.__game = { tick, score, newState };   // for the parity test
+</script>
+</body>
+</html>
