@@ -1,11 +1,13 @@
 """Decision policy (plan F01-F07): rules first, then a checkable ranking.
 
 Concerns in the plan's order: feasibility (candidates arrive feasible),
-risk, the current step's goal, teaching value, interruption cost. An
-intervention must clearly beat "keep watching" on the goal to count as
-better there; otherwise the tie goes to teaching a weak skill, and then to
-staying quiet. Every decision records whether it came from a rule, the
-cache or the model, and speaks in one action line plus one reason line.
+risk, the current step's goal, teaching value, interruption cost. When
+keeping watch already stays safely on track, only a right-moment lesson
+may interrupt. Otherwise an intervention must clearly beat "keep watching"
+on the goal to count as better there; ties go to teaching a weak skill,
+then to staying quiet. Every decision records whether it came from a
+rule, the cache or the model, and speaks in one action line plus one
+reason line.
 """
 from __future__ import annotations
 
@@ -39,6 +41,20 @@ def choose(cands: list[Candidate], preds: list[WMPrediction],
     if ask and any("敏感" in a for p in preds for a in p.assumptions):
         return ask  # the missing fact would change the advice: ask instead of guessing
     observe = by_id.get("continue_observe")
+
+    def teach(c: Candidate) -> float:
+        return belief.teaching_value(beliefs, c.skill_id) if c.candidate_id in TEACHABLE else 0.0
+
+    def quiet(c: Candidate) -> int:
+        return 0 if c.kind == "observe" else 1
+
+    def safe_on_track(c: Candidate) -> bool:
+        p = by_id[c.candidate_id]
+        return p.on_track and p.burn_risk < RISK_LIMIT
+
+    if observe is not None and safe_on_track(next(c for c in cands if c.kind == "observe")):
+        # keeping watch already works: only a right-moment lesson that stays on track may interrupt
+        return min((c for c in cands if safe_on_track(c)), key=lambda c: (-teach(c), quiet(c)))
     base_gap = observe.target_gap if observe else 1.0
 
     def key(c: Candidate):
@@ -46,8 +62,7 @@ def choose(cands: list[Candidate], preds: list[WMPrediction],
         gap = p.target_gap
         if c.kind != "observe" and abs(gap - base_gap) < GAP_MARGIN:
             gap = base_gap  # not clearly better or worse than leaving it alone
-        teach = belief.teaching_value(beliefs, c.skill_id) if c.candidate_id in TEACHABLE else 0.0
-        return (p.burn_risk >= RISK_LIMIT, round(gap / 0.05), -teach, 0 if c.kind == "observe" else 1)
+        return (p.burn_risk >= RISK_LIMIT, round(gap / 0.05), -teach(c), quiet(c))
 
     return min(cands, key=key)
 

@@ -39,10 +39,18 @@ def _feasibility(cid: str, state: KitchenState, step: dict) -> str | None:
             return "洋蔥還沒下鍋"
         if step.get("salt") == "late" and target and (color is None or color < target["color"] - 0.15):
             return "這道要上色後再加鹽，太早加會延後焦糖化"
-    if cid == "ask_heat_level" and known(state, "heat_level") is not None:
-        return "火力已知"
-    if cid == "advance_step" and recipes.next_step_id(state.recipe_id, state.step_id) is None:
-        return "已是最後一步"
+    if cid == "ask_heat_level":
+        if not in_pan:
+            return "還沒開始炒"
+        if known(state, "heat_level") is not None:
+            return "火力已知"
+    if cid == "advance_step":
+        nxt = recipes.next_step_id(state.recipe_id, state.step_id)
+        if nxt is None:
+            return "已是最後一步"
+        limit, heat = recipes.step(state.recipe_id, nxt).get("max_heat_on_entry"), known(state, "heat_level")
+        if limit is not None and heat is not None and float(heat) > limit:
+            return recipes.step(state.recipe_id, nxt).get("why_max_heat", "下一步需要較小的火")
     return None
 
 

@@ -107,6 +107,7 @@ class WMPrediction(BaseModel):
     alternative_outcome: str
     burn_risk: float                 # 0..1
     target_gap: float                # 0..1 distance from the step's target state
+    on_track: bool = True            # this move keeps the dish on a good path to the target
     confidence: Literal["low", "medium", "high"]  # rubric, not a calibrated probability
     predicted_skill_effect: str
     assumptions: list[str] = Field(default_factory=list)

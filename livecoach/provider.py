@@ -96,10 +96,23 @@ class MockProvider:
                 primary_outcome=f"{horizon_s} 秒後{onion.describe(after)}",
                 alternative_outcome="火力若比假設大，會更快上色甚至焦掉" if sensitive else "大致如預測",
                 burn_risk=round(onion.burn_risk(after), 3), target_gap=round(target_gap(after, step), 3),
+                on_track=self._on_track(c.candidate_id, base, after, step),
                 confidence="high" if (c.kind == "ask" and sensitive) else conf,
                 predicted_skill_effect=SKILL_EFFECT.get(c.candidate_id, ""),
                 assumptions=notes + (["結果對火力很敏感"] if sensitive else [])))
         return out
+
+    @staticmethod
+    def _on_track(cid: str, base: onion.Onion, after: onion.Onion, step: dict) -> bool:
+        """Trajectory only (risk is the policy's call): no overshoot, not stalled."""
+        t = step.get("target")
+        if not t:
+            return True
+        if cid == "advance_step":  # moving on is only right once the target is reached
+            return t["color"] - 0.05 <= after.color <= t["max_color"]
+        if after.color > t["max_color"]:
+            return False
+        return after.color >= t["color"] - 0.05 or after.color - base.color >= 0.02
 
     def _prep_prediction(self, state, c, horizon_s) -> WMPrediction:
         uneven = known(state, "cut_uniformity") == "uneven"
@@ -107,8 +120,8 @@ class MockProvider:
         return WMPrediction(
             candidate_id=c.candidate_id, horizon_s=horizon_s,
             primary_outcome="大小一致，下鍋後熟度平均" if gap == 0 else "大小不一，下鍋後小塊會先焦",
-            alternative_outcome="", burn_risk=0.0, target_gap=gap, confidence="high",
-            predicted_skill_effect=SKILL_EFFECT.get(c.candidate_id, ""))
+            alternative_outcome="", burn_risk=0.0, target_gap=gap, on_track=gap == 0,
+            confidence="high", predicted_skill_effect=SKILL_EFFECT.get(c.candidate_id, ""))
 
     def direct_decide(self, state: KitchenState) -> str:
         """B0 stand-in: one shot, no candidates, no world model, no memory.
@@ -171,11 +184,13 @@ class MetaProvider:
         ids = [c.candidate_id for c in cands]
         item = {"type": "object", "additionalProperties": False,
                 "required": ["candidate_id", "primary_outcome", "alternative_outcome", "burn_risk",
-                             "target_gap", "confidence", "predicted_skill_effect", "assumptions"],
+                             "target_gap", "on_track", "confidence", "predicted_skill_effect",
+                             "assumptions"],
                 "properties": {"candidate_id": {"type": "string", "enum": ids},
                                "primary_outcome": {"type": "string"},
                                "alternative_outcome": {"type": "string"},
                                "burn_risk": {"type": "number"}, "target_gap": {"type": "number"},
+                               "on_track": {"type": "boolean"},
                                "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
                                "predicted_skill_effect": {"type": "string"},
                                "assumptions": {"type": "array", "items": {"type": "string"}}}}
@@ -183,8 +198,9 @@ class MetaProvider:
                   "properties": {"predictions": {"type": "array", "items": item}}}
         system = ("You are the world model of a real-time cooking coach. For EACH candidate next move, "
                   f"predict the pan {horizon_s} seconds later if the cook does it. Facts marked unknown or "
-                  "conflict are not known: state the assumption you make. burn_risk and target_gap are 0-1. "
-                  "Answer in Traditional Chinese.")
+                  "conflict are not known: state the assumption you make. burn_risk and target_gap are 0-1; "
+                  "on_track is true when the move keeps the dish heading to this step's target without "
+                  "overshooting or stalling. Answer in Traditional Chinese.")
         user = json.dumps({"recipe": state.recipe_id, "step": step, "facts": json.loads(self._facts(state)),
                            "skill_levels": {k: beliefs[k].level.value for k in step["skills"]},
                            "candidates": [c.model_dump() for c in cands]}, ensure_ascii=False)
