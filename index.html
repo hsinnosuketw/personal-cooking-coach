@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World-Model Coach — Interactive Experiment</title>
+<style>
+:root{
+  --ink:#182420; --ink2:#3d4a44; --bg:#eef2ec; --card:#ffffff;
+  --teal:#0e7c7b; --teal-d:#095e5d; --orange:#e4572e; --orange-d:#b23c1a;
+  --gold:#e9a13b; --red:#c93a2e; --line:#d4ddd2; --soft:#e3ece1;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Avenir Next","Trebuchet MS",Verdana,sans-serif;line-height:1.55}
+h1,h2,h3{font-family:"Iowan Old Style",Palatino,Georgia,serif;line-height:1.15;margin:0 0 .5rem}
+h2{font-size:1.65rem} h3{font-size:1.12rem}
+p{margin:.4rem 0 .8rem} a{color:var(--teal-d)}
+header.top{position:sticky;top:0;z-index:20;background:#14231f;color:#f2f5ef;
+  padding:.55rem 1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+header.top b{font-family:Palatino,Georgia,serif;font-size:1.05rem}
+header.top nav{display:flex;gap:.9rem;flex-wrap:wrap;font-size:.86rem}
+header.top nav a{color:#cfe3d8;text-decoration:none}
+header.top nav a:hover{color:#fff;text-decoration:underline}
+.wrap{max-width:1120px;margin:0 auto;padding:0 1rem 3rem}
+.hero{background:#14231f;color:#f4f7f1;margin:0 -1rem;padding:2.2rem 1rem 1.6rem}
+.hero h1{font-size:2.3rem;max-width:22ch}
+.hero p.lede{font-size:1.08rem;max-width:68ch;color:#d8e4da}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.7rem;margin:1.1rem 0 .4rem}
+.vcard{background:#1d332b;border:1px solid #355447;padding:.8rem .9rem;border-radius:var(--radius)}
+.vcard .num{font-size:1.7rem;font-weight:700;font-family:Palatino,Georgia,serif}
+.vcard .lab{font-size:.85rem;color:#c8d8cc}
+.num.a{color:#7fd1ae}.num.b{color:#ffb38a}.num.o{color:#e9c46a}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:1.3rem 1.3rem 1.1rem;margin:1.1rem 0}
+section.plain{background:transparent;border:none;padding:.4rem 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem 1.1rem;
+  background:var(--soft);padding:1rem;border-radius:var(--radius);margin:.8rem 0}
+.controls label{font-size:.86rem;font-weight:600;display:block}
+.controls output{font-weight:700;color:var(--orange-d)}
+input[type=range]{width:100%;accent-color:var(--orange)}
+select,input[type=number]{width:100%;padding:.35rem;border:1px solid var(--line);border-radius:6px;background:#fff}
+.btnrow{display:flex;gap:.55rem;flex-wrap:wrap;margin:.7rem 0}
+button{font:inherit;font-weight:700;cursor:pointer;border-radius:8px;padding:.5rem 1rem;
+  border:2px solid var(--ink);background:var(--ink);color:#fff}
+button.alt{background:#fff;color:var(--ink)}
+button.hot{background:var(--orange);border-color:var(--orange-d)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+canvas{width:100%;height:auto;display:block;background:#fbfdfb;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.6rem 0}
+th,td{border:1px solid var(--line);padding:.38rem .55rem;text-align:left}
+th{background:var(--soft)}
+.legend{display:flex;gap:1.1rem;flex-wrap:wrap;font-size:.88rem;margin:.45rem 0}
+.dot{display:inline-block;width:.72rem;height:.72rem;border-radius:50%;margin-right:.35rem}
+.chips{display:flex;flex-wrap:wrap;gap:.3rem;margin:.4rem 0}
+.chip{font-size:.72rem;font-weight:700;padding:.18rem .45rem;border-radius:999px;border:1px solid var(--line);background:#fff}
+.chip.drill{background:#dcefe8}.chip.easy{background:#fdf0d5}.chip.stretch{background:#fbd9cd}
+.bar-row{display:grid;grid-template-columns:86px 1fr 52px;gap:.5rem;align-items:center;font-size:.85rem;margin:.3rem 0}
+.bar-track{background:var(--soft);height:14px;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%}
+pre{background:#14231f;color:#e6f0e4;padding:1rem;border-radius:8px;overflow:auto;font-size:.8rem;line-height:1.45}
+code{font-family:ui-monospace,Menlo,Consolas,monospace}
+p code,li code{background:var(--soft);padding:.05rem .3rem;border-radius:4px;font-size:.86em}
+.chatlog{border:1px solid var(--line);border-radius:8px;padding:.9rem;background:#fbfdfb;min-height:120px}
+.msg{margin:.55rem 0}.msg b.who{font-size:.78rem;color:var(--ink2)}
+.msg .bubble{display:block;padding:.5rem .7rem;border-radius:8px;margin-top:.15rem}
+.msg.coach .bubble{background:#dcefe8}.msg.learner .bubble{background:#fdf0d5}
+.msg.sys .bubble{background:#f3e2da;font-family:ui-monospace,Menlo,monospace;font-size:.76rem}
+.note{background:#fdf6e3;border:1px solid #ecd9a0;border-radius:8px;padding:.7rem .9rem;font-size:.92rem}
+.bad{background:#fdeceb;border-color:#f0b8b2}
+.statline{font-size:1.02rem}.big{font-size:1.35rem;font-weight:800}
+footer{color:var(--ink2);font-size:.86rem;padding:1rem 0 2rem}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+.tablist{display:flex;flex-wrap:wrap;gap:.5rem;margin:.8rem 0}
+.tab{border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;
+  padding:.42rem .9rem;font-weight:700;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tabpanel{border:1px solid var(--line);border-radius:12px;padding:1rem;background:#fbfdfb}
+.model-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem;margin:.8rem 0}
+.model-card{border:1px solid var(--line);border-radius:12px;padding:.9rem;background:#fff}
+.model-card h3{display:flex;align-items:center;gap:.55rem;margin-bottom:.35rem}
+.icon{width:44px;height:44px;flex:0 0 auto}
+.flow{list-style:none;margin:.55rem 0;padding:0;display:grid;gap:.35rem}
+.flow li{display:grid;grid-template-columns:92px 1fr;gap:.55rem;align-items:start;font-size:.9rem}
+.flow b.tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2)}
+.split{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:1rem;align-items:start}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.math-card,.stage-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:1rem}
+.math-step{border-left:5px solid var(--soft);padding:.55rem .7rem;margin:.6rem 0;background:#fbfdfb;border-radius:0 8px 8px 0}
+.math-step h4{margin:0 0 .3rem;font-size:.95rem}
+.math-step p{margin:.25rem 0;font-size:.9rem}
+.formula{display:block;overflow-x:auto;background:#14231f;color:#e6f0e4;border-radius:8px;padding:.55rem .7rem;font-size:.84rem}
+.numgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.45rem;margin-top:.45rem}
+.numgrid div{background:var(--soft);border-radius:8px;padding:.4rem .55rem;font-size:.82rem}
+.stage{position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(180deg,#ffffff,#eef5ef);min-height:340px;padding:1rem}
+.scene{display:none;gap:.8rem}
+.scene.active{display:grid}
+.scene svg.scene-art{width:100%;height:auto;max-height:300px}
+.caption{font-size:.9rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem}
+.session-advance{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.7rem 0}
+.session-advance output{font-weight:800}
+.fx-reel{animation:reel .9s ease-in-out}
+@keyframes reel{0%{transform:translateY(-24px)}50%{transform:translateY(10px)}100%{transform:translateY(0)}}
+.fx-lever{transform-box:fill-box;transform-origin:50% 90%;animation:lever 1s ease-in-out}
+@keyframes lever{0%{transform:rotate(0)}35%{transform:rotate(28deg)}100%{transform:rotate(0)}}
+.fx-scan{animation:scan 2.2s linear infinite}
+@keyframes scan{0%{transform:translateX(-30px);opacity:.25}50%{transform:translateX(30px);opacity:1}100%{transform:translateX(-30px);opacity:.25}}
+.fx-breathe{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+.fx-pulse-dot{animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.fx-sway{animation:sway 3s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+@media (prefers-reduced-motion: reduce){
+  .fx-reel,.fx-lever,.fx-scan,.fx-breathe,.fx-pulse-dot,.fx-sway{animation:none}
+}
+.arms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.45rem;margin-top:.55rem}
+.arm{border:1px solid var(--line);border-radius:8px;background:#fff;padding:.4rem;font-size:.72rem;text-align:center}
+.arm .bar-track{height:8px;margin:.35rem 0}
+.arm.selected{border-color:var(--orange-d);box-shadow:inset 0 0 0 2px var(--orange)}
+.arm.pulled .bar-fill{animation:reel .7s ease-in-out}
+.plan-path{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
+.belief3{display:grid;gap:.3rem;margin:.45rem 0;font-size:.82rem}
+.belief3 .row{display:grid;grid-template-columns:52px 1fr 76px;gap:.45rem;align-items:center}
+.lockbar{height:12px;border-radius:999px;background:var(--soft);overflow:hidden}
+.lockbar > div{height:100%;background:linear-gradient(90deg,var(--gold),var(--orange))}
+.scanline{height:6px;border-radius:999px;background:linear-gradient(90deg,transparent,#7a8b74,transparent);margin:.45rem 0}
+.tab svg.icon{width:30px;height:30px}
+.demo-tag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.04em;color:var(--teal-d);
+  background:#dcefe8;border:1px solid var(--line);border-radius:999px;padding:.12rem .55rem;margin-right:.4rem}
+.purpose{border-left:5px solid var(--orange);padding:.65rem .8rem;background:#fff;border-radius:0 10px 10px 0}
+.glossary{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.6rem;margin:.7rem 0}
+.glossary div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.6rem .7rem;font-size:.88rem}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-slot" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="14" width="36" height="38" rx="6"/><line x1="18" y1="26" x2="18" y2="42"/><line x1="28" y1="26" x2="28" y2="42"/><line x1="38" y1="26" x2="38" y2="42"/><circle cx="18" cy="34" r="3"/><circle cx="28" cy="30" r="3"/><circle cx="38" cy="38" r="3"/><path d="M46 20h6v22"/><circle cx="54" cy="20" r="4"/></g></symbol>
+<symbol id="i-ledger" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><rect x="12" y="8" width="40" height="48" rx="5"/><line x1="12" y1="22" x2="52" y2="22"/><line x1="20" y1="32" x2="44" y2="32"/><line x1="20" y1="41" x2="44" y2="41"/><line x1="20" y1="50" x2="36" y2="50"/></g></symbol>
+<symbol id="i-coach" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="12" width="28" height="40" rx="4"/><rect x="25" y="6" width="14" height="8" rx="2"/><line x1="25" y1="26" x2="39" y2="26"/><line x1="25" y1="34" x2="39" y2="34"/><path d="M50 44a6 6 0 1 0 1 8l5 4-2-6 3-2z"/></g></symbol>
+<symbol id="i-athlete" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="14" r="6"/><path d="M32 22v18M22 30h20M24 58l8-18 8 18"/><path d="M10 52h10M44 52h10"/></g></symbol>
+<symbol id="i-fog" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><rect x="8" y="12" width="48" height="32" rx="6"/><circle cx="23" cy="26" r="1.5" fill="currentColor"/><circle cx="32" cy="24" r="1.5" fill="currentColor"/><circle cx="41" cy="27" r="1.5" fill="currentColor"/><circle cx="27" cy="33" r="1.5" fill="currentColor"/><circle cx="37" cy="34" r="1.5" fill="currentColor"/><path d="M18 52h28"/></g></symbol>
+<symbol id="i-simulator" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="10" width="48" height="28" rx="5"/><path d="M20 22l8-6 8 6-8 6z"/><circle cx="44" cy="24" r="3"/><path d="M28 38v10M20 52h24"/><circle cx="28" cy="42" r="3"/></g></symbol>
+<symbol id="i-planner" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="32" cy="12" r="5"/><circle cx="16" cy="38" r="5"/><circle cx="32" cy="52" r="5"/><circle cx="48" cy="38" r="5"/><path d="M29 17L19 33M35 17l10 16M20 41l9 8M44 41l-9 8"/></g></symbol>
+<symbol id="i-dials" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="18" cy="34" r="9"/><circle cx="46" cy="34" r="9"/><path d="M18 34l5-6M46 34l-5-7M10 14h12M42 14h12"/></g></symbol>
+<symbol id="i-gate" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="44" height="44" rx="5"/><path d="M32 10v44"/><circle cx="27" cy="32" r="2.5" fill="currentColor"/><path d="M36 26l8 6-8 6"/></g></symbol>
+<symbol id="i-sponge" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="30" width="40" height="20" rx="6"/><path d="M20 24c0-4 6-4 6-8M32 24c0-4 6-4 6-8M44 24c0-4 6-4 6-8"/><circle cx="24" cy="40" r="1.6" fill="currentColor"/><circle cx="34" cy="39" r="1.6" fill="currentColor"/><circle cx="42" cy="41" r="1.6" fill="currentColor"/></g></symbol>
+<symbol id="i-xray" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M8 28c8-7 16-7 24 0 8-7 16-7 24 0"/><circle cx="20" cy="28" r="8"/><circle cx="44" cy="28" r="8"/><path d="M18 46h8M24 42v8M40 46h8M46 42v8"/></g></symbol>
+<symbol id="i-drift" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 34h36v6a18 8 0 0 1-36 0z"/><path d="M26 34c-2-5 2-7 0-12 4 3 5 7 4 12 3-2 4-6 3-10 4 4 4 9 1 12"/></g></symbol>
+<symbol id="i-session" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><rect x="12" y="14" width="40" height="38" rx="6"/><line x1="12" y1="26" x2="52" y2="26"/><path d="M24 8v8M40 8v8"/><circle cx="32" cy="40" r="6"/><path d="M32 40v-4l3 2"/></g></symbol>
+</defs>
+</svg>
+<header class="top">
+  <b>World-Model Coach</b>
+  <nav>
+    <a href="#about">About this site</a><a href="#setup">Training setup</a><a href="#race">Live race</a><a href="#internals">Model internals</a><a href="#conclusion">Conclusion</a>
+    <a href="#chat">Conversation</a><a href="#code">Code</a><a href="#roadmap">Build on it</a>
+  </nav>
+</header>
+<div class="wrap">
+<div class="hero">
+  <h1>Cooking learning through models</h1>
+  <p class="lede">This page follows one simulated cooking learner across 40 practice sessions. Two cooking-coaching methods choose each session’s practice. Charts and session panels update live from the same equations as <code>benchmark.py</code>.</p>
+  <p class="lede">Start with <a href="#about" style="color:#fff">About this site</a>, then <a href="#setup" style="color:#fff">Training setup</a>.</p>
+</div>
+</div>
+
+<div class="wrap">
+<section id="about" class="tabpanel" role="region" aria-label="About this website">
+  <h2>About this website: what you are looking at</h2>
+  <p>This page follows one simulated cooking learner across 40 practice sessions. Two cooking-coaching methods choose each session’s practice. The Model internals section shows session arithmetic on the left and a matching animated demonstration on the right.</p>
+  <div class="purpose"><b>Purpose:</b> both cooking-coaching methods make automation of cooking procedures learnable through models and sequences of practice. Each session changes the learner, so the next best assignment depends on that history.</div>
+  <div class="glossary">
+    <div><b>Cooking coaching:</b> choosing practice across many sessions for knife, heat, and timing skills.</div>
+    <div><b>Model:</b> the program’s current picture of the learner, including estimated skills and learning speed.</div>
+    <div><b>Learning:</b> revising that picture after each noisy observation.</div>
+    <div><b>Readiness:</b> whether prerequisite skills are high enough for a compound recipe to work at full strength.</div>
+    <div><b>Plan ahead:</b> comparing predicted results for the next two sessions before assigning the current session.</div>
+    <div><b>Hidden skills:</b> true skill values used by the simulation; coaches receive noisy observations derived from them.</div>
+  </div>
+  <div class="model-cards">
+    <div class="model-card"><h3><svg class="icon" aria-hidden="true"><use href="#i-session"/></svg>The task</h3><p>Assign the next useful practice task. The learner has hidden knife, heat, and timing skills. Each assignment changes those skills, and the next assignment inherits the result. The 40 sessions form one connected coaching sequence.</p></div>
+    <div class="model-card"><h3><svg class="icon" aria-hidden="true"><use href="#i-athlete"/></svg>The learner</h3><p>True skills stay in <code>[0,1]</code>. Isolated drills practice one skill separately from preparing a complete dish. Compound recipes improve several skills when prerequisites are met. Improvement shrinks as a skill approaches 1. From <code>[0.65,0.15,0.35]</code>, the maximum cumulative gain is 1.85.</p></div>
+    <div class="model-card"><h3><svg class="icon" aria-hidden="true"><use href="#i-fog"/></svg>The scores</h3><p>Coaches receive noisy skill readings and one score jump: observed new-skill total minus previous true-skill total. Noise can make a weak action look strong for one session. Cumulative gain adds true improvement across all three skills.</p></div>
+    <div class="model-card"><h3><svg class="icon" aria-hidden="true"><use href="#i-drift"/></svg>The sessions</h3><p>Session 1–20 establishes the crossover. After session 20, a new stove cuts heat skill to 65% and lowers its learning rate. A coach that revises its model adapts; a coach that keeps old averages lags.</p></div>
+  </div>
+  <table>
+    <tr><th>Model</th><th>Icon</th><th>Input it uses</th><th>Process it runs</th><th>Output it produces</th></tr>
+    <tr><td><b>Bandit A</b></td><td><svg class="icon" aria-hidden="true"><use href="#i-slot"/></svg></td><td>One score number after every session</td><td>Maintains an average score for each action and adds a UCB exploration bonus</td><td>The historically best-scoring action</td></tr>
+    <tr><td><b>World-Model B</b></td><td><svg class="icon" aria-hidden="true"><use href="#i-simulator"/></svg></td><td>Noisy three-skill observation plus the action just taken</td><td>Updates skill beliefs, learning-rate estimates, and prerequisite-gate estimate; searches two sessions ahead</td><td>The first action of the best predicted two-session plan</td></tr>
+    <tr><td><b>Oracle</b></td><td><svg class="icon" aria-hidden="true"><use href="#i-xray"/></svg></td><td>True hidden skills and rates</td><td>Runs the same two-step search with exact inputs</td><td>The optimal plan used as a comparison ceiling</td></tr>
+  </table>
+  <div class="note"><span class="demo-tag">Demonstration images</span>Icons and animations illustrate choices, estimates, and plans. The programs calculate with observations, skill beliefs, rates, gates, and action assignments.</div>
+  <div class="note">The sessions form a connected sequence. Prerequisites unlock compound gains, repetition faces diminishing returns, and drift changes the rules. Bandit A learns average results by action. World-Model B learns current skills, learning speed, and readiness, then chooses an ordered plan.</div>
+</section>
+
+<section id="setup">
+  <h2>Training setup</h2>
+  <p>A simulated cooking learner begins with <b>knife 0.65, heat 0.15, timing 0.35</b>. Each coach receives noisy observations rather than those true values. Each session assigns one practice task; the learner improves with diminishing returns:</p>
+  <p style="text-align:center"><code>s′ = s + α* · w · exp(−6 · prerequisite shortfall) · (1 − s)</code>
+  &nbsp;·&nbsp; <code>observation = true skill + N(0, σ²)</code></p>
+  <div class="grid3">
+    <div><h3>Isolated drills</h3><p><code>knife_drill</code>, <code>heat_drill</code>, and <code>timing_drill</code> practice one skill separately from preparing a complete dish. They carry no prerequisites and give safe, narrow gains.</p></div>
+    <div><h3>Compound recipes</h3><p><code>easy_recipe</code> needs 0.2 everywhere. <code>stretch_recipe</code> needs knife 0.5, heat 0.45, and timing 0.4. When heat is weak, the gate reduces a stretch recipe toward small gains.</p></div>
+    <div><h3>New stove</h3><p>After session 20, the learner’s heat skill becomes 65% of its prior value and the heat learning rate changes from 0.14 to 0.055. A revisable model tracks that change; fixed averages adjust more slowly.</p></div>
+  </div>
+  <h3>How Bandit A decides: UCB</h3>
+  <p><b>UCB means Upper Confidence Bound.</b> Here it names the selection rule that combines remembered performance with a bonus for less-tried actions. It has no connection to UC Berkeley in this page.</p>
+  <p style="text-align:center"><code>UCB(action) = remembered average(action) + 0.06 × √(ln(current round + 1) / plays(action))</code></p>
+  <div class="glossary">
+    <div><b>Remembered average:</b> mean of past session score jumps for that action.</div>
+    <div><b>Plays:</b> number of sessions in which that action was assigned.</div>
+    <div><b>Current round:</b> session count including the choice being made.</div>
+    <div><b>Bonus:</b> larger for actions assigned fewer times; it encourages checking alternatives.</div>
+  </div>
+  <table>
+    <tr><th>Cooking coach</th><th>Memory</th><th>Selection rule</th><th>Scope of memory</th></tr>
+    <tr><td><b style="color:var(--teal-d)">A · Bandit</b></td><td>Average score for each action, plus play counts</td><td>Highest UCB across the five actions</td><td>Action averages; current skill levels, readiness, and saturation stay outside those averages</td></tr>
+    <tr><td><b style="color:var(--orange-d)">B · World model</b></td><td>Skill beliefs, learning-rate estimates, and prerequisite-gate estimate</td><td>Two-session lookahead through learned dynamics</td><td>Starts with an incomplete readiness estimate; prediction error revises beliefs, rates, and gate</td></tr>
+    <tr><td><b>Oracle</b></td><td>True skills and true learning rates</td><td>Same lookahead using exact inputs</td><td>Comparison ceiling for the two deployable coaching methods</td></tr>
+  </table>
+</section>
+
+<section id="race">
+  <h2>The live race</h2>
+  <p>Move the dials. The curves and verdict numbers recompute instantly
+  (40 learners per setting). Scrub or play the session pointer to inspect any single session.</p>
+  <div class="verdict" aria-live="polite">
+    <div class="vcard"><div class="num a" id="vEarly">—</div><div class="lab">Sessions 3–9, mean B − A (negative = Bandit A leads)</div></div>
+    <div class="vcard"><div class="num b" id="vLate">—</div><div class="lab">Sessions 11–20, mean B − A (positive = World-Model B leads)</div></div>
+    <div class="vcard"><div class="num o" id="vCross">—</div><div class="lab">Crossover session (first session B passes A and stays ahead)</div></div>
+    <div class="vcard"><div class="num b" id="vFinal">—</div><div class="lab">Session 40 score: B vs A (Oracle = ceiling)</div></div>
+  </div>
+  <div class="controls">
+    <div><label for="seedSel">Learner seed <output id="seedOut">7</output></label>
+      <select id="seedSel"><option>3</option><option selected>7</option><option>12</option><option>21</option><option>42</option></select></div>
+    <div><label for="noise">Observation noise σ <output id="noiseOut">0.05</output></label>
+      <input type="range" id="noise" min="0" max="0.18" step="0.01" value="0.05"></div>
+    <div><label for="gateK">Prerequisite gate strength <output id="gateOut">6.0</output></label>
+      <input type="range" id="gateK" min="0" max="10" step="0.5" value="6"></div>
+    <div><label for="lrScale">Learning-rate scale <output id="lrOut">1.00×</output></label>
+      <input type="range" id="lrScale" min="0.5" max="1.6" step="0.1" value="1"></div>
+    <div><label for="driftOn">Stove drift at session 20</label>
+      <select id="driftOn"><option value="1" selected>On — new stove</option><option value="0">Off — same stove</option></select></div>
+    <div><label for="viewMode">Chart shows</label>
+      <select id="viewMode"><option value="mean" selected>Class average (40 learners)</option><option value="single">One learner (chosen seed)</option></select></div>
+  </div>
+  <div class="btnrow">
+    <button class="hot" id="playBtn" type="button">▶ Play the 40 sessions</button>
+    <button class="alt" id="stepBtn" type="button">Step +1 session</button>
+    <button class="alt" id="resetBtn" type="button">Reset pointer</button>
+    <label style="align-self:center">Session <output id="sessOut">40</output>
+      <input type="range" id="sessSlider" min="1" max="40" step="1" value="40" style="width:220px;vertical-align:middle"></label>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--teal)"></span>Bandit A</span>
+    <span><span class="dot" style="background:var(--orange)"></span>World-Model B</span>
+    <span><span class="dot" style="background:#7a8b74"></span>Oracle</span>
+    <span>Dashed line = session pointer · grey line = stove drift</span>
+  </div>
+  <canvas id="raceChart" width="1040" height="360" role="img"
+    aria-label="Line chart of cumulative true skill gain for Bandit A, World-Model B and Oracle across 40 sessions"></canvas>
+  <div class="grid2">
+    <div>
+      <h3>Who is ahead? (B − A per session)</h3>
+      <canvas id="diffChart" width="500" height="240" role="img"
+        aria-label="Chart of World-Model B minus Bandit A gain per session; it starts negative, crosses zero around session 11, then stays positive"></canvas>
+      <p id="diffNote" class="statline" aria-live="polite"></p>
+    </div>
+    <div>
+      <h3>Session inspector</h3>
+      <div id="inspector" class="note" aria-live="polite">Pick a session with the slider or by stepping.</div>
+      <h3 style="margin-top:1rem">What each coach actually did (chosen seed)</h3>
+      <p style="margin-bottom:.2rem"><b style="color:var(--teal-d)">A:</b></p><div class="chips" id="chipsA"></div>
+      <p style="margin-bottom:.2rem"><b style="color:var(--orange-d)">B:</b></p><div class="chips" id="chipsB"></div>
+      <p style="font-size:.82rem;color:var(--ink2)">Pale = drills · cream = easy recipe · coral = stretch recipe. Watch B burn early sessions on coral, then switch to a drill → stretch sequence.</p>
+    </div>
+  </div>
+</section>
+<section id="internals">
+  <h2>Model internals: exact math on the left, demonstration on the right</h2>
+  <p>Choose a cooking coach, then step through the same session on both sides. The left panel shows live arithmetic for the selected seed and settings. The right panel uses demonstration images: a slot-machine image for action averages, a simulator image for belief and planning, and X-ray glasses for exact inputs.</p>
+  <div class="tablist" role="tablist" aria-label="Choose the coach to inspect">
+    <button class="tab" role="tab" id="tab-A" data-model="A" aria-selected="true" aria-controls="internalsTitle"><svg class="icon" aria-hidden="true"><use href="#i-slot"/></svg>Bandit A</button>
+    <button class="tab" role="tab" id="tab-B" data-model="B" aria-selected="false" aria-controls="internalsTitle"><svg class="icon" aria-hidden="true"><use href="#i-simulator"/></svg>World-Model B</button>
+    <button class="tab" role="tab" id="tab-O" data-model="O" aria-selected="false" aria-controls="internalsTitle"><svg class="icon" aria-hidden="true"><use href="#i-xray"/></svg>Oracle</button>
+  </div>
+  <div class="split">
+    <div class="math-card" role="tabpanel" aria-labelledby="tab-A" id="internalsPanel">
+      <h3 id="internalsTitle">Bandit A, session 11</h3>
+      <p id="internalsSummary">Averages plus an exploration bonus; no skill model.</p>
+      <div class="session-advance">
+        <button class="alt" id="intPrev" type="button">← Previous session</button>
+        <button class="alt" id="intNext" type="button">Next session →</button>
+        <label>Session <output id="intSessOut">11</output>
+          <input type="range" id="intSessSlider" min="1" max="40" step="1" value="11" style="width:190px;vertical-align:middle"></label>
+        <button class="hot" id="intRun" type="button">Run this session</button>
+      </div>
+      <div id="mathSteps" aria-live="polite"></div>
+    </div>
+    <div class="stage-card">
+      <h3>Right side: the analogy in motion</h3>
+      <div class="stage" id="analogyStage">
+        <div class="scene" data-scene="A">
+          <svg class="scene-art fx-sway" viewBox="0 0 64 64" role="img" aria-label="Demonstration image of a slot machine standing for five cooking-coaching actions"><use href="#i-slot"/></svg>
+          <div class="arms" id="aArms" aria-hidden="true"></div>
+          <div class="caption" id="aCaption"></div>
+        </div>
+        <div class="scene" data-scene="B">
+          <svg class="scene-art fx-breathe" viewBox="0 0 64 64" role="img" aria-label="Demonstration image of a simulator standing for skill beliefs and planned practice"><use href="#i-simulator"/></svg>
+          <div id="bAnalogy"></div>
+          <div class="caption" id="bCaption"></div>
+        </div>
+        <div class="scene" data-scene="O">
+          <svg class="scene-art" viewBox="0 0 64 64" role="img" aria-label="Demonstration image of X-ray glasses standing for exact skill inputs"><use href="#i-xray"/></svg>
+          <div id="oAnalogy"></div>
+          <div class="caption fx-scan" id="oCaption"></div>
+        </div>
+      </div>
+      <p class="caption" id="analogyCaption" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<section id="conclusion">
+  <h2>Conclusion: what the comparison shows</h2>
+  <p>The comparison has three parts. First, World-Model B starts with an incomplete readiness estimate, so early stretch recipes yield little. Next, stove drift tests adaptation after session 20. Finally, fixed plans isolate the gate effect across ten sessions. The sections below follow that order: <a href="#why">early and late behavior</a>, <a href="#labs">drift and noise</a>, and <a href="#feel">gate comparison</a>.</p>
+</section>
+
+<section id="why">
+  <h2>Why B starts behind, then moves ahead</h2>
+  <div class="grid2">
+    <div>
+      <h3>1 · B starts with an incomplete readiness estimate</h3>
+      <p>Its gate estimate <code>gate_hat</code> starts at 0, so its planner assigns
+      <code>stretch_recipe</code>. With true gate strength 6 and heat at 0.15, those early assignments yield small gains.
+      Each shortfall raises the gate estimate toward the true gate. Bandit A measures scores directly and shifts toward
+      <code>heat_drill</code> and <code>easy_recipe</code> sooner:</p>
+      <canvas id="learnChart" width="500" height="260" role="img"
+        aria-label="Chart showing gate_hat rising from 0 toward the true gate strength, and the heat learning-rate estimate falling after the stove drift"></canvas>
+      <p style="font-size:.82rem;color:var(--ink2)">Orange tracks the learned gate; blue tracks the estimated heat learning rate; dotted lines mark true values. Early mismatch explains the early gap.</p>
+    </div>
+    <div>
+      <h3>2 · Then sequencing beats averaging</h3>
+      <p>After <code>gate_hat ≈ 5–6</code> and settled learning-rate estimates, B assigns heat drills until heat crosses 0.45, then assigns the stretch recipe at full gate strength. It also moves away from saturated skills. A continues to favor actions with strong early averages while their returns decay. That difference widens the gap after the crossover.</p>
+      <div id="seqExplain" class="note" aria-live="polite"></div>
+      <h3 style="margin-top:1rem">Try the dials — break the result on purpose</h3>
+      <p>Set <b>gate strength to 0</b>: prerequisites vanish and the stretch recipe becomes strongest from the start. Set <b>noise σ to 0.18</b>: every coach reads the learner less accurately.
+      Set <b>drift Off</b>: B still wins late, and the post-session-20 adaptation comparison disappears.
+      The crossover comes from the setup.</p>
+    </div>
+  </div>
+</section>
+
+<section id="labs">
+  <h2>Drift &amp; noise labs</h2>
+  <div class="grid2">
+    <div>
+      <h3>Stove drift: who adapts?</h3>
+      <p>At session 20 the true conditions change for both coaches. B detects forecast errors, raises uncertainty, and relearns a slower heat rate. A updates action averages, so older scores remain in its memory while new scores arrive. Toggle <b>Stove drift</b> above and compare the session-40 verdict,
+      or read the numbers for the current settings:</p>
+      <p class="statline" id="driftStats" aria-live="polite"></p>
+    </div>
+    <div>
+      <h3>Noise: does B fall apart?</h3>
+      <p>An earlier claim said noise corrupts B’s model until it loses. These results show B ahead in most noise settings tested. The Kalman update absorbs observation noise; the bandit’s score signal degrades under the same noise. Current settings, session 20, 40 learners:</p>
+      <p class="statline" id="noiseStats" aria-live="polite"></p>
+      <p style="font-size:.88rem">Drag the noise slider above and watch this count. If you find a setting where B really does collapse, that is a finding — the page recomputes everything, nothing is baked in.</p>
+    </div>
+  </div>
+</section>
+
+<section id="feel">
+  <h2>Feel the gate yourself</h2>
+  <p>Two fixed 10-session plans on a fresh learner (seed 7). The fixed plans isolate the environment gate across the same ten sessions:</p>
+  <div class="btnrow">
+    <button id="planStretch" class="alt" type="button">Plan X: stretch recipe every session</button>
+    <button id="planSeq" class="hot" type="button">Plan Y: heat drills until ready, then stretch</button>
+  </div>
+  <div id="planOut" class="note" aria-live="polite">Not run yet. Prediction: with heat stuck at 0.15, Plan X’s gate factor is about e<sup>−6×0.35</sup> ≈ 0.12 — it keeps 12% of its power. Plan Y pays for drills first, then collects full-power stretch gains.</div>
+</section>
+<section id="chat">
+  <h2>The conversation bridge: what the LLM actually sees</h2>
+  <p>The benchmark becomes a coaching product through two bridges (from <code>conversation.py</code>):
+  the learner’s words become a noisy skill observation, and the world model’s belief + 2-step plan becomes
+  the LLM’s system prompt — so the language model voices the planned decision.
+  Step through six sessions (the stove drift arrives at session 5):</p>
+  <div class="btnrow">
+    <button class="hot" id="chatNext" type="button">Next session ▸</button>
+    <button class="alt" id="chatReset" type="button">Restart conversation</button>
+    <span class="statline" id="chatStep" aria-live="polite">Session 0 of 6</span>
+  </div>
+  <div class="grid2">
+    <div class="chatlog" id="chatLog" aria-live="polite"><p style="color:var(--ink2)">Press “Next session” to begin. Coach B starts with an incomplete readiness estimate; expect an early stretch recipe.</p></div>
+    <div>
+      <h3>B’s belief about this learner right now</h3>
+      <div id="beliefBars"></div>
+      <p class="statline" id="beliefNums" aria-live="polite"></p>
+      <p style="font-size:.88rem">Bars show believed skill (filled) against the learner’s true skill (outline position marked in the numbers below). Early on, belief and truth disagree — that gap <i>is</i> the early cost.</p>
+    </div>
+  </div>
+</section>
+
+<section id="code">
+  <h2>The code inside (same math, two languages)</h2>
+  <p>The browser simulation below is a line-for-line port of the Python core. Full sources:
+  <a href="benchmark.py">benchmark.py</a> · <a href="conversation.py">conversation.py</a> ·
+  <a href="EXPERIMENT.md">EXPERIMENT.md</a> (full walkthrough, also
+  <a href="EXPERIMENT-zh-TW.md">繁體中文版</a>).</p>
+  <details>
+    <summary><b>Show the environment step + Coach B’s update (JavaScript, as running on this page)</b></summary>
+<pre><code>function envStep(env, a, o) {           // TrueLearnerEnv.step
+  const g = gate(env.s, a, o.gateK);     // exp(-gateK * shortfall)
+  for (let k = 0; k &lt; 3; k++)
+    env.s[k] = clip(env.s[k] + env.alpha[k]*a.w[k]*g*(1-env.s[k]), 0, 1);
+  const obs = env.s.map(v =&gt; clip(v + gauss(env.rng)*o.noise, 0, 1));
+  return { obs, score: sum(obs) - sum(env.prev) };
+}
+
+// Coach B update: Kalman belief + learn alpha + learn the gate itself
+if (compound &amp;&amp; predictedGain &gt; 0.03) {
+  const miss = clip(1 - realisedGain / predictedGain, 0, 1);
+  B.gateHat = clip(B.gateHat + 1.2 * miss, 0, 8);   // 0 = "no prerequisites"
+}</code></pre>
+  </details>
+  <details>
+    <summary><b>Show the data table behind the charts (current settings)</b></summary>
+    <div id="dataTable"></div>
+  </details>
+</section>
+
+<section id="roadmap">
+  <h2>Build on it: brighter, clearer, more visible</h2>
+  <p>What judges (and users) should feel in the next iteration — functionality first, then shine:</p>
+  <div class="grid3">
+    <div><h3>1 · Make the invisible visible</h3>
+      <p>A live “learner brain” panel next to every chat: belief bars, uncertainty, and the planner’s
+      next-two-moves — exactly like the inspector above, but inside the product. The world model stops
+      being a claim and becomes something you watch thinking.</p></div>
+    <div><h3>2 · Let users drive</h3>
+      <p>“You be the coach” mode: at each session the user picks the action, then the page reveals what
+      A would have done, what B planned, and what the truth did. Feeling the gate once beats reading
+      about it three times.</p></div>
+    <div><h3>3 · Real voices via Muse Spark</h3>
+      <p>Wire <code>MODEL_API_KEY</code> so learner text is extracted and coach replies are written by
+      Muse Spark through the Meta Model API, with the offline extractor as the demo-safe fallback.
+      Same decisions, human conversation.</p></div>
+  </div>
+  <div class="grid3">
+    <div><h3>4 · More learners, honest edges</h3>
+      <p>Archetype sampling (varied starting skills, learning rates, noise) so claims about slow learners receive direct tests, with loss cases displayed.</p></div>
+    <div><h3>5 · Presentation polish</h3>
+      <p>Animated session replay for the demo video (this page’s Play button is the storyboard),
+      a one-screen verdict header, and exportable charts. Bright where it earns attention — the
+      crossover moment — quiet everywhere else.</p></div>
+    <div><h3>6 · Ship checklist</h3>
+      <p>Submission due <b>Nov 4, 9:00 PM ET</b>: live API mode verified, 3-minute demo cut
+      (bandit ahead → crossover → drift → adaptation), README with run commands, public repo.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>Interactive companion to <a href="EXPERIMENT.md">EXPERIMENT.md</a> · Simulation ported from
+  <code>benchmark.py</code> (Python/NumPy) to dependency-free JavaScript · Random streams differ from
+  NumPy’s, so exact per-seed values differ slightly; the statistics and crossover are the claim.</p>
+</footer>
+</div>
+<script>
+"use strict";
+// ---------- Core simulation: port of benchmark.py ----------
+const SKILLS = ["knife", "heat", "timing"];
+const ACTIONS = [
+  { name: "knife_drill",    w: [1.0, 0.0, 0.1], pre: [0, 0, 0] },
+  { name: "heat_drill",     w: [0.0, 1.0, 0.2], pre: [0, 0, 0] },
+  { name: "timing_drill",   w: [0.1, 0.1, 1.0], pre: [0, 0, 0] },
+  { name: "easy_recipe",    w: [0.5, 0.5, 0.5], pre: [0.2, 0.2, 0.2] },
+  { name: "stretch_recipe", w: [0.9, 0.9, 0.9], pre: [0.5, 0.45, 0.4] },
+];
+const clip = (v, a, b) => Math.min(b, Math.max(a, v));
+const sum = xs => xs.reduce((p, c) => p + c, 0);
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return function () {
+    t += 0x6D2B79F5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeGauss(rng) {
+  let spare = null;
+  return function () {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0, v = 0;
+    while (u === 0) u = rng();
+    v = rng();
+    const m = Math.sqrt(-2 * Math.log(u)), a = 2 * Math.PI * v;
+    spare = m * Math.sin(a);
+    return m * Math.cos(a);
+  };
+}
+function gateFn(s, a, k) {
+  let sh = 0;
+  for (let i = 0; i < 3; i++) sh += Math.max(0, a.pre[i] - s[i]);
+  return Math.exp(-k * sh);
+}
+function makeEnv(seed, o) {
+  const rng = mulberry32(seed * 7919 + 13);
+  return {
+    rng, gauss: makeGauss(rng), s: [0.65, 0.15, 0.35], s0: [0.65, 0.15, 0.35],
+    alpha: [0.11, 0.14, 0.12].map(x => x * o.lrScale), prev: [0.65, 0.15, 0.35], t: 0,
+  };
+}
+function envDrift(env) { env.s[1] *= 0.65; env.alpha[1] = 0.055 * currentOpts.lrScale; }
+function envStep(env, a, o) {
+  env.t += 1;
+  const prev = env.s.slice();
+  const g = gateFn(env.s, a, o.gateK);
+  for (let k = 0; k < 3; k++)
+    env.s[k] = clip(env.s[k] + env.alpha[k] * a.w[k] * g * (1 - env.s[k]), 0, 1);
+  const obs = env.s.map(v => clip(v + env.gauss() * o.noise, 0, 1));
+  return { obs, score: sum(obs) - sum(prev) };
+}
+const envGain = env => sum(env.s) - sum(env.s0);
+
+function makeBandit() { return { n: [0,0,0,0,0], q: [0.22,0.22,0.22,0.22,0.22], t: 0 }; }
+function banditUCBValues(q, n, t) {
+  return ACTIONS.map((_, i) => q[i] + 0.06 * Math.sqrt(Math.log(t + 1) / (n[i] + 1e-9)));
+}
+function banditSelect(B) {
+  B.t += 1;
+  const values = banditUCBValues(B.q, B.n, B.t);
+  let bi = 0, bs = -Infinity;
+  for (let i = 0; i < values.length; i++) {
+    if (values[i] > bs) { bs = values[i]; bi = i; }
+  }
+  return bi;
+}
+function banditUpdate(B, i, score) { B.n[i] += 1; B.q[i] += (score - B.q[i]) / B.n[i]; }
+
+function makeWorld(o) {
+  return { mu: [0.4, 0.4, 0.4], var: [0.05, 0.05, 0.05], ah: [0.12, 0.12, 0.12],
+           obsVar: o.noise * o.noise, ema: 0.25, gateHat: 0, gateLr: 1.2 };
+}
+function worldPredict(W, mu, vr, a) {
+  const g = gateFn(mu, a, W.gateHat);
+  return { mu: mu.map((m, k) => clip(m + W.ah[k] * a.w[k] * g * (1 - m), 0, 1)),
+           var: vr.map(v => v + 0.002) };
+}
+function worldCandidateScores(W) {
+  return ACTIONS.map((a1) => {
+    const p1 = worldPredict(W, W.mu, W.var, a1);
+    let best2 = -Infinity;
+    let best2Action = ACTIONS[0].name;
+    for (let j = 0; j < 5; j++) {
+      const gain = sum(worldPredict(W, p1.mu, p1.var, ACTIONS[j]).mu) - sum(p1.mu);
+      if (gain > best2) { best2 = gain; best2Action = ACTIONS[j].name; }
+    }
+    const immediate = sum(p1.mu) - sum(W.mu);
+    return { action: a1.name, immediate, best2, best2Action, total: immediate + 0.9 * best2 };
+  });
+}
+function worldSelect(W) {
+  const scores = worldCandidateScores(W);
+  let bi = 0, bs = -Infinity;
+  for (let i = 0; i < scores.length; i++) {
+    if (scores[i].total > bs) { bs = scores[i].total; bi = i; }
+  }
+  return bi;
+}
+function worldPlan(W, horizon) {
+  let mu = W.mu.slice(), vr = W.var.slice(); const seq = [];
+  for (let h = 0; h < horizon; h++) {
+    let bi = 0, bs = -Infinity;
+    ACTIONS.forEach((a, i) => {
+      const g = sum(worldPredict(W, mu, vr, a).mu) - sum(mu);
+      if (g > bs) { bs = g; bi = i; }
+    });
+    seq.push(ACTIONS[bi].name);
+    const p = worldPredict(W, mu, vr, ACTIONS[bi]); mu = p.mu; vr = p.var;
+  }
+  return seq;
+}
+function worldUpdate(W, idx, obs) {
+  const a = ACTIONS[idx], prevMu = W.mu.slice();
+  const pred = worldPredict(W, W.mu, W.var, a);
+  const predGain = sum(pred.mu) - sum(prevMu);
+  const innov = obs.map((v, k) => v - pred.mu[k]);
+  let pvar = pred.var.slice();
+  if (innov.some(v => Math.abs(v) > 0.12)) pvar = pvar.map(v => v + 0.03);
+  const kg = pvar.map(v => v / (v + W.obsVar));
+  W.mu = pred.mu.map((m, k) => clip(m + kg[k] * innov[k], 0, 1));
+  W.var = pvar.map((v, k) => (1 - kg[k]) * v);
+  const realised = sum(W.mu) - sum(prevMu);
+  if (sum(a.pre) > 0 && predGain > 0.03) {
+    const miss = clip(1 - realised / Math.max(predGain, 1e-9), 0, 1);
+    W.gateHat = clip(W.gateHat + W.gateLr * miss, 0, 8);
+  }
+  for (let k = 0; k < 3; k++) {
+    const den = a.w[k] * gateFn(prevMu, a, W.gateHat) * (1 - prevMu[k]);
+    if (den > 0.05) {
+      const est = clip((W.mu[k] - prevMu[k]) / den, 0.02, 0.5);
+      W.ah[k] = 0.75 * W.ah[k] + 0.25 * est;
+    }
+  }
+}
+function oracleNext(prevS, alpha, o, a) {
+  return prevS.map((v, k) =>
+    clip(v + alpha[k] * a.w[k] * gateFn(prevS, a, o.gateK) * (1 - v), 0, 1));
+}
+function oracleCandidateScores(prevS, alpha, o) {
+  return ACTIONS.map((a1) => {
+    const s1 = oracleNext(prevS, alpha, o, a1);
+    let best2 = -Infinity;
+    let best2Action = ACTIONS[0].name;
+    ACTIONS.forEach((a2) => {
+      const gain = sum(oracleNext(s1, alpha, o, a2)) - sum(s1);
+      if (gain > best2) { best2 = gain; best2Action = a2.name; }
+    });
+    const immediate = sum(s1) - sum(prevS);
+    return { action: a1.name, immediate, best2, best2Action, total: immediate + 0.9 * best2, next: s1 };
+  });
+}
+function oracleSelect(env, o) {
+  const scores = oracleCandidateScores(env.s, env.alpha, o);
+  let bi = 0, bs = -Infinity;
+  scores.forEach((cand, i) => { if (cand.total > bs) { bs = cand.total; bi = i; } });
+  return bi;
+}
+function copyWorld(W) {
+  return { mu: W.mu.slice(), var: W.var.slice(), ah: W.ah.slice(),
+    obsVar: W.obsVar, ema: W.ema, gateHat: W.gateHat, gateLr: W.gateLr };
+}
+function envArithmetic(prevS, alpha, action, o, nextS) {
+  const g = gateFn(prevS, action, o.gateK);
+  return {
+    prev: prevS.slice(),
+    gate: g,
+    increments: prevS.map((v, k) => alpha[k] * action.w[k] * g * (1 - v)),
+    next: nextS.slice(),
+  };
+}
+function bestIndexByTotal(scores) {
+  let bi = 0, bs = -Infinity;
+  scores.forEach((cand, i) => { if (cand.total > bs) { bs = cand.total; bi = i; } });
+  return bi;
+}
+function reconstructWorldUpdate(beforeW, action, obs, afterW) {
+  const pred = worldPredict(beforeW, beforeW.mu, beforeW.var, action);
+  const predGain = sum(pred.mu) - sum(beforeW.mu);
+  const innovation = obs.map((v, k) => v - pred.mu[k]);
+  let pvar = pred.var.slice();
+  if (innovation.some(v => Math.abs(v) > 0.12)) pvar = pvar.map(v => v + 0.03);
+  const kg = pvar.map(v => v / (v + beforeW.obsVar));
+  const realized = sum(afterW.mu) - sum(beforeW.mu);
+  let miss = null;
+  if (sum(action.pre) > 0 && predGain > 0.03) {
+    miss = clip(1 - realized / Math.max(predGain, 1e-9), 0, 1);
+  }
+  const rates = [0, 1, 2].map((k) => {
+    const denom = action.w[k] * gateFn(beforeW.mu, action, afterW.gateHat) * (1 - beforeW.mu[k]);
+    if (denom <= 0.05) return { denom, est: null, next: afterW.ah[k] };
+    const est = clip((afterW.mu[k] - beforeW.mu[k]) / denom, 0.02, 0.5);
+    return { denom, est, next: afterW.ah[k] };
+  });
+  return { pred, predGain, innovation, pvar, kg, realized, miss, rates };
+}
+function runEpisode(kind, seed, o, sessions = 40, wantDetail = false) {
+  const env = makeEnv(seed, o);
+  const coach = kind === "A" ? makeBandit() : kind === "B" ? makeWorld(o) : null;
+  const gains = [], actions = [], truth = [], belief = [], alphaHeat = [], gateHat = [];
+  const steps = [];
+  for (let t = 1; t <= sessions; t++) {
+    if (o.drift && t === 21) envDrift(env);
+    const detail = { session: t, kind };
+    let idx;
+    if (kind === "A") {
+      detail.before = { q: coach.q.slice(), n: coach.n.slice(), t: coach.t };
+      detail.ucb = banditUCBValues(detail.before.q, detail.before.n, detail.before.t + 1);
+      idx = bestIndexByTotal(detail.ucb.map((total, i) => ({ total, action: ACTIONS[i].name })));
+    } else if (kind === "B") {
+      detail.beforeW = copyWorld(coach);
+      detail.candidates = worldCandidateScores(detail.beforeW);
+      idx = bestIndexByTotal(detail.candidates);
+    } else {
+      detail.prevS = env.s.slice();
+      detail.prevAlpha = env.alpha.slice();
+      detail.candidates = oracleCandidateScores(detail.prevS, detail.prevAlpha, o);
+      idx = bestIndexByTotal(detail.candidates);
+    }
+    detail.idx = idx;
+    detail.action = ACTIONS[idx].name;
+    detail.envPrev = env.s.slice();
+    detail.alphaPrev = env.alpha.slice();
+    const { obs, score } = envStep(env, ACTIONS[idx], o);
+    if (kind === "A") {
+      banditUpdate(coach, idx, score);
+      detail.after = { q: coach.q.slice(), n: coach.n.slice(), t: coach.t };
+    }
+    if (kind === "B") {
+      worldUpdate(coach, idx, obs);
+      detail.afterW = copyWorld(coach);
+      detail.update = reconstructWorldUpdate(detail.beforeW, ACTIONS[idx], obs, detail.afterW);
+    }
+    detail.env = envArithmetic(detail.envPrev, detail.alphaPrev, ACTIONS[idx], o, env.s);
+    detail.obs = obs.slice();
+    detail.score = score;
+    gains.push(envGain(env)); actions.push(ACTIONS[idx].name);
+    truth.push(env.s.slice());
+    if (kind === "B") { belief.push(coach.mu.slice()); alphaHeat.push(coach.ah[1]); gateHat.push(coach.gateHat); }
+    if (wantDetail) steps.push(detail);
+  }
+  return { gains, actions, truth, belief, alphaHeat, gateHat, steps };
+}
+function aggregate(o, sessions = 40, nSeeds = 40) {
+  const acc = { A: [], B: [], O: [] };
+  for (const kind of ["A", "B", "O"]) {
+    const rows = [];
+    for (let s = 0; s < nSeeds; s++) rows.push(runEpisode(kind, s, o, sessions).gains);
+    acc[kind] = Array.from({ length: sessions }, (_, t) => sum(rows.map(r => r[t])) / nSeeds);
+    acc[kind + "Rows"] = rows;
+  }
+  return acc;
+}
+// ---------- State + chart helpers ----------
+const $ = id => document.getElementById(id);
+let currentOpts = { seed: 7, noise: 0.05, gateK: 6, lrScale: 1, drift: true, view: "mean" };
+let pointer = 40, agg = null, single = null, playing = false, rafId = null;
+const COL = { A: "#0e7c7b", B: "#e4572e", O: "#7a8b74" };
+function setupCanvas(cv) {
+  return { ctx: cv.getContext("2d"), w: cv.width, h: cv.height };
+}
+function drawAxes(ctx, w, h, xMax, yMin, yMax, yLabel) {
+  const L = 44, R = 10, T = 12, B = 30;
+  ctx.strokeStyle = "#c9d4c6"; ctx.fillStyle = "#3d4a44"; ctx.font = "11px sans-serif"; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = T + (h - T - B) * i / 4, val = yMax - (yMax - yMin) * i / 4;
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - R, y); ctx.stroke();
+    ctx.fillText(val.toFixed(2), 4, y + 4);
+  }
+  for (let x = 0; x <= xMax; x += 10) {
+    const px = L + (w - L - R) * x / xMax;
+    ctx.fillText(String(x), px - 4, h - 10);
+  }
+  ctx.fillText(yLabel, L, T - 2);
+  return { L, R, T, B };
+}
+function plotLine(ctx, geo, w, h, ys, xMax, yMin, yMax, color, upto, width, dash) {
+  const { L, R, T, B } = geo;
+  ctx.strokeStyle = color; ctx.lineWidth = width || 2; ctx.setLineDash(dash || []);
+  ctx.beginPath();
+  const n = Math.min(upto, ys.length);
+  for (let i = 0; i < n; i++) {
+    const x = L + (w - L - R) * (i + 1) / xMax;
+    const y = T + (h - T - B) * (1 - (ys[i] - yMin) / (yMax - yMin));
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+function vline(ctx, geo, w, h, xVal, xMax, color, dash) {
+  const { L, R, T, B } = geo;
+  const x = L + (w - L - R) * xVal / xMax;
+  ctx.strokeStyle = color; ctx.setLineDash(dash || [5, 4]); ctx.beginPath();
+  ctx.moveTo(x, T); ctx.lineTo(x, h - B); ctx.stroke(); ctx.setLineDash([]);
+}
+// ---------- Rendering ----------
+const fmt = (v, d = 2) => (v >= 0 ? "+" : "") + v.toFixed(d);
+function mean(xs) { return sum(xs) / xs.length; }
+function crossoverSession() {
+  for (let t = 4; t < 40; t++)
+    if (agg.B[t] > agg.A[t] && agg.B[t + 1 >= 40 ? 39 : t + 1] >= agg.A[t + 1 >= 40 ? 39 : t + 1]) return t + 1;
+  return null;
+}
+function chipClass(name) { return name.includes("drill") ? "drill" : name.includes("easy") ? "easy" : "stretch"; }
+function renderAll() {
+  const o = currentOpts;
+  agg = aggregate(o);
+  single = { A: runEpisode("A", o.seed, o, 40, true), B: runEpisode("B", o.seed, o, 40, true), O: runEpisode("O", o.seed, o, 40, true) };
+  const early = mean(agg.B.slice(2, 9)) - mean(agg.A.slice(2, 9));
+  const late = mean(agg.B.slice(10, 20)) - mean(agg.A.slice(10, 20));
+  const cross = crossoverSession();
+  $("vEarly").textContent = fmt(early, 3);
+  $("vLate").textContent = fmt(late, 3);
+  $("vCross").textContent = cross ? "Session " + cross : "No crossover";
+  $("vFinal").textContent = "B " + agg.B[39].toFixed(2) + " · A " + agg.A[39].toFixed(2) + " · O " + agg.O[39].toFixed(2);
+  drawRace(); drawDiff(); drawLearn(); renderInspector(); renderChips(); renderLabs(); renderTable(); renderInternals();
+  const crossTxt = cross ? "B passes A at session " + cross + " and stays ahead." : "No lasting crossover at these settings — try lowering the gate or noise.";
+  $("diffNote").textContent = "Sessions 3–9: " + fmt(early, 3) + " (A leads) · Sessions 11–20: " + fmt(late, 3) + " (B leads). " + crossTxt;
+  const b = single.B;
+  const firstStretch = b.actions.indexOf("stretch_recipe");
+  const heatReady = b.truth.findIndex(s => s[1] >= 0.45);
+  $("seqExplain").innerHTML = "<b>On seed " + o.seed + ":</b> B first tries a stretch recipe at session " +
+    (firstStretch + 1) + "; true heat reaches the 0.45 unlock at session " + (heatReady >= 0 ? heatReady + 1 : "—") +
+    ". By session 20 its gate estimate is " + (b.gateHat[19] ? b.gateHat[19].toFixed(1) : "—") +
+    " (true " + o.gateK.toFixed(1) + "). Sessions before that gap closes are the tuition; sessions after are the payoff.";
+}
+function seriesFor(kind) { return currentOpts.view === "mean" ? agg[kind] : single[kind].gains; }
+function drawRace() {
+  const cv = $("raceChart"), { ctx, w, h } = setupCanvas(cv);
+  ctx.clearRect(0, 0, w, h);
+  const yMax = Math.max(1.9, Math.max(...agg.O) * 1.05);
+  const geo = drawAxes(ctx, w, h, 40, 0, yMax, "cumulative true gain");
+  for (const k of ["A", "B", "O"]) plotLine(ctx, geo, w, h, seriesFor(k), 40, 0, yMax, COL[k], 40, 2.4);
+  if (currentOpts.drift) vline(ctx, geo, w, h, 20.5, 40, "#9aa79a");
+  vline(ctx, geo, w, h, pointer, 40, "#182420", [2, 3]);
+  const cross = crossoverSession();
+  if (cross) {
+    const { L, R, T, B } = geo;
+    const x = L + (w - L - R) * cross / 40, y = T + (h - T - B) * (1 - seriesFor("B")[cross - 1] / yMax);
+    ctx.fillStyle = "#b23c1a"; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = "#182420"; ctx.font = "bold 12px sans-serif";
+    ctx.fillText("crossover · s" + cross, Math.min(x + 8, w - 110), y - 8);
+  }
+}
+function drawDiff() {
+  const cv = $("diffChart"), { ctx, w, h } = setupCanvas(cv);
+  ctx.clearRect(0, 0, w, h);
+  const diff = agg.B.map((v, i) => v - agg.A[i]);
+  const yMax = Math.max(0.1, ...diff.map(Math.abs)) * 1.15;
+  const geo = drawAxes(ctx, w, h, 40, -yMax, yMax, "mean B − A");
+  const { L, R, T, B } = geo;
+  const y0 = T + (h - T - B) * (1 - (0 + yMax) / (2 * yMax));
+  ctx.strokeStyle = "#182420"; ctx.beginPath(); ctx.moveTo(L, y0); ctx.lineTo(w - R, y0); ctx.stroke();
+  ctx.fillStyle = "rgba(228,87,46,.25)";
+  ctx.beginPath(); ctx.moveTo(L + (w - L - R) / 40, y0);
+  diff.forEach((v, i) => {
+    const x = L + (w - L - R) * (i + 1) / 40;
+    const y = T + (h - T - B) * (1 - (v + yMax) / (2 * yMax));
+    ctx.lineTo(x, y);
+  });
+  ctx.lineTo(L + (w - L - R), y0); ctx.closePath(); ctx.fill();
+  plotLine(ctx, geo, w, h, diff, 40, -yMax, yMax, COL.B, 40, 2);
+  if (currentOpts.drift) vline(ctx, geo, w, h, 20.5, 40, "#9aa79a");
+  vline(ctx, geo, w, h, pointer, 40, "#182420", [2, 3]);
+}
+function drawLearn() {
+  const cv = $("learnChart"), { ctx, w, h } = setupCanvas(cv);
+  ctx.clearRect(0, 0, w, h);
+  const b = single.B, o = currentOpts;
+  const geo = drawAxes(ctx, w, h, 40, 0, 0.30, "estimate value");
+  const gateScaled = b.gateHat.map(v => v / 40 * 1.2);
+  plotLine(ctx, geo, w, h, gateScaled, 40, 0, 0.30, COL.B, 40, 2.2);
+  plotLine(ctx, geo, w, h, b.alphaHeat, 40, 0, 0.30, COL.A, 40, 2.2);
+  const truePre = Array(40).fill(0.14 * o.lrScale), truePost = Array(40).fill(0.055 * o.lrScale);
+  plotLine(ctx, geo, w, h, o.drift ? truePre.slice(0, 20).concat(truePost.slice(20)) : truePre, 40, 0, 0.30, "#3d4a44", 40, 1.2, [4, 4]);
+  if (o.drift) vline(ctx, geo, w, h, 20.5, 40, "#9aa79a");
+  ctx.fillStyle = "#3d4a44"; ctx.font = "11px sans-serif";
+  ctx.fillText("true gate " + o.gateK.toFixed(1) + " → scaled " + (o.gateK / 40 * 1.2).toFixed(2), 50, 22);
+}
+function renderChips() {
+  const mk = (ep) => ep.actions.map((a, i) =>
+    `<span class="chip ${chipClass(a)}" title="session ${i + 1}">${i + 1}:${a.replace("_recipe", "").replace("_drill", "")}</span>`).join("");
+  $("chipsA").innerHTML = mk(single.A);
+  $("chipsB").innerHTML = mk(single.B);
+}
+function renderInspector() {
+  const t = pointer - 1, o = currentOpts;
+  const a = single.A, b = single.B;
+  const bBelief = b.belief[t] ? b.belief[t].map(v => v.toFixed(2)).join(", ") : "—";
+  const bTruth = b.truth[t].map(v => v.toFixed(2)).join(", ");
+  $("sessOut").textContent = pointer;
+  $("inspector").innerHTML =
+    "<b>Session " + pointer + "</b> (seed " + o.seed + ")<br>" +
+    "<b style='color:var(--teal-d)'>A</b> played <b>" + a.actions[t] + "</b> → true gain " + a.gains[t].toFixed(3) + "<br>" +
+    "<b style='color:var(--orange-d)'>B</b> played <b>" + b.actions[t] + "</b> → true gain " + b.gains[t].toFixed(3) +
+    " · gate_hat " + (b.gateHat[t] ? b.gateHat[t].toFixed(1) : "—") +
+    " · α̂ heat " + (b.alphaHeat[t] ? b.alphaHeat[t].toFixed(2) : "—") + "<br>" +
+    "B believes [" + bBelief + "] · truth (B’s learner) [" + bTruth + "]";
+}
+function renderLabs() {
+  const bWins = agg.BRows.filter((r, i) => r[19] > agg.ARows[i][19]).length;
+  const bLoss = 40 - bWins;
+  $("noiseStats").innerHTML = "At σ = " + currentOpts.noise.toFixed(2) +
+    ", B is behind in <span class='big'>" + bLoss + " of 40</span> learners at session 20" +
+    " (A " + agg.A[19].toFixed(2) + " vs B " + agg.B[19].toFixed(2) + " on average).";
+  $("driftStats").innerHTML = currentOpts.drift
+    ? "Drift <b>on</b>: session 40 — A " + agg.A[39].toFixed(2) + ", B " + agg.B[39].toFixed(2) +
+      ", Oracle " + agg.O[39].toFixed(2) + ". B’s α̂ for heat re-learns downward (right chart, top section); A’s averages cannot."
+    : "Drift <b>off</b>: session 40 — A " + agg.A[39].toFixed(2) + ", B " + agg.B[39].toFixed(2) +
+      ", Oracle " + agg.O[39].toFixed(2) + ". Turn drift on to see the adaptation gap.";
+}
+function renderTable() {
+  let html = "<table><tr><th>Session</th><th>Bandit A</th><th>World B</th><th>Oracle</th><th>B − A</th></tr>";
+  [2, 4, 6, 8, 10, 12, 15, 19, 24, 29, 39].forEach(t => {
+    html += "<tr><td>" + (t + 1) + "</td><td>" + agg.A[t].toFixed(3) + "</td><td>" + agg.B[t].toFixed(3) +
+      "</td><td>" + agg.O[t].toFixed(3) + "</td><td>" + fmt(agg.B[t] - agg.A[t], 3) + "</td></tr>";
+  });
+  $("dataTable").innerHTML = html + "</table>";
+}
+// ---------- Controls ----------
+function readOpts() {
+  currentOpts = {
+    seed: parseInt($("seedSel").value, 10),
+    noise: parseFloat($("noise").value),
+    gateK: parseFloat($("gateK").value),
+    lrScale: parseFloat($("lrScale").value),
+    drift: $("driftOn").value === "1",
+    view: $("viewMode").value,
+  };
+  $("seedOut").textContent = currentOpts.seed;
+  $("noiseOut").textContent = currentOpts.noise.toFixed(2);
+  $("gateOut").textContent = currentOpts.gateK.toFixed(1);
+  $("lrOut").textContent = currentOpts.lrScale.toFixed(2) + "×";
+}
+function redrawPointer() { drawRace(); drawDiff(); renderInspector(); }
+function setPointer(v) {
+  pointer = clip(Math.round(v), 1, 40);
+  $("sessSlider").value = pointer;
+  redrawPointer();
+}
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function stopPlay() { playing = false; if (rafId) cancelAnimationFrame(rafId); $("playBtn").textContent = "▶ Play the 40 sessions"; }
+$("playBtn").addEventListener("click", () => {
+  if (playing) { stopPlay(); return; }
+  if (reduced) { setPointer(40); return; }
+  playing = true; $("playBtn").textContent = "⏸ Pause";
+  if (pointer >= 40) pointer = 1;
+  let last = performance.now(), acc = 0;
+  const tick = (now) => {
+    if (!playing) return;
+    acc += now - last; last = now;
+    if (acc > 110) { acc = 0; pointer += 1; $("sessSlider").value = pointer; redrawPointer(); }
+    if (pointer >= 40) { stopPlay(); return; }
+    rafId = requestAnimationFrame(tick);
+  };
+  rafId = requestAnimationFrame(tick);
+});
+$("stepBtn").addEventListener("click", () => { stopPlay(); setPointer(pointer + 1); });
+$("resetBtn").addEventListener("click", () => { stopPlay(); setPointer(1); });
+$("sessSlider").addEventListener("input", e => { stopPlay(); setPointer(parseInt(e.target.value, 10)); });
+["seedSel", "noise", "gateK", "lrScale", "driftOn", "viewMode"].forEach(id =>
+  $(id).addEventListener("input", () => { stopPlay(); readOpts(); renderAll(); }));
+
+// ---------- Feel the gate ----------
+function runPlan(mode) {
+  const o = Object.assign({}, currentOpts, { drift: false });
+  const env = makeEnv(7, o);
+  const acts = [];
+  for (let t = 0; t < 10; t++) {
+    let idx;
+    if (mode === "X") idx = 4;
+    else idx = env.s[1] >= 0.45 ? 4 : 1;
+    acts.push(ACTIONS[idx].name);
+    envStep(env, ACTIONS[idx], o);
+  }
+  return { gain: envGain(env), heat: env.s[1], acts };
+}
+function showPlan(mode) {
+  const other = mode === "X" ? runPlan("Y") : runPlan("X");
+  const mine = runPlan(mode);
+  const bar = (label, v, color) =>
+    `<div class="bar-row"><span>${label}</span><div class="bar-track"><div class="bar-fill" style="width:${clip(v / 1.2 * 100, 0, 100)}%;background:${color}"></div></div><b>${v.toFixed(3)}</b></div>`;
+  $("planOut").innerHTML = "<b>After 10 sessions (gate " + currentOpts.gateK.toFixed(1) + "):</b>" +
+    bar("Plan X · always stretch", runPlan("X").gain, COL.B) + bar("Plan Y · drill → stretch", runPlan("Y").gain, COL.A) +
+    "You ran Plan " + mode + ": gain <b>" + mine.gain.toFixed(3) + "</b>, heat now " + mine.heat.toFixed(2) +
+    ". Sequence: " + mine.acts.join(" → ") +
+    "<br>Same sessions, same learner — the only difference is respecting the prerequisite the gate enforces.";
+}
+$("planStretch").addEventListener("click", () => showPlan("X"));
+$("planSeq").addEventListener("click", () => showPlan("Y"));
+
+// ---------- Conversation bridge demo ----------
+const REPORTS = [
+  "My onions browned way too fast and burned before the garlic was even chopped.",
+  "Heat felt calmer today, but my cuts are still uneven.",
+  "The pan stayed steady and nothing burned - timing was still rushed at the end.",
+  "Everything landed together and the heat was smooth. Felt great.",
+  "New stove is weird - the pan got too hot fast and smoked again.",
+  "Getting used to the stove. Cuts were even and timing felt smooth.",
+];
+const MSGS = {
+  knife_drill: "Today: knife drill. Slow, even cuts — accuracy before speed.",
+  heat_drill: "Today: pan-temperature control drill. Hold a steady medium heat; watch the oil shimmer, not smoke.",
+  timing_drill: "Today: timing drill. Stage ingredients so everything lands together.",
+  easy_recipe: "Today: an easy recipe that combines all three skills gently.",
+  stretch_recipe: "Today: a stretch recipe combining all three skills.",
+};
+function extractOffline(text) {
+  const obs = [0.4, 0.4, 0.4], low = text.toLowerCase();
+  const good = ["well", "great", "perfect", "nailed", "smooth", "evenly"].some(w => low.includes(w));
+  const cues = [
+    [["knife", "chop", "slice", "diced", "uneven cuts", "cuts are"], 0.18],
+    [["burn", "smoke", "too hot", "browned too fast", "heat"], 0.20],
+    [["timing", "too late", "waited", "rushed", "before the garlic"], 0.16],
+  ];
+  cues.forEach(([words, drop], k) => { if (words.some(w => low.includes(w))) obs[k] += good ? 0.12 : -drop; });
+  return obs.map(v => clip(v, 0, 1));
+}
+let chat = null;
+function chatReset() {
+  const o = Object.assign({}, currentOpts, { drift: false, noise: 0.05 });
+  chat = { env: makeEnv(7, o), W: makeWorld(o), step: 0, o };
+  $("chatLog").innerHTML = "<p style='color:var(--ink2)'>Press “Next session” to begin. Coach B starts with an incomplete readiness estimate; expect an early stretch recipe.</p>";
+  $("chatStep").textContent = "Session 0 of 6";
+  renderBelief();
+}
+function renderBelief() {
+  if (!chat) return;
+  const { W, env } = chat;
+  $("beliefBars").innerHTML = SKILLS.map((s, k) =>
+    `<div class="bar-row"><span>${s}</span><div class="bar-track"><div class="bar-fill" style="width:${W.mu[k] * 100}%;background:${COL.B}"></div></div><b>${W.mu[k].toFixed(2)}</b></div>`).join("");
+  $("beliefNums").innerHTML = "Belief μ [" + W.mu.map(v => v.toFixed(2)).join(", ") + "] ± [" +
+    W.var.map(v => Math.sqrt(v).toFixed(2)).join(", ") + "] · truth [" + env.s.map(v => v.toFixed(2)).join(", ") +
+    "] · α̂ [" + W.ah.map(v => v.toFixed(2)).join(", ") + "] · gate_hat " + W.gateHat.toFixed(1);
+}
+function chatNext() {
+  if (!chat) chatReset();
+  if (chat.step >= 6) return;
+  const { env, W, o } = chat;
+  if (chat.step === 4) { envDrift(env); addMsg("sys", "— learner got a new stove (drift: heat skill ×0.65, heat rate → 0.055) —", ""); }
+  const idx = worldSelect(W), a = ACTIONS[idx], plan = worldPlan(W, 2);
+  const prompt = "Current Learner Belief State: " + SKILLS.map((s, k) => `${s} ${W.mu[k].toFixed(2)} ± ${Math.sqrt(W.var[k]).toFixed(2)}`).join(", ") +
+    ". Estimated learning rates: " + SKILLS.map((s, k) => `${s}=${W.ah[k].toFixed(2)}`).join(", ") +
+    `. Prerequisite-gate estimate: ${W.gateHat.toFixed(1)}. Optimal 2-Step Plan: run \`${a.name}\` now, then \`${plan[plan.length - 1]}\`.`;
+  addMsg("sys", "System prompt → LLM: " + prompt, "");
+  addMsg("coach", MSGS[a.name], "Coach B · session " + (chat.step + 1) + " · plans " + a.name);
+  const before = envGain(env);
+  const { obs } = envStep(env, a, o);
+  worldUpdate(W, idx, obs);
+  const report = REPORTS[chat.step];
+  addMsg("learner", report + "  [truth +" + (envGain(env) - before).toFixed(3) + " this session · text-extracted obs: " +
+    extractOffline(report).map(v => v.toFixed(2)).join(", ") + "]", "Learner");
+  chat.step += 1;
+  $("chatStep").textContent = "Session " + chat.step + " of 6" + (chat.step >= 6 ? " — conversation complete. Restart to replay." : "");
+  renderBelief();
+}
+function addMsg(kind, text, who) {
+  const div = document.createElement("div");
+  div.className = "msg " + kind;
+  div.innerHTML = (who ? `<b class="who"></b>` : "") + `<span class="bubble"></span>`;
+  if (who) div.querySelector(".who").textContent = who;
+  div.querySelector(".bubble").textContent = text;
+  $("chatLog").appendChild(div);
+}
+$("chatNext").addEventListener("click", chatNext);
+$("chatReset").addEventListener("click", chatReset);
+
+function renderInternals() {
+  if (!single || !single.A.steps || !single.B.steps || !single.O.steps) return;
+  const label = internalModel === "A" ? "Bandit A" : internalModel === "B" ? "World-Model B" : "Oracle";
+  $("internalsTitle").textContent = `${label}, session ${internalSession}`;
+  document.querySelectorAll("#analogyStage .scene").forEach(el => {
+    el.classList.toggle("active", el.dataset.scene === internalModel);
+  });
+  if (internalModel === "A") renderBanditInternals();
+  else if (internalModel === "B") renderWorldInternals();
+  else renderOracleInternals();
+}
+function candidateTable(headers, rows) {
+  return "<table><tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>" +
+    rows.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join("") + "</table>";
+}
+function renderBanditInternals() {
+  const s = internalSession - 1;
+  const step = single.A.steps[s];
+  const a = ACTIONS[step.idx];
+  const shortfall = a.pre.map((p, k) => Math.max(0, p - step.envPrev[k]));
+  $("internalsSummary").textContent = "Input: one score after each prior session. Process: rank remembered averages plus a novelty bonus. Output: the remembered winner.";
+  $("mathSteps").innerHTML =
+    `<div class="math-step"><h4>1 · Incoming memory</h4><p>At the start of session ${step.session}, A remembers only these numbers:</p>` +
+    `<div class="numgrid"><div>round/t = ${step.before.t + 1}</div><div>Q = ${svec(step.before.q)}</div><div>counts = [${step.before.n.join(", ")}]</div></div></div>` +
+    `<div class="math-step"><h4>2 · Rank all five arms</h4><span class="formula">UCB = Q + 0.06 × √(ln(t + 1) / n)</span>` +
+    candidateTable(["action", "remembered Q", "plays", "UCB", "choice"],
+      ACTIONS.map((cand, i) => [cand.name, f3(step.before.q[i]), step.before.n[i], f3(step.ucb[i]), i === step.idx ? "<b>pull</b>" : "—"])) +
+    `<p>Selected: <b>${step.action}</b> at UCB ${f3(step.ucb[step.idx])}. The selection uses remembered averages, play counts, and the exploration bonus.</p></div>` +
+    `<div class="math-step"><h4>3 · Environment responds</h4><span class="formula">gain = α × w × exp(−${currentOpts.gateK} × shortfall) × (1 − s)</span>` +
+    `<p>Previous truth ${svec(step.envPrev)}; shortfall ${svec(shortfall)}; gate ${f3(step.env.gate)}.</p>` +
+    `<p>True increments ${svec(step.env.increments)} → truth ${svec(step.env.next)}. Noisy observation ${svec(step.obs)}; score ${f3(step.score)}; cumulative gain ${f3(single.A.gains[s])}.</p></div>` +
+    `<div class="math-step"><h4>4 · Remember the result</h4><span class="formula">new Q = old Q + (score − old Q) / new count</span>` +
+    `<p>${step.action}: Q ${f3(step.before.q[step.idx])} → <b>${f3(step.after.q[step.idx])}</b>; plays ${step.before.n[step.idx]} → <b>${step.after.n[step.idx]}</b>.</p>` +
+    `<p>This is also the failure mode: next session this updated average competes as if the learner had not changed.</p></div>`;
+  const maxU = Math.max(0.001, ...step.ucb.map(v => Math.abs(v)));
+  $("aArms").innerHTML = ACTIONS.map((cand, i) =>
+    `<div class="arm${i === step.idx ? " selected" : ""}"><b>${cand.name.replace("_drill", "").replace("_recipe", "")}</b>` +
+    `<div class="bar-track"><div class="bar-fill" style="width:${clip(Math.abs(step.ucb[i]) / maxU * 100, 4, 100)}%;background:${i === step.idx ? COL.B : COL.A}"></div></div>` +
+    `<span>UCB ${f3(step.ucb[i])}</span></div>`).join("");
+  $("aCaption").textContent = `Demonstration image: the machine selects ${step.action}. The reels show remembered Q-values by action. Skill levels and readiness appear in the World-Model tab.`;
+  $("analogyCaption").textContent = `Demonstration image: five arms stand for five actions. Session ${step.session} selects ${step.action} and updates that arm’s remembered average.`;
+}
+
+function renderWorldInternals() {
+  const s = internalSession - 1;
+  const step = single.B.steps[s];
+  const a = ACTIONS[step.idx];
+  const u = step.update;
+  const Wpost = { mu: step.afterW.mu, var: step.afterW.var, ah: step.afterW.ah, gateHat: step.afterW.gateHat };
+  const plan = worldPlan(Wpost, 2);
+  $("internalsSummary").textContent = "Input: noisy skill observation plus last action. Process: belief tracking, dynamics learning, two-session lookahead. Output: first action of the best predicted plan.";
+  $("mathSteps").innerHTML =
+    `<div class="math-step"><h4>1 · Incoming model of the learner</h4><div class="numgrid"><div>belief μ = ${svec(step.beforeW.mu)}</div><div>uncertainty √var = ${svec(step.beforeW.var.map(Math.sqrt))}</div><div>α̂ = ${svec(step.beforeW.ah)}</div><div>gate_hat = ${f2(step.beforeW.gateHat)}</div></div></div>` +
+    `<div class="math-step"><h4>2 · Simulate all five first moves</h4><span class="formula">score = predicted gain + 0.9 × best next-session gain</span>` +
+    candidateTable(["action", "predicted now", "best next", "total", "choice"],
+      step.candidates.map((c, i) => [c.action, f3(c.immediate), `${c.best2Action} ${f3(c.best2)}`, f3(c.total), i === step.idx ? "<b>take</b>" : "—"])) +
+    `<p>Selected: <b>${step.action}</b> at ${f3(step.candidates[step.idx].total)}, followed by ${step.candidates[step.idx].best2Action}.</p></div>` +
+    `<div class="math-step"><h4>3 · Real learner moves differently if the model is wrong</h4><span class="formula">true gain = α* × w × true gate × (1 − s)</span>` +
+    `<p>Previous truth ${svec(step.envPrev)}; true gate ${f3(step.env.gate)}; true increments ${svec(step.env.increments)} → truth ${svec(step.env.next)}.</p>` +
+    `<p>Coach sees noisy observation ${svec(step.obs)} and score ${f3(step.score)}; cumulative true gain ${f3(single.B.gains[s])}.</p></div>` +
+    `<div class="math-step"><h4>4 · Correct the simulator</h4><span class="formula">posterior = prediction + Kalman gain × (observation − prediction)</span>` +
+    `<p>Predicted μ ${svec(u.pred.mu)}; innovation ${svec(u.innovation)}; Kalman gains ${svec(u.kg)} → belief ${svec(step.afterW.mu)}.</p>` +
+    `<p>Predicted belief gain ${f3(u.predGain)}; realized belief gain ${f3(u.realized)}; gate miss ${u.miss === null ? "n/a (isolated drill)" : f3(u.miss)}; gate_hat ${f2(step.beforeW.gateHat)} → <b>${f2(step.afterW.gateHat)}</b>.</p>` +
+    candidateTable(["skill", "denominator", "rate estimate", "updated α̂"],
+      SKILLS.map((skill, k) => [skill, f3(u.rates[k].denom), u.rates[k].est === null ? "too small to use" : f3(u.rates[k].est), f3(u.rates[k].next)])) +
+    `<p>Outgoing two-step plan from the corrected model: <b>${plan.join(" → ")}</b>.</p></div>`;
+  $("bAnalogy").innerHTML =
+    `<div class="belief3">${SKILLS.map((skill, k) =>
+      `<div class="row"><span>${skill}</span><div class="bar-track"><div class="bar-fill fx-breathe" style="width:${clip(step.afterW.mu[k] * 100, 0, 100)}%;background:${COL.B}"></div></div><b>${f2(step.afterW.mu[k])} / true ${f2(step.env.next[k])}</b></div>`).join("")}</div>` +
+    `<div><b>Combination-lock learning:</b> ${f2(step.afterW.gateHat)} / 8.0<div class="lockbar"><div style="width:${clip(step.afterW.gateHat / 8 * 100, 0, 100)}%"></div></div></div>` +
+    `<div class="plan-path">${plan.map(p => `<span class="chip stretch">${p}</span>`).join("")}</div>`;
+  $("bCaption").textContent = "Demonstration image: the simulator tests a lesson plan, compares its forecast with noisy observations, then adjusts beliefs, rates, and readiness. Early mismatch explains the early gap; ordered practice explains the later lead.";
+  $("analogyCaption").textContent = `Demonstration image: belief ${svec(step.afterW.mu)} beside truth ${svec(step.env.next)}; readiness estimate ${f2(step.afterW.gateHat)}; next plan ${plan.join(" → ")}.`;
+}
+function renderOracleInternals() {
+  const s = internalSession - 1;
+  const step = single.O.steps[s];
+  $("internalsSummary").textContent = "Input: true hidden skills and rates. Process: exact two-session search. Output: the optimal first action and the ceiling other coaches chase.";
+  $("mathSteps").innerHTML =
+    `<div class="math-step"><h4>1 · Perfect information in</h4><div class="numgrid"><div>true skills = ${svec(step.prevS)}</div><div>true α* = ${svec(step.prevAlpha)}</div><div>gate strength = ${f2(currentOpts.gateK)}</div></div></div>` +
+    `<div class="math-step"><h4>2 · Exact two-session search</h4><span class="formula">score = true immediate gain + 0.9 × best true next gain</span>` +
+    candidateTable(["action", "true now", "best next", "total", "choice"],
+      step.candidates.map((c, i) => [c.action, f3(c.immediate), `${c.best2Action} ${f3(c.best2)}`, f3(c.total), i === step.idx ? "<b>optimal</b>" : "—"])) +
+    `<p>Selected: <b>${step.action}</b> at ${f3(step.candidates[step.idx].total)}.</p></div>` +
+    `<div class="math-step"><h4>3 · Truth executes itself</h4><p>True gate ${f3(step.env.gate)}; increments ${svec(step.env.increments)} → truth ${svec(step.env.next)}. Score ${f3(step.score)}; cumulative gain ${f3(single.O.gains[s])}.</p>` +
+    `<p>Oracle keeps the true values directly and reruns the same search. It supplies the comparison ceiling for the two deployable cooking-coaching methods.</p></div>`;
+  $("oAnalogy").innerHTML =
+    `<div class="belief3">${SKILLS.map((skill, k) =>
+      `<div class="row"><span>${skill}</span><div class="bar-track"><div class="bar-fill" style="width:${clip(step.env.next[k] * 100, 0, 100)}%;background:${COL.O}"></div></div><b>${f2(step.env.next[k])}</b></div>`).join("")}</div><div class="scanline fx-scan"></div>`;
+  $("oCaption").textContent = `Demonstration image: X-ray glasses stand for exact inputs. The planner maps ${svec(step.prevS)} to ${svec(step.env.next)} and chooses ${step.action}.`;
+  $("analogyCaption").textContent = `Demonstration image: exact inputs enter on the left, and the comparison ceiling selects ${step.action}.`;
+}
+
+// ---------- Model internals ----------
+let internalModel = "A";
+let internalSession = 11;
+let internalPulse = 0;
+const f2 = v => (v >= 0 && v < 100 ? v.toFixed(2) : String(v));
+const f3 = v => (v >= 0 && v < 100 ? v.toFixed(3) : String(v));
+const svec = xs => "[" + xs.map(v => (typeof v === "number" ? v.toFixed(2) : v)).join(", ") + "]";
+function setModel(m) {
+  internalModel = m;
+  ["A", "B", "O"].forEach(k => {
+    $("tab-" + k).setAttribute("aria-selected", k === m ? "true" : "false");
+  });
+  $("internalsPanel").setAttribute("aria-labelledby", "tab-" + m);
+  renderInternals();
+}
+function setInternalSession(v, animate = false) {
+  internalSession = clip(Math.round(v), 1, 40);
+  $("intSessSlider").value = internalSession;
+  $("intSessOut").textContent = internalSession;
+  renderInternals();
+  if (animate) pulseInternals();
+}
+function pulseInternals() {
+  internalPulse += 1;
+  const stage = $("analogyStage");
+  stage.classList.remove("fx-reel");
+  void stage.offsetWidth;
+  stage.classList.add("fx-reel");
+  const arm = document.querySelector("#aArms .arm.selected .bar-fill");
+  if (arm) { arm.classList.remove("pulled"); void arm.offsetWidth; arm.classList.add("pulled"); }
+  setTimeout(() => stage.classList.remove("fx-reel"), 750);
+}
+["A", "B", "O"].forEach(k => $("tab-" + k).addEventListener("click", () => setModel(k)));
+$("intPrev").addEventListener("click", () => setInternalSession(internalSession - 1, true));
+$("intNext").addEventListener("click", () => setInternalSession(internalSession + 1, true));
+$("intSessSlider").addEventListener("input", e => setInternalSession(parseInt(e.target.value, 10), false));
+$("intRun").addEventListener("click", () => setInternalSession(internalSession, true));
+
+// ---------- Init ----------
+readOpts(); renderAll(); chatReset();
+setInternalSession(pointer >= 1 && pointer <= 40 ? pointer : 11, false);
+</script>
+</body>
+</html>
