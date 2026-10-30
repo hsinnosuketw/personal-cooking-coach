@@ -32,6 +32,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+from chef import store  # noqa: E402  (needs HERE on sys.path)
+
 try:
     from conversation import generate_coach_reply
 except Exception:  # pragma: no cover - conversation.py missing
@@ -47,8 +49,8 @@ TEXT_AS_PLAIN = {".md", ".py", ".txt", ".csv"}
 # in this folder -- the .git history, agent trajectories, learner logs, any
 # .env -- is a 404 and folders are never listed, because --host can share
 # this server with the whole local network.
-PUBLIC = {"index.html", "game.html", "sim-core.js", "EXPERIMENT.md", "EXPERIMENT-zh-TW.md",
-          "benchmark.py", "conversation.py"}
+PUBLIC = {"index.html", "game.html", "play.html", "sim-core.js", "ai_chef_runs.json",
+          "EXPERIMENT.md", "EXPERIMENT-zh-TW.md", "benchmark.py", "conversation.py"}
 
 
 def may_call_live(client_ip: str, token: str | None, sent: str | None) -> bool:
@@ -89,7 +91,25 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def do_GET(self) -> None:
+        if urllib.parse.urlsplit(self.path).path == "/api/leaderboard":
+            return self._json(store.leaderboard())
+        return super().do_GET()
+
+    def _save_round(self) -> None:
+        """A played round from play.html -> validated -> gameplay/episodes/."""
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            if length > store.MAX_BYTES:
+                raise ValueError("round too large")
+            path = store.save(store.validate(self.rfile.read(length)))
+        except (ValueError, KeyError, TypeError, OSError) as e:
+            return self._json({"error": str(e)[:200]}, 400)
+        return self._json({"saved": path.name, "leaderboard": store.leaderboard()})
+
     def do_POST(self) -> None:
+        if self.path == "/api/episodes":
+            return self._save_round()
         if self.path != "/api/coach":
             return self._json({"error": "not found"}, 404)
         try:
@@ -131,7 +151,7 @@ def main() -> None:
     TOKEN = args.token
     server = ThreadingHTTPServer((args.host, args.port), functools.partial(Handler, directory=HERE))
     shown = lan_address() if args.host == "0.0.0.0" else args.host
-    print(f"serving on http://{shown}:{args.port}/  (game at /game.html, demo at /index.html)")
+    print(f"serving on http://{shown}:{args.port}/  (play at /play.html, duel at /game.html, demo at /index.html)")
     if args.host not in ("127.0.0.1", "localhost", "::1"):
         print("shared on your network: visitors get cached or template coach lines; "
               "live Muse calls stay on this machine" + (" or need the token" if TOKEN else ""))

@@ -16,3 +16,6 @@ trajectory-*.json
 
 # Live-coach session logs (local runs, may hold learner data)
 livecoach/runs/
+
+# Synthetic test rounds (regenerate with: python3 -m chef bots)
+gameplay/synthetic/
