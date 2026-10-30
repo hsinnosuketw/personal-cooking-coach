@@ -665,9 +665,10 @@ function showSessionStatic() {
   $("sessSlider").value = cur.session;
 }
 function startSession() {
-  const { A, B } = sessionSteps();
+  const { A, B, uvA, uvB } = sessionSteps();
   kA.setCard(ACTION_SHORT[A.action], "session " + cur.session);
   kB.setCard(ACTION_SHORT[B.action], "session " + cur.session);
+  coachBubble("A", A, uvA); coachBubble("B", B, uvB);  // playback must refresh the lines too
   kA.xpLabel.userData.set = false;
   kB.xpLabel.userData.set = false;
   cur.phase = "card"; cur.t = 0;
