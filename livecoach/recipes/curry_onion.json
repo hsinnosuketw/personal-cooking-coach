@@ -1,0 +1,20 @@
+{
+  "recipe_id": "curry_onion",
+  "name": "Spice Curry (onion base segment)",
+  "name_zh": "香料咖哩（洋蔥底片段）",
+  "review_status": "draft - needs cooking review (plan C07)",
+  "steps": [
+    {"step_id": "slice_onion", "label": "洋蔥切薄片（厚度一致）",
+     "skills": ["knife_cut"], "onion_in_pan": false},
+    {"step_id": "bloom_spices", "label": "熱油爆香原粒香料",
+     "skills": ["heat_control", "step_judgment"], "onion_in_pan": false},
+    {"step_id": "brown_onion", "label": "洋蔥炒到深金褐色（約 15–20 分鐘）",
+     "skills": ["heat_control", "target_state", "moisture", "salt_timing"], "onion_in_pan": true,
+     "target": {"color": 0.75, "max_color": 0.90, "describe": "深金褐色、焦糖化但不焦黑"},
+     "salt": "late"},
+    {"step_id": "add_aromatics", "label": "下薑蒜泥炒香",
+     "skills": ["step_judgment", "heat_control"], "onion_in_pan": true},
+    {"step_id": "add_spice_powder", "label": "加香料粉，小火炒出香氣",
+     "skills": ["heat_control", "step_judgment"], "onion_in_pan": true}
+  ]
+}

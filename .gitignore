@@ -13,3 +13,6 @@ __pycache__/
 # Large or generated artifacts kept locally, not in history
 _w3d/
 trajectory-*.json
+
+# Live-coach session logs (local runs, may hold learner data)
+livecoach/runs/

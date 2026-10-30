@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Cooking Coach · 即時料理教學</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg:#f6f1e7; --card:#fffdf8; --ink:#2b2117; --dim:#776654; --line:#e2d6c3;
+          --accent:#d1572a; --teal:#1b7f7a; --gold:#c9962e; --red:#b83a2f; --blue:#3a6ea5; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "PingFang TC", "Noto Sans TC", "Avenir Next", system-ui, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: .7rem 1rem;
+    background: #2b2117; color: #f6f1e7; position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 1.05rem; margin: 0 .6rem 0 0; }
+  header .tag { font-size: .75rem; padding: .15rem .5rem; border-radius: 999px; background: #4a3a29; }
+  button, select, input { font: inherit; }
+  button { cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+    padding: .35rem .7rem; color: var(--ink); }
+  button.hot { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  header button { background: #4a3a29; border-color: #6b5844; color: #f6f1e7; }
+  main { display: grid; grid-template-columns: 240px 1fr 360px; gap: 1rem; padding: 1rem; max-width: 1400px; margin: 0 auto; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: .8rem 1rem; margin-bottom: 1rem; }
+  .card h2 { font-size: .9rem; margin: 0 0 .5rem; color: var(--dim); font-weight: 700; }
+  ol.steps { margin: 0; padding-left: 1.2rem; }
+  ol.steps li { margin: .3rem 0; font-size: .88rem; color: var(--dim); }
+  ol.steps li.now { color: var(--ink); font-weight: 700; }
+  .chip { display: inline-block; font-size: .7rem; padding: .05rem .4rem; border-radius: 999px;
+    background: #efe6d6; color: var(--dim); margin: .1rem .15rem 0 0; }
+  #prompt { border-left: 6px solid var(--accent); }
+  #prompt.silent { border-left-color: var(--teal); }
+  #action { font-size: 1.6rem; font-weight: 800; margin: .2rem 0; }
+  #reason { font-size: 1rem; color: var(--dim); min-height: 1.4em; }
+  .badges { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .5rem; }
+  .badge { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--line); }
+  .src-rule { background: #fde4dc; } .src-cache { background: #e3eefc; } .src-model { background: #e4f3e9; }
+  .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .6rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { text-align: left; padding: .3rem .35rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr.chosen td { background: #fff1e8; font-weight: 700; }
+  .st-observed { color: var(--teal); } .st-self_reported { color: var(--blue); }
+  .st-unknown { color: var(--dim); font-style: italic; } .st-conflict { color: var(--red); font-weight: 700; }
+  .lvl { font-weight: 700; }
+  .lvl-unknown { color: var(--dim); } .lvl-needs_prompt { color: var(--red); }
+  .lvl-guided_success { color: var(--gold); } .lvl-independent_success { color: var(--teal); }
+  .ev { font-size: .74rem; color: var(--dim); margin: .1rem 0 0 .4rem; }
+  form.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .5rem; font-size: .84rem; }
+  form.grid label { display: flex; flex-direction: column; gap: .2rem; }
+  .muted { color: var(--dim); font-size: .8rem; }
+  details summary { cursor: pointer; color: var(--dim); font-size: .82rem; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; }
+    main > section:nth-child(2) { order: -1; } /* the coach's line first on phones */ }
+</style>
+</head>
+<body>
+<header>
+  <h1>即時料理教學 <span style="font-weight:400">Live Cooking Coach</span></h1>
+  <label>食譜 <select id="recipeSel"></select></label>
+  <label><input type="checkbox" id="memory" checked> 跨食譜記憶</label>
+  <button id="resetBtn" type="button">重置 Reset</button>
+  <button id="exportBtn" type="button">匯出 Export</button>
+  <span class="tag" id="providerTag">provider: …</span>
+</header>
+<main>
+  <section>
+    <div class="card"><h2>食譜步驟 · Steps</h2><ol class="steps" id="steps"></ol></div>
+    <div class="card"><h2>示範腳本 · Demo script</h2>
+      <p class="muted">預先寫好的事件（標示為 replay），從 Pasta 走到 Curry。</p>
+      <button class="hot" id="nextDemo" type="button">下一個事件 ▸</button>
+      <p class="muted" id="demoNote"></p>
+    </div>
+  </section>
+  <section>
+    <div class="card silent" id="prompt">
+      <h2>教練現在說 · Coach</h2>
+      <div id="action">—</div>
+      <div id="reason">開始一個事件，教練才會判斷。</div>
+      <div class="badges" id="badges"></div>
+      <div class="row">
+        <label><input type="checkbox" id="autoSpeak" checked> 自動語音</label>
+        <button type="button" id="speakBtn">▶ 播放</button>
+        <button type="button" id="stopBtn">■ 停止</button>
+      </div>
+      <div class="row" id="responses">
+        <span class="muted">學習者回應：</span>
+        <button type="button" data-r="acknowledged">知道了</button>
+        <button type="button" data-r="self_reported_done">我做完了</button>
+        <button type="button" data-r="observed_success">有做到（看見）</button>
+        <button type="button" data-r="not_followed">沒照做</button>
+      </div>
+    </div>
+    <div class="card"><h2>世界模型比較候選動作 · World model</h2>
+      <table><thead><tr><th>候選</th><th>預測</th><th>焦的風險</th><th>離目標</th><th>在軌道上</th><th>信心</th></tr></thead>
+        <tbody id="preds"></tbody></table>
+      <details style="margin-top:.5rem"><summary>現在不可行的動作</summary><ul id="infeasible" class="muted"></ul></details>
+    </div>
+    <div class="card"><h2>手動事件 · Manual event</h2>
+      <form class="grid" id="eventForm">
+        <label>來源<select name="source"><option value="manual">manual（人工看見）</option>
+          <option value="transcript">transcript（學習者說）</option><option value="camera">camera</option></select></label>
+        <label>步驟<select name="step_id" id="stepSel"></select></label>
+        <label>洋蔥顏色 <output id="colorOut">—</output><input type="range" name="onion_color" min="0" max="1" step="0.01" value="0.3"></label>
+        <label>水分 <output id="moistOut">—</output><input type="range" name="moisture" min="0" max="1" step="0.05" value="0.6"></label>
+        <label>火力<select name="heat_level"><option value="">不知道</option>
+          <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></label>
+        <label>已加鹽<select name="salted"><option value="">不知道</option><option value="true">是</option><option value="false">否</option></select></label>
+        <label>切法<select name="cut_uniformity"><option value="">不知道</option><option value="even">一致</option><option value="uneven">大小不一</option></select></label>
+        <label>其他<span><input type="checkbox" name="smoke"> 冒煙</span><span><input type="checkbox" name="step_done"> 這步完成（做得好）</span></label>
+      </form>
+      <div class="row"><button class="hot" type="button" id="sendEvent">送出事件</button>
+        <label><input type="checkbox" id="sendColor" checked> 含顏色與水分</label></div>
+    </div>
+  </section>
+  <section>
+    <div class="card"><h2>鍋況（觀察／自述／未知）· Kitchen state</h2>
+      <table><tbody id="facts"></tbody></table></div>
+    <div class="card"><h2>技能證據 · Skill evidence</h2><div id="skills"></div></div>
+    <div class="card"><h2>計時與呼叫 · Trace</h2><div class="muted" id="trace">—</div></div>
+  </section>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const FACT_ZH = { onion_color: "洋蔥顏色", moisture: "水分", heat_level: "火力", salted: "已加鹽",
+  smoke: "冒煙", cut_uniformity: "切法", step_done: "步驟完成", outcome: "結果" };
+const STATUS_ZH = { observed: "觀察到", self_reported: "學習者說", unknown: "未知", conflict: "矛盾" };
+const LEVEL_ZH = { unknown: "未知", needs_prompt: "需要提示", guided_success: "提示後成功", independent_success: "獨立成功" };
+const EV_ZH = { prompt_given: "教練提示過", prompt_acknowledged: "按了知道了", self_reported_done: "自述完成",
+  observed_guided_success: "提示後做到", observed_independent_success: "自己做到",
+  observed_failure: "沒做好", not_followed: "沒照做" };
+const SKILL_ZH = { knife_cut: "切法", salt_timing: "加鹽時機", heat_control: "火力控制",
+  moisture: "水分管理", target_state: "判斷目標狀態", step_judgment: "判斷何時進下一步" };
+const DEMO = [  // t: seconds into the cook, so timing (and conflict windows) don't depend on click speed
+  { t: 0, note: "Pasta：切丁大小不一", recipe: "pasta_pomodoro", ev: { step_id: "dice_onion", facts: { cut_uniformity: "uneven" } } },
+  { t: 120, note: "重切好了，開始炒洋蔥；還沒加鹽、火力未知", ev: { step_id: "sweat_onion", facts: { cut_uniformity: "even", onion_color: 0.1, moisture: 0.9, salted: false } } },
+  { t: 150, note: "學習者說：鹽加了，火開到 7", ev: { source: "transcript", facts: { salted: true, heat_level: 7 } } },
+  { t: 400, note: "洋蔥開始上色、鍋子變乾", ev: { facts: { onion_color: 0.42, moisture: 0.4 } } },
+  { t: 520, note: "救回來了：洋蔥透明，火轉 4，進下一步下蒜", ev: { step_id: "add_garlic", facts: { step_done: true, outcome: "good", onion_color: 0.31, moisture: 0.55, heat_level: 4 } } },
+  { t: 580, note: "蒜炒好（沒靠提示），進番茄", ev: { step_id: "add_tomatoes", facts: { step_done: true, outcome: "good" } } },
+  { t: 1200, note: "換做 Curry（同一位學習者）：洋蔥透明，但這道要炒到深金褐", recipe: "curry_onion", ev: { step_id: "brown_onion", facts: { onion_color: 0.35, moisture: 0.4, heat_level: 5, salted: false } } },
+  { t: 1800, note: "Curry：已到深金褐、小火、鹽已加", ev: { facts: { onion_color: 0.72, moisture: 0.3, heat_level: 3, salted: true } } },
+];
+let sid = null, snap = null, demoIdx = 0, demoT0 = 0, recipesData = {}, seq = 0;
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.json();
+}
+function speak(text) {
+  if (!("speechSynthesis" in window) || !text) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+  u.voice = voices.find(v => v.lang === "zh-TW") || voices.find(v => v.lang.startsWith("zh")) || null;
+  u.lang = "zh-TW";
+  speechSynthesis.speak(u);
+}
+function show(v) { return v === true ? "是" : v === false ? "否" : v; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function render(s) {
+  snap = s; sid = s.session_id;
+  $("providerTag").textContent = `provider: ${s.provider}` + (s.memory ? "" : " · 無記憶 (A1)");
+  $("recipeSel").value = s.state.recipe_id;
+  const steps = s.recipe.steps;
+  $("steps").innerHTML = steps.map(st => `<li class="${st.step_id === s.state.step_id ? "now" : ""}">${esc(st.label)}<br>` +
+    st.skills.map(k => `<span class="chip">${SKILL_ZH[k]}</span>`).join("") + "</li>").join("");
+  $("stepSel").innerHTML = steps.map(st => `<option value="${st.step_id}" ${st.step_id === s.state.step_id ? "selected" : ""}>${esc(st.label)}</option>`).join("");
+  const d = s.decision;
+  if (d) {
+    $("action").textContent = d.action_line;
+    $("reason").textContent = d.reason_line || "（這位學習者做過，不多解釋）";
+    $("prompt").className = "card" + (d.speak ? "" : " silent");
+    $("badges").innerHTML = `<span class="badge src-${d.source}">來源 ${d.source}</span>` +
+      `<span class="badge">${d.speak ? "🔈 說出口" : "🤫 安靜觀察"}</span><span class="badge">state v${d.state_version}</span>`;
+  }
+  const chosen = d ? d.candidate_id : null;
+  $("preds").innerHTML = s.predictions.length ? s.predictions.map(p =>
+    `<tr class="${p.candidate_id === chosen ? "chosen" : ""}"><td>${esc(s.candidates.find(c => c.candidate_id === p.candidate_id).label)}</td>` +
+    `<td>${esc(p.primary_outcome)}${p.assumptions.length ? `<div class="muted">假設：${esc(p.assumptions.join("；"))}</div>` : ""}</td>` +
+    `<td>${p.burn_risk.toFixed(2)}</td><td>${p.target_gap.toFixed(2)}</td><td>${p.on_track ? "是" : "否"}</td><td>${p.confidence}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="muted">${d && d.source === "rule" ? "規則直接觸發，沒有呼叫模型" : "—"}</td></tr>`;
+  $("infeasible").innerHTML = s.candidates.filter(c => !c.feasible).map(c => `<li>${esc(c.label)}：${esc(c.reason_infeasible)}</li>`).join("");
+  const facts = Object.entries(s.state.facts);
+  $("facts").innerHTML = facts.length ? facts.map(([k, f]) =>
+    `<tr><td>${FACT_ZH[k] || k}</td><td class="st-${f.status}">${esc(show(f.value))}${f.status === "conflict" ? ` ↔ ${esc(show(f.alt))}（${f.alt_source}）` : ""}</td>` +
+    `<td class="st-${f.status}">${STATUS_ZH[f.status]} · ${f.source}</td></tr>`).join("")
+    : `<tr><td class="muted">還沒有任何觀察</td></tr>`;
+  $("skills").innerHTML = Object.values(s.beliefs).map(b =>
+    `<div style="margin:.35rem 0"><b>${SKILL_ZH[b.skill_id]}</b> · <span class="lvl lvl-${b.level}">${LEVEL_ZH[b.level]}</span>` +
+    b.evidence.slice(-4).map(e => `<div class="ev">${EV_ZH[e.kind]} · ${e.recipe_id === "curry_onion" ? "Curry" : "Pasta"} / ${e.step_id}</div>`).join("") + "</div>").join("");
+  const t = s.trace;
+  $("trace").textContent = t ? `${t.source} · ` + Object.entries(t.stages_ms).map(([k, v]) => `${k} ${v} ms`).join(" · ") +
+    ` · provider calls ${s.counters.provider_calls} · cache hits ${s.counters.cache_hits}` : "—";
+  if (d && d.speak && $("autoSpeak").checked && d.decision_id !== render.lastSpoken) {
+    render.lastSpoken = d.decision_id;
+    speak(d.action_line + "。" + (d.reason_line || ""));
+  }
+}
+async function sendEvent(ev) {
+  const body = { event_id: `ui-${++seq}`, ts: ev.ts || Date.now() / 1000, source: ev.source || "replay",
+    step_id: ev.step_id || null, facts: ev.facts || {} };
+  render(await api(`/api/sessions/${sid}/events`, body));
+}
+async function start(recipe) {
+  render(await api("/api/sessions", { learner_id: "demo-learner", recipe_id: recipe, memory: $("memory").checked }));
+}
+$("nextDemo").addEventListener("click", async () => {
+  if (demoIdx >= DEMO.length) { demoIdx = 0; await start("pasta_pomodoro"); }
+  if (demoIdx === 0) demoT0 = Date.now() / 1000;
+  const step = DEMO[demoIdx++];
+  if (step.recipe && step.recipe !== snap.state.recipe_id) render(await api(`/api/sessions/${sid}/recipe`, { recipe_id: step.recipe }));
+  await sendEvent({ ...step.ev, ts: demoT0 + step.t });
+  $("demoNote").textContent = `${demoIdx}/${DEMO.length}：${step.note}`;
+});
+$("sendEvent").addEventListener("click", async () => {
+  const f = new FormData($("eventForm")), facts = {};
+  if ($("sendColor").checked) { facts.onion_color = +f.get("onion_color"); facts.moisture = +f.get("moisture"); }
+  if (f.get("heat_level")) facts.heat_level = +f.get("heat_level");
+  if (f.get("salted")) facts.salted = f.get("salted") === "true";
+  if (f.get("cut_uniformity")) facts.cut_uniformity = f.get("cut_uniformity");
+  if (f.get("smoke")) facts.smoke = true;
+  if (f.get("step_done")) { facts.step_done = true; facts.outcome = "good"; }
+  await sendEvent({ source: f.get("source"), step_id: f.get("step_id"), facts });
+});
+for (const [inp, out] of [["onion_color", "colorOut"], ["moisture", "moistOut"]]) {
+  const el = document.querySelector(`[name=${inp}]`);
+  el.addEventListener("input", () => { $(out).textContent = (+el.value).toFixed(2); });
+  $(out).textContent = (+el.value).toFixed(2);
+}
+$("responses").addEventListener("click", async e => {
+  const kind = e.target.dataset && e.target.dataset.r;
+  if (!kind || !snap || !snap.decision) return;
+  render(await api(`/api/sessions/${sid}/responses`, { decision_id: snap.decision.decision_id, kind, ts: Date.now() / 1000 }));
+});
+$("recipeSel").addEventListener("change", async e => render(await api(`/api/sessions/${sid}/recipe`, { recipe_id: e.target.value })));
+$("memory").addEventListener("change", () => { demoIdx = 0; start($("recipeSel").value || "pasta_pomodoro"); });
+$("resetBtn").addEventListener("click", async () => { demoIdx = 0; render(await api(`/api/sessions/${sid}/reset`, {})); });
+$("exportBtn").addEventListener("click", async () => {
+  const data = await api(`/api/sessions/${sid}/export`);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = `coach-run-${sid}.json`; a.click();
+});
+$("speakBtn").addEventListener("click", () => snap && snap.decision && speak(snap.decision.action_line + "。" + snap.decision.reason_line));
+$("stopBtn").addEventListener("click", () => "speechSynthesis" in window && speechSynthesis.cancel());
+(async () => {
+  recipesData = await api("/api/recipes");
+  $("recipeSel").innerHTML = Object.entries(recipesData).map(([id, r]) => `<option value="${id}">${esc(r.name_zh)}</option>`).join("");
+  await start("pasta_pomodoro");
+})().catch(e => { $("reason").textContent = "連不到伺服器：" + e.message; });
+</script>
+</body>
+</html>
