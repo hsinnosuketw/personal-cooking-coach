@@ -472,6 +472,8 @@ if (compound &amp;&amp; predictedGain &gt; 0.03) {
 </footer>
 </div>
 <script src="sim-core.js"></script>
+<script>
+"use strict";
 // ---------- State + chart helpers ----------
 const $ = id => document.getElementById(id);
 let currentOpts = { seed: 7, noise: 0.05, gateK: 6, lrScale: 1, drift: true, view: "mean" };
@@ -614,7 +616,7 @@ function renderInspector() {
     "<b style='color:var(--teal-d)'>A</b> played <b>" + a.actions[t] + "</b> → true gain " + a.gains[t].toFixed(3) + "<br>" +
     "<b style='color:var(--orange-d)'>B</b> played <b>" + b.actions[t] + "</b> → true gain " + b.gains[t].toFixed(3) +
     " · gate_hat " + (b.gateHat[t] ? b.gateHat[t].toFixed(1) : "—") +
-    " · α̂ heat " + (b.alphaHeat[t] ? b.alphaHeat[t].toFixed(2) : "—") + "<br>" +
+    " · alpha_hat heat " + (b.alphaHeat[t] ? b.alphaHeat[t].toFixed(2) : "—") + "<br>" +
     "B believes [" + bBelief + "] · truth (B’s learner) [" + bTruth + "]";
 }
 function renderLabs() {
@@ -625,7 +627,7 @@ function renderLabs() {
     " (A " + agg.A[19].toFixed(2) + " vs B " + agg.B[19].toFixed(2) + " on average).";
   $("driftStats").innerHTML = currentOpts.drift
     ? "Drift <b>on</b>: session 40 — A " + agg.A[39].toFixed(2) + ", B " + agg.B[39].toFixed(2) +
-      ", Oracle " + agg.O[39].toFixed(2) + ". B’s α̂ for heat re-learns downward (right chart, top section); A’s averages cannot."
+      ", Oracle " + agg.O[39].toFixed(2) + ". B’s alpha_hat for heat re-learns downward (right chart, top section); A’s averages cannot."
     : "Drift <b>off</b>: session 40 — A " + agg.A[39].toFixed(2) + ", B " + agg.B[39].toFixed(2) +
       ", Oracle " + agg.O[39].toFixed(2) + ". Turn drift on to see the adaptation gap.";
 }
@@ -751,7 +753,7 @@ function renderBelief() {
     `<div class="bar-row"><span>${s}</span><div class="bar-track"><div class="bar-fill" style="width:${W.mu[k] * 100}%;background:${COL.B}"></div></div><b>${W.mu[k].toFixed(2)}</b></div>`).join("");
   $("beliefNums").innerHTML = "Belief μ [" + W.mu.map(v => v.toFixed(2)).join(", ") + "] ± [" +
     W.var.map(v => Math.sqrt(v).toFixed(2)).join(", ") + "] · truth [" + env.s.map(v => v.toFixed(2)).join(", ") +
-    "] · α̂ [" + W.ah.map(v => v.toFixed(2)).join(", ") + "] · gate_hat " + W.gateHat.toFixed(1);
+    "] · alpha_hat [" + W.ah.map(v => v.toFixed(2)).join(", ") + "] · gate_hat " + W.gateHat.toFixed(1);
 }
 function chatNext() {
   if (!chat) chatReset();
@@ -837,7 +839,7 @@ function renderWorldInternals() {
   const plan = worldPlan(Wpost, 2);
   $("internalsSummary").textContent = "Input: noisy skill observation plus last action. Process: belief tracking, dynamics learning, two-session lookahead. Output: first action of the best predicted plan.";
   $("mathSteps").innerHTML =
-    `<div class="math-step"><h4>1 · Incoming model of the learner</h4><div class="numgrid"><div>belief μ = ${svec(step.beforeW.mu)}</div><div>uncertainty √var = ${svec(step.beforeW.var.map(Math.sqrt))}</div><div>α̂ = ${svec(step.beforeW.ah)}</div><div>gate_hat = ${f2(step.beforeW.gateHat)}</div></div></div>` +
+    `<div class="math-step"><h4>1 · Incoming model of the learner</h4><div class="numgrid"><div>belief μ = ${svec(step.beforeW.mu)}</div><div>uncertainty √var = ${svec(step.beforeW.var.map(Math.sqrt))}</div><div>alpha_hat = ${svec(step.beforeW.ah)}</div><div>gate_hat = ${f2(step.beforeW.gateHat)}</div></div></div>` +
     `<div class="math-step"><h4>2 · Simulate all five first moves</h4><span class="formula">score = predicted gain + 0.9 × best next-session gain</span>` +
     candidateTable(["action", "predicted now", "best next", "total", "choice"],
       step.candidates.map((c, i) => [c.action, f3(c.immediate), `${c.best2Action} ${f3(c.best2)}`, f3(c.total), i === step.idx ? "<b>take</b>" : "—"])) +
@@ -848,7 +850,7 @@ function renderWorldInternals() {
     `<div class="math-step"><h4>4 · Correct the simulator</h4><span class="formula">posterior = prediction + Kalman gain × (observation − prediction)</span>` +
     `<p>Predicted μ ${svec(u.pred.mu)}; innovation ${svec(u.innovation)}; Kalman gains ${svec(u.kg)} → belief ${svec(step.afterW.mu)}.</p>` +
     `<p>Predicted belief gain ${f3(u.predGain)}; realized belief gain ${f3(u.realized)}; gate miss ${u.miss === null ? "n/a (isolated drill)" : f3(u.miss)}; gate_hat ${f2(step.beforeW.gateHat)} → <b>${f2(step.afterW.gateHat)}</b>.</p>` +
-    candidateTable(["skill", "denominator", "rate estimate", "updated α̂"],
+    candidateTable(["skill", "denominator", "rate estimate", "updated alpha_hat"],
       SKILLS.map((skill, k) => [skill, f3(u.rates[k].denom), u.rates[k].est === null ? "too small to use" : f3(u.rates[k].est), f3(u.rates[k].next)])) +
     `<p>Outgoing two-step plan from the corrected model: <b>${plan.join(" → ")}</b>.</p></div>`;
   $("bAnalogy").innerHTML =
@@ -882,8 +884,8 @@ function renderOracleInternals() {
 let internalModel = "A";
 let internalSession = 11;
 let internalPulse = 0;
-const f2 = v => (v >= 0 && v < 100 ? v.toFixed(2) : String(v));
-const f3 = v => (v >= 0 && v < 100 ? v.toFixed(3) : String(v));
+const f2 = v => (Number.isFinite(v) ? v.toFixed(2) : String(v));
+const f3 = v => (Number.isFinite(v) ? v.toFixed(3) : String(v));
 const svec = xs => "[" + xs.map(v => (typeof v === "number" ? v.toFixed(2) : v)).join(", ") + "]";
 function setModel(m) {
   internalModel = m;

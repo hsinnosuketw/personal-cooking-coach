@@ -63,6 +63,23 @@
     #bubbles { grid-template-columns: 1fr; }
     #readout { white-space: normal; font-size: .72rem; max-width: 94vw; text-align: center; }
   }
+  @media (max-width: 600px) {
+    /* phone: HUD docks top and bottom so the kitchens keep the middle band */
+    #topbar { gap: .35rem; padding: .45rem .6rem; }
+    #topbar h1 { font-size: .9rem; width: 100%; }
+    button { padding: .28rem .6rem; }
+    #readout { display: none; }
+    #bubbles { bottom: 8px; left: 8px; right: 8px; gap: .35rem; }
+    .bubble { font-size: .72rem; padding: .35rem .55rem; min-height: 0; display: -webkit-box;
+      -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+    #panelB, #panelChart { top: auto; bottom: 136px; width: calc(50% - 12px); max-height: none; padding: .45rem .55rem; }
+    #panelB { left: 8px; font-size: .62rem; }
+    #panelChart { right: 8px; }
+    #minichart { height: 96px; }
+    .gauge { width: 44px; height: 44px; }
+    .gauge b { width: 30px; height: 30px; font-size: .62rem; }
+    #banner { top: 34%; font-size: .78rem; max-width: 92vw; }
+  }
 </style>
 </head>
 <body>
@@ -83,8 +100,8 @@
   <h2>Coach B's belief <span style="color:var(--dim)">(orange) vs truth (white tick)</span></h2>
   <div id="beliefBars"></div>
   <div style="display:flex;gap:.6rem;align-items:center"><div class="gauge" id="gateGauge"><b id="gateNum">0.0</b></div><div>gate_hat / 8<br><span style="color:var(--dim)">readiness dial: fills as B learns the gate</span></div></div>
-  <div>α̂ heat <b id="alphaNum">0.12</b> (true <span id="alphaTrue">0.14</span>)</div>
-  <div style="color:var(--dim)">noisy obs σ=0.06: <b id="obsNum" style="color:var(--ink)">–</b></div>
+  <div>alpha_hat heat <b id="alphaNum">0.12</b> (true <span id="alphaTrue">0.14</span>)</div>
+  <div style="color:var(--dim)">noisy obs σ=<span id="obsSigma">0.05</span>: <b id="obsNum" style="color:var(--ink)">–</b></div>
 </div>
 <div class="hud" id="panelChart">
   <h2>Cumulative true gain</h2>
@@ -134,6 +151,20 @@ controls.target.set(0, 1.6, 0);
 controls.enableDamping = true;
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.minDistance = 6; controls.maxDistance = 40;
+// Keep both kitchens (x within +-10.5) in view on any aspect: narrow screens
+// widen the vertical FOV instead of backing the camera into the fog, and on
+// portrait the picture shifts up into the band between the docked HUD panels.
+function fitCamera() {
+  const W = window.innerWidth, H = window.innerHeight;
+  camera.aspect = W / H;
+  const halfTanH = 10.5 / camera.position.distanceTo(controls.target);
+  const halfTanV = Math.max(Math.tan(THREE.MathUtils.degToRad(23)), halfTanH / camera.aspect);
+  camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(halfTanV));
+  if (W < H) camera.setViewOffset(W, H, 0, Math.round(H * 0.08), W, H);
+  else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+}
+fitCamera();
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 const hemi = new THREE.HemisphereLight(0xfff2dd, 0x2a1f14, 0.75);
@@ -171,13 +202,35 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
-{ // far silhouettes: shelf rows fading into haze + one drifting dust layer
-  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x33261a, roughness: 0.95 });
-  for (let i = 0; i < 8; i++) {
-    const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.5, 0.8), shelfMat);
-    shelf.position.set(-16 + i * 4.6, 2.2, -13 - (i % 3));
-    scene.add(shelf);
+{ // back wall: subway tiles and two shelves of jars, fading into the haze.
+  // Single-sided, so it vanishes instead of blocking the view from behind.
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#3b2c1e'; g.fillRect(0, 0, 256, 128);  // grout
+  g.fillStyle = '#5a4430';
+  for (let row = 0; row < 4; row++) {
+    for (let col = -1; col < 4; col++) g.fillRect(col * 64 + (row % 2) * 32 + 2, row * 32 + 2, 60, 28);
   }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(16, 4);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(72, 10),
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }));
+  wall.position.set(0, 5, -14);
+  scene.add(wall);
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2e, roughness: 0.7 });
+  const jarMats = [0xd9a441, 0x8fae6b, 0xc2563b].map(color =>
+    new THREE.MeshStandardMaterial({ color, roughness: 0.4 }));
+  [4.2, 6.2].forEach((y, s) => {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(30, 0.15, 0.6), shelfMat);
+    shelf.position.set(0, y, -13.7);
+    scene.add(shelf);
+    for (let i = 0; i < 9; i++) {
+      const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.55, 12), jarMats[(i + s) % 3]);
+      jar.position.set(-13 + i * 3.2 + s * 1.4, y + 0.35, -13.7);
+      scene.add(jar);
+    }
+  });
 }
 const dustGeo = new THREE.BufferGeometry();
 {
@@ -261,26 +314,33 @@ function makeKitchen(cx, coachName, shirtMat) {
   tiles.castShadow = false;
   const title = textSprite(coachName, { size: 52 });
   title.position.set(cx, 3.1, -1.55); K.group.add(title);
-  // action card on a small stand, outer side so pans/flames never cross it
+  // action card on a small stand, outer side so pans/flames never cross it.
+  // The label is painted into the card's own texture, so it tilts and flips
+  // with the card and can never sink behind it or be squashed.
   const side = cx < 0 ? -1 : 1;
   K.cardX = cx + side * 3.55; K.cardZ = 1.15;
   K.cardStand = add(new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.1, 0.18), MAT.iron), side * 3.55, 1.7, 1.15);
+  const cardCanvas = document.createElement('canvas');
+  cardCanvas.width = 512; cardCanvas.height = 294;  // same aspect as the 2.0 x 1.15 card
+  const cardTex = new THREE.CanvasTexture(cardCanvas);
+  cardTex.colorSpace = THREE.SRGBColorSpace;
+  cardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   K.card = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.15),
-    new THREE.MeshBasicMaterial({ color: 0xf2e8d5, side: THREE.DoubleSide }));
+    new THREE.MeshBasicMaterial({ map: cardTex, side: THREE.DoubleSide }));
   K.card.position.set(K.cardX, 2.6, K.cardZ); K.card.rotation.x = -0.25;
   K.group.add(K.card);
-  K.cardText = textSprite('', { size: 40 });
-  K.cardText.scale.set(0.9, 0.9, 1);
-  K.cardText.position.set(K.cardX, 2.6, K.cardZ + 0.02);
-  K.group.add(K.cardText);
   const setCard = (label, sub) => {
-    const fresh = textSprite(label + (sub ? ' ' + sub : ''), { size: 38 });
-    const fit = Math.min(0.85, 1.5 / (fresh.userData.px / 90));
-    fresh.scale.set(fit, 0.9, 1); fresh.position.copy(K.cardText.position);
-    K.group.remove(K.cardText);
-    fresh.material.map.dispose(); K.cardText.material.map.dispose(); K.cardText.material.dispose();
-    K.cardText = fresh; K.group.add(K.cardText);
+    const g = cardCanvas.getContext('2d'), W = cardCanvas.width, H = cardCanvas.height;
+    g.fillStyle = '#f2e8d5'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#c9bda9'; g.lineWidth = 6; g.strokeRect(3, 3, W - 6, H - 6);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    let size = 120;  // shrink the action name until it fits 88% of the card width
+    do { g.font = `bold ${size}px Georgia, serif`; size -= 4; } while (g.measureText(label).width > W * 0.88 && size > 24);
+    g.fillStyle = '#231a08'; g.fillText(label, W / 2, H * 0.42);
+    if (sub) { g.font = 'bold 44px Georgia, serif'; g.fillStyle = '#6b5a43'; g.fillText(sub, W / 2, H * 0.8); }
+    cardTex.needsUpdate = true;
   };
+  setCard('', '');
   K.setCard = setCard;
   // stove (left station): body, burner, pan + handle; body material swaps at S21
   K.stoveBody = add(new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 2.0), MAT.steel.clone()), -2.2, 1.68, 0);
@@ -504,7 +564,7 @@ async function coachBubble(kind, step, uv) {
   try {
     const r = await fetch("/api/coach", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ system_prompt: sys, fallback: line }),
+      body: JSON.stringify({ seed: simOpts.seed, session: step.session, system_prompt: sys, fallback: line }),
     });
     if (r.ok) {
       const d = await r.json();
@@ -533,6 +593,7 @@ function renderBelief(stepB) {
   $("gateNum").textContent = stepB.afterW.gateHat.toFixed(1);
   $("gateGauge").style.background =
     `conic-gradient(var(--orange) 0% ${gpct}%, #3a2f20 ${gpct}% 100%)`;
+  $("obsSigma").textContent = simOpts.noise.toFixed(2);
   $("obsNum").textContent =
     stepB.obs.map(v => v.toFixed(2)).join(" / ");
   $("alphaNum").textContent = stepB.afterW.ah[1].toFixed(2);
@@ -585,7 +646,7 @@ function sessionSteps() {
 function showSessionStatic() {
   const { A, B, uvA, uvB } = sessionSteps();
   for (const [K, step, uv] of [[kA, A, uvA], [kB, B, uvB]]) {
-    K.setCard(ACTION_SHORT[step.action], "S" + cur.session);
+    K.setCard(ACTION_SHORT[step.action], "session " + cur.session);
     applySession(K, step, uv, 0);
     const xs = STATION_X[step.action];
     K.chef.position.x = K.x + xs[0];
@@ -605,8 +666,8 @@ function showSessionStatic() {
 }
 function startSession() {
   const { A, B } = sessionSteps();
-  kA.setCard(ACTION_SHORT[A.action], "S" + cur.session);
-  kB.setCard(ACTION_SHORT[B.action], "S" + cur.session);
+  kA.setCard(ACTION_SHORT[A.action], "session " + cur.session);
+  kB.setCard(ACTION_SHORT[B.action], "session " + cur.session);
   kA.xpLabel.userData.set = false;
   kB.xpLabel.userData.set = false;
   cur.phase = "card"; cur.t = 0;
@@ -717,8 +778,7 @@ $("xray").addEventListener("change", () => {
   renderReadout(A, B, uvA, uvB);
 });
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  fitCamera();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 // ---------- Boot: live world at once, playing unless reduced motion ----------

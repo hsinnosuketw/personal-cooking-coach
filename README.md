@@ -27,11 +27,29 @@ python3 demo.py real-data-junyi data/junyi_log.csv data/junyi_table.csv 2
                             # headers auto-detected) -> fit -> replay
 python3 test_benchmark.py   # 8 focused tests (incl. offline voice fallback)
 python3 test_replay.py      # 6 real-data path tests (synthetic CSVs)
+python3 test_serve.py       # 3 server tests (charsets, LAN rule, per-session replies)
 ```
 
 No API key needed. Everything runs offline; the Meta Model API bridge
 (extractor + coach voice) activates only when `MODEL_API_KEY` is set,
 and every live call falls back to the offline path with a visible tag.
+
+## 3D kitchen duel (`game.html`)
+
+Two toy kitchens race through the same 40 sessions: Coach A (score
+averages) on the left, World-Model Coach B on the right, with B's belief
+bars, gate dial, the A/B/Oracle gain chart and per-session coach lines.
+It runs the same simulation as `index.html` (`sim-core.js`).
+
+```bash
+python3 serve.py                  # http://127.0.0.1:8000/game.html (this Mac only)
+python3 serve.py --host 0.0.0.0   # share on your Wi-Fi; prints the link to send
+```
+
+`game.html` needs the server (its ES modules can't load from `file://`);
+`index.html` still opens by double-click. When shared on the network,
+visitors get cached or template coach lines; live Muse calls stay on this
+machine unless you start the server with `--token` and give it out.
 
 ## Real student data (ASSISTments)
 
