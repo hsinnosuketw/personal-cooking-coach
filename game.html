@@ -202,13 +202,35 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
-{ // far silhouettes: shelf rows fading into haze + one drifting dust layer
-  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x33261a, roughness: 0.95 });
-  for (let i = 0; i < 8; i++) {
-    const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.5, 0.8), shelfMat);
-    shelf.position.set(-16 + i * 4.6, 2.2, -13 - (i % 3));
-    scene.add(shelf);
+{ // back wall: subway tiles and two shelves of jars, fading into the haze.
+  // Single-sided, so it vanishes instead of blocking the view from behind.
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#3b2c1e'; g.fillRect(0, 0, 256, 128);  // grout
+  g.fillStyle = '#5a4430';
+  for (let row = 0; row < 4; row++) {
+    for (let col = -1; col < 4; col++) g.fillRect(col * 64 + (row % 2) * 32 + 2, row * 32 + 2, 60, 28);
   }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(16, 4);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(72, 10),
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }));
+  wall.position.set(0, 5, -14);
+  scene.add(wall);
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2e, roughness: 0.7 });
+  const jarMats = [0xd9a441, 0x8fae6b, 0xc2563b].map(color =>
+    new THREE.MeshStandardMaterial({ color, roughness: 0.4 }));
+  [4.2, 6.2].forEach((y, s) => {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(30, 0.15, 0.6), shelfMat);
+    shelf.position.set(0, y, -13.7);
+    scene.add(shelf);
+    for (let i = 0; i < 9; i++) {
+      const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.55, 12), jarMats[(i + s) % 3]);
+      jar.position.set(-13 + i * 3.2 + s * 1.4, y + 0.35, -13.7);
+      scene.add(jar);
+    }
+  });
 }
 const dustGeo = new THREE.BufferGeometry();
 {
