@@ -1,0 +1,28 @@
+{
+  "recipe_id": "pasta_pomodoro",
+  "name": "Pasta Pomodoro (with onion)",
+  "name_zh": "番茄義大利麵（含洋蔥）",
+  "review_status": "draft - needs cooking review (plan C07)",
+  "steps": [
+    {"step_id": "dice_onion", "label": "切洋蔥丁（約 5 mm，大小一致）",
+     "skills": ["knife_cut"], "onion_in_pan": false},
+    {"step_id": "heat_pan", "label": "熱鍋下橄欖油（中火）",
+     "skills": ["heat_control"], "onion_in_pan": false},
+    {"step_id": "sweat_onion", "label": "洋蔥炒到透明變軟、不要上色",
+     "skills": ["heat_control", "target_state", "moisture", "salt_timing"], "onion_in_pan": true,
+     "target": {"color": 0.30, "max_color": 0.45, "describe": "透明、變軟、幾乎沒上色"},
+     "salt": "early"},
+    {"step_id": "add_garlic", "label": "下蒜末炒 30–60 秒，不要焦",
+     "skills": ["heat_control", "step_judgment"], "onion_in_pan": true},
+    {"step_id": "add_tomatoes", "label": "加入番茄",
+     "skills": ["step_judgment"], "onion_in_pan": true},
+    {"step_id": "simmer_sauce", "label": "小火收汁 15–20 分鐘",
+     "skills": ["moisture", "target_state"], "onion_in_pan": true},
+    {"step_id": "boil_pasta", "label": "鹽水煮麵到彈牙",
+     "skills": ["salt_timing", "step_judgment"], "onion_in_pan": true},
+    {"step_id": "combine", "label": "麵拌醬，加煮麵水調整濃度",
+     "skills": ["moisture", "target_state"], "onion_in_pan": true},
+    {"step_id": "finish", "label": "羅勒、橄欖油，最後調味",
+     "skills": ["salt_timing"], "onion_in_pan": true}
+  ]
+}
