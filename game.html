@@ -261,26 +261,33 @@ function makeKitchen(cx, coachName, shirtMat) {
   tiles.castShadow = false;
   const title = textSprite(coachName, { size: 52 });
   title.position.set(cx, 3.1, -1.55); K.group.add(title);
-  // action card on a small stand, outer side so pans/flames never cross it
+  // action card on a small stand, outer side so pans/flames never cross it.
+  // The label is painted into the card's own texture, so it tilts and flips
+  // with the card and can never sink behind it or be squashed.
   const side = cx < 0 ? -1 : 1;
   K.cardX = cx + side * 3.55; K.cardZ = 1.15;
   K.cardStand = add(new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.1, 0.18), MAT.iron), side * 3.55, 1.7, 1.15);
+  const cardCanvas = document.createElement('canvas');
+  cardCanvas.width = 512; cardCanvas.height = 294;  // same aspect as the 2.0 x 1.15 card
+  const cardTex = new THREE.CanvasTexture(cardCanvas);
+  cardTex.colorSpace = THREE.SRGBColorSpace;
+  cardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   K.card = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.15),
-    new THREE.MeshBasicMaterial({ color: 0xf2e8d5, side: THREE.DoubleSide }));
+    new THREE.MeshBasicMaterial({ map: cardTex, side: THREE.DoubleSide }));
   K.card.position.set(K.cardX, 2.6, K.cardZ); K.card.rotation.x = -0.25;
   K.group.add(K.card);
-  K.cardText = textSprite('', { size: 40 });
-  K.cardText.scale.set(0.9, 0.9, 1);
-  K.cardText.position.set(K.cardX, 2.6, K.cardZ + 0.02);
-  K.group.add(K.cardText);
   const setCard = (label, sub) => {
-    const fresh = textSprite(label + (sub ? ' ' + sub : ''), { size: 38 });
-    const fit = Math.min(0.85, 1.5 / (fresh.userData.px / 90));
-    fresh.scale.set(fit, 0.9, 1); fresh.position.copy(K.cardText.position);
-    K.group.remove(K.cardText);
-    fresh.material.map.dispose(); K.cardText.material.map.dispose(); K.cardText.material.dispose();
-    K.cardText = fresh; K.group.add(K.cardText);
+    const g = cardCanvas.getContext('2d'), W = cardCanvas.width, H = cardCanvas.height;
+    g.fillStyle = '#f2e8d5'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#c9bda9'; g.lineWidth = 6; g.strokeRect(3, 3, W - 6, H - 6);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    let size = 120;  // shrink the action name until it fits 88% of the card width
+    do { g.font = `bold ${size}px Georgia, serif`; size -= 4; } while (g.measureText(label).width > W * 0.88 && size > 24);
+    g.fillStyle = '#231a08'; g.fillText(label, W / 2, H * 0.42);
+    if (sub) { g.font = 'bold 44px Georgia, serif'; g.fillStyle = '#6b5a43'; g.fillText(sub, W / 2, H * 0.8); }
+    cardTex.needsUpdate = true;
   };
+  setCard('', '');
   K.setCard = setCard;
   // stove (left station): body, burner, pan + handle; body material swaps at S21
   K.stoveBody = add(new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 2.0), MAT.steel.clone()), -2.2, 1.68, 0);
@@ -585,7 +592,7 @@ function sessionSteps() {
 function showSessionStatic() {
   const { A, B, uvA, uvB } = sessionSteps();
   for (const [K, step, uv] of [[kA, A, uvA], [kB, B, uvB]]) {
-    K.setCard(ACTION_SHORT[step.action], "S" + cur.session);
+    K.setCard(ACTION_SHORT[step.action], "session " + cur.session);
     applySession(K, step, uv, 0);
     const xs = STATION_X[step.action];
     K.chef.position.x = K.x + xs[0];
@@ -605,8 +612,8 @@ function showSessionStatic() {
 }
 function startSession() {
   const { A, B } = sessionSteps();
-  kA.setCard(ACTION_SHORT[A.action], "S" + cur.session);
-  kB.setCard(ACTION_SHORT[B.action], "S" + cur.session);
+  kA.setCard(ACTION_SHORT[A.action], "session " + cur.session);
+  kB.setCard(ACTION_SHORT[B.action], "session " + cur.session);
   kA.xpLabel.userData.set = false;
   kB.xpLabel.userData.set = false;
   cur.phase = "card"; cur.t = 0;
