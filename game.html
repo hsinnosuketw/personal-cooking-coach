@@ -511,7 +511,7 @@ async function coachBubble(kind, step, uv) {
   try {
     const r = await fetch("/api/coach", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ system_prompt: sys, fallback: line }),
+      body: JSON.stringify({ seed: simOpts.seed, session: step.session, system_prompt: sys, fallback: line }),
     });
     if (r.ok) {
       const d = await r.json();
