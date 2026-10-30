@@ -26,6 +26,7 @@ import json
 import os
 import socket
 import sys
+import urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +43,12 @@ TOKEN: str | None = None
 MAX_PROMPT_CHARS = 2000
 # Docs and code are shown as plain text so browsers display them inline.
 TEXT_AS_PLAIN = {".md", ".py", ".txt", ".csv"}
+# Only the two pages and the files they link to are served. Everything else
+# in this folder -- the .git history, agent trajectories, learner logs, any
+# .env -- is a 404 and folders are never listed, because --host can share
+# this server with the whole local network.
+PUBLIC = {"index.html", "game.html", "sim-core.js", "EXPERIMENT.md", "EXPERIMENT-zh-TW.md",
+          "benchmark.py", "conversation.py"}
 
 
 def may_call_live(client_ip: str, token: str | None, sent: str | None) -> bool:
@@ -66,6 +73,13 @@ class Handler(SimpleHTTPRequestHandler):
 
     def guess_type(self, path):
         return content_type(path, super().guess_type(path))
+
+    def send_head(self):
+        name = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path).lstrip("/") or "index.html"
+        if name not in PUBLIC:
+            self.send_error(404)
+            return None
+        return super().send_head()
 
     def _json(self, obj: dict, code: int = 200) -> None:
         body = json.dumps(obj).encode()

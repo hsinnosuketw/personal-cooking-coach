@@ -3,6 +3,7 @@ import functools
 import json
 import os
 import threading
+import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
 
@@ -47,6 +48,29 @@ def test_server_charset_and_per_session_replies():
         one, five = coach(1, "stretch line"), coach(5, "heat line")
         assert one == {"text": "stretch line", "live": False}
         assert five == {"text": "heat line", "live": False}, "sessions must not share a cached reply"
+    finally:
+        server.shutdown()
+
+
+def test_only_pages_and_their_links_are_served():
+    server = ThreadingHTTPServer(("127.0.0.1", 0),
+                                 functools.partial(serve.Handler, directory=serve.HERE))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{server.server_address[1]}"
+
+    def status(path):
+        try:
+            with urllib.request.urlopen(base + path, timeout=10) as r:
+                return r.status
+        except urllib.error.HTTPError as e:
+            return e.code
+
+    try:
+        for path in ("/", "/index.html", "/game.html", "/sim-core.js", "/EXPERIMENT-zh-TW.md"):
+            assert status(path) == 200, path
+        for path in ("/.git/config", "/.gitignore", "/trajectory-2026-10-30-074628.json",
+                     "/livecoach/", "/qa/critique-1.md", "/serve.py", "/%2e%2e/%2e%2e/etc/passwd"):
+            assert status(path) == 404, f"{path} must stay private on a shared network"
     finally:
         server.shutdown()
 
