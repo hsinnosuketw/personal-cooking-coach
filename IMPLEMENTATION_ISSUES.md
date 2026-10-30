@@ -101,8 +101,14 @@
   改寫成 `alpha_hat`（跟畫面上的 `gate_hat` 一致）；負數也不再印出整串小數。
 - **教練對話泡泡每堂都重播第 1 堂**：頁面沒送 seed／session，伺服器快取鍵恆為空。
 - **連結的 .md／.py 可能亂碼**：伺服器沒送 charset，已改 `text/plain; charset=utf-8`。
-- **Muse Code 的 QA 第一輪 10 項**：全部處理並重新驗證（卡片、泡泡、手機版面、
-  背景改成磁磚牆等）；評語原文在 `qa/critique-1.md`。
+- **Muse Code 的 QA 第一輪 10 項**：全部處理，並逐項在 Chromium 實測（卡片、泡泡、
+  手機版面、磁磚牆背景、第 21 堂鍋色變深、重來時爐台回灰、XP 不再蓋住卡片、播放時
+  鏡頭不漂移）。行為變更：播到第 40 堂會停，按 Play 從第 1 堂重來（不再自動循環）。
+  小瑕疵：XP 數字會短暫蓋住教練名牌。評語原文在 `qa/critique-1.md`。
+- **播放時對話泡泡停在舊台詞**：自動播放只更新卡片、沒更新泡泡，整場都顯示舊台詞；
+  已修正，實測連續 14 堂泡泡與卡片一致。
+- **區網分享只開放頁面本身**：`serve.py` 只送出兩個頁面和它們連結的文件；`.git`、
+  trajectory、學習紀錄、`.env` 一律 404，也不列出資料夾內容。
 - **版本控制**：專案原本不是 git repo。已 `git init` 並接上私有 repo
   `hsinnosuketw/world-model-coach`（只 fetch、未 push）；修正在
   `fix/garble-and-qa-round-2` 分支，合併與 push 等你確認。

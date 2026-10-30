@@ -49,7 +49,9 @@ python3 serve.py --host 0.0.0.0   # share on your Wi-Fi; prints the link to send
 `game.html` needs the server (its ES modules can't load from `file://`);
 `index.html` still opens by double-click. When shared on the network,
 visitors get cached or template coach lines; live Muse calls stay on this
-machine unless you start the server with `--token` and give it out.
+machine unless you start the server with `--token` and give it out. Only the
+two pages and the files they link to are served: the git history, logs and
+any keys in the folder return 404.
 
 ## Real student data (ASSISTments)
 
