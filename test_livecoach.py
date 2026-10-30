@@ -1,6 +1,10 @@
 """Checks for the live cooking coach. Run: python3 test_livecoach.py"""
-from livecoach import belief, candidates, onion, recipes, state
-from livecoach.schema import Evidence, EvidenceKind, FactStatus, ObservationEvent, SkillLevel
+from livecoach import belief, candidates, onion, policy, recipes, state
+from livecoach.provider import MockProvider
+from livecoach.schema import (Evidence, EvidenceKind, FactStatus, LearnerResponse, ObservationEvent,
+                              SkillLevel)
+from livecoach.session import Session
+from livecoach.world_model import WorldModel
 
 
 def ev(i, source, ts, step_id=None, **facts):
@@ -64,6 +68,82 @@ def test_candidates_are_feasible_and_include_doing_nothing():
     curry = state.apply_event(state.initial_state("curry_onion"),
                               ev(2, "camera", 5, step_id="brown_onion", onion_color=0.3, heat_level=6))
     assert not {c.candidate_id: c for c in candidates.all_candidates(curry)}["add_salt_now"].feasible
+
+
+def sweat(**facts):
+    """Pasta at the sweat-the-onion step, with these camera facts."""
+    return state.apply_event(state.initial_state("pasta_pomodoro"),
+                             ev(1, "camera", 10, step_id="sweat_onion", **facts))
+
+
+def decide(s, beliefs=None):
+    beliefs = beliefs or belief.new_beliefs()
+    rule = policy.rule_decision(s)
+    if rule:
+        return rule
+    cands = candidates.generate(s)
+    return policy.choose(cands, MockProvider().compare(s, beliefs, cands), beliefs).candidate_id
+
+
+def test_world_model_compares_every_candidate_and_caches():
+    s = sweat(onion_color=0.32, moisture=0.45, heat_level=7.0, salted=True)
+    cands = candidates.generate(s)
+    wm = WorldModel(MockProvider())
+    preds, source = wm.compare(s, belief.new_beliefs(), cands)
+    assert source == "model" and [p.candidate_id for p in preds] == [c.candidate_id for c in cands]
+    assert len({p.target_gap for p in preds}) == len(preds), "different moves, different futures"
+    assert wm.compare(s, belief.new_beliefs(), cands)[1] == "cache"
+    darker = state.apply_event(s, ev(2, "camera", 20, onion_color=0.5))
+    assert wm.compare(darker, belief.new_beliefs(), candidates.generate(darker))[1] == "model"
+
+
+def test_policy_rule_then_ask_then_teach_or_stay_quiet():
+    assert policy.rule_decision(sweat(smoke=True)) == "lower_heat"
+    assert decide(sweat(onion_color=0.35, moisture=0.5)) == "ask_heat_level", "unknown heat that matters"
+    early = sweat(onion_color=0.1, moisture=0.9, heat_level=4.0, salted=False)
+    assert decide(early) == "add_salt_now", "novice: teach salting at the right moment"
+    seasoned = belief.new_beliefs()
+    belief.add_evidence(seasoned, Evidence(kind="observed_independent_success", skill_id="salt_timing",
+                                           recipe_id="pasta_pomodoro", step_id="sweat_onion", ts=0))
+    assert decide(early, seasoned) == "continue_observe", "someone who salts unprompted is left alone"
+    fine = sweat(onion_color=0.15, moisture=0.85, heat_level=4.0, salted=True)
+    assert decide(fine) == "continue_observe", "nothing to fix, nothing to teach: stay quiet"
+
+
+def pasta_then_curry(memory):
+    s = Session("learner-1", "pasta_pomodoro", MockProvider(), memory=memory)
+    first = s.observe(ev(1, "camera", 10, step_id="sweat_onion", onion_color=0.1, moisture=0.9,
+                         heat_level=4.0, salted=False))
+    s.observe(ev(2, "manual", 300, step_id="add_garlic", step_done=True, outcome="good",
+                 onion_color=0.32, moisture=0.55, salted=True))
+    s.observe(ev(3, "manual", 360, step_id="add_tomatoes", step_done=True, outcome="good"))
+    s.switch_recipe("curry_onion", 400)
+    curry = s.observe(ev(4, "camera", 1300, step_id="brown_onion", onion_color=0.72, moisture=0.3,
+                         heat_level=3.0, salted=True))
+    return s, first, curry
+
+
+def test_memory_from_pasta_changes_coaching_in_curry():
+    s, first, curry = pasta_then_curry(memory=True)
+    assert first.candidate_id == "add_salt_now" and first.speak
+    assert s.beliefs["salt_timing"].level.value == "guided_success", "prompted, then done"
+    assert s.beliefs["step_judgment"].level.value == "independent_success", "moved on unprompted"
+    assert {e.recipe_id for e in s.beliefs["step_judgment"].evidence} == {"pasta_pomodoro"}
+    assert not curry.speak, "seasoned learner at the browning target: no interruption"
+    _, _, fresh = pasta_then_curry(memory=False)
+    assert fresh.candidate_id == "advance_step" and fresh.speak, "ablation A1 (no memory) teaches it"
+
+
+def test_ignored_advice_is_recorded_but_never_counts_as_success():
+    s = Session("learner-2", "pasta_pomodoro", MockProvider())
+    d = s.observe(ev(1, "camera", 10, step_id="sweat_onion", smoke=True, heat_level=8.0))
+    assert (d.source, d.candidate_id, d.speak) == ("rule", "lower_heat", True)
+    assert not s.observe(ev(2, "camera", 25, smoke=True)).speak, "same advice 15 s later stays muted"
+    s.respond(LearnerResponse(decision_id=d.decision_id, kind="not_followed", ts=30))
+    hc = s.beliefs["heat_control"]
+    assert hc.level.value == "unknown" and hc.evidence[-1].kind.value == "not_followed"
+    s.respond(LearnerResponse(decision_id=d.decision_id, kind="observed_success", ts=40))
+    assert s.beliefs["heat_control"].level.value == "guided_success"
 
 
 if __name__ == "__main__":

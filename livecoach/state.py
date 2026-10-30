@@ -12,6 +12,9 @@ from .schema import Fact, FactStatus, KitchenState, ObservationEvent
 
 CONFLICT_WINDOW_S = 20.0
 CERTAIN = (FactStatus.observed, FactStatus.self_reported)
+# onion_color may arrive as a word (manual entry, a model) or a 0-1 number
+COLOR_WORDS = {"raw": 0.05, "translucent": 0.30, "golden": 0.60,
+               "deep_golden": 0.75, "brown": 0.82, "burnt": 0.95}
 
 
 def initial_state(recipe_id: str, ts: float = 0.0) -> KitchenState:
@@ -41,6 +44,13 @@ def known(state: KitchenState, name: str):
     """The fact's value when it is trustworthy, else None (unknown or conflict)."""
     f = state.facts.get(name)
     return f.value if f is not None and f.status in CERTAIN else None
+
+
+def onion_color(state: KitchenState) -> float | None:
+    c = known(state, "onion_color")
+    if isinstance(c, bool) or c is None:
+        return None
+    return COLOR_WORDS.get(c) if isinstance(c, str) else float(c)
 
 
 def is_stale(result_version: int, state: KitchenState) -> bool:

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from . import recipes
 from .schema import Candidate, KitchenState
-from .state import known
+from .state import known, onion_color
 
 MENU = {  # id: (kind, skill, label)
     "continue_observe": ("observe", None, "繼續，我在旁邊看著"),
@@ -27,7 +27,7 @@ def _feasibility(cid: str, state: KitchenState, step: dict) -> str | None:
     """None when the move is possible now, else why it is not."""
     in_pan = bool(step.get("onion_in_pan"))
     target = step.get("target")
-    color = known(state, "onion_color")
+    color = onion_color(state)
     if cid == "recut_onion" and in_pan:
         return "洋蔥已下鍋，切法留到下次備料"
     if cid in ("lower_heat", "raise_heat", "add_water_splash") and not in_pan:
@@ -48,7 +48,7 @@ def _feasibility(cid: str, state: KitchenState, step: dict) -> str | None:
 
 def _priority(state: KitchenState, step: dict) -> list[str]:
     target = step.get("target")
-    color = known(state, "onion_color")
+    color = onion_color(state)
     pri = []
     if known(state, "cut_uniformity") == "uneven" and not step.get("onion_in_pan"):
         pri.append("recut_onion")
