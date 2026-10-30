@@ -84,7 +84,7 @@
   <div id="beliefBars"></div>
   <div style="display:flex;gap:.6rem;align-items:center"><div class="gauge" id="gateGauge"><b id="gateNum">0.0</b></div><div>gate_hat / 8<br><span style="color:var(--dim)">readiness dial: fills as B learns the gate</span></div></div>
   <div>alpha_hat heat <b id="alphaNum">0.12</b> (true <span id="alphaTrue">0.14</span>)</div>
-  <div style="color:var(--dim)">noisy obs σ=0.06: <b id="obsNum" style="color:var(--ink)">–</b></div>
+  <div style="color:var(--dim)">noisy obs σ=<span id="obsSigma">0.05</span>: <b id="obsNum" style="color:var(--ink)">–</b></div>
 </div>
 <div class="hud" id="panelChart">
   <h2>Cumulative true gain</h2>
@@ -540,6 +540,7 @@ function renderBelief(stepB) {
   $("gateNum").textContent = stepB.afterW.gateHat.toFixed(1);
   $("gateGauge").style.background =
     `conic-gradient(var(--orange) 0% ${gpct}%, #3a2f20 ${gpct}% 100%)`;
+  $("obsSigma").textContent = simOpts.noise.toFixed(2);
   $("obsNum").textContent =
     stepB.obs.map(v => v.toFixed(2)).join(" / ");
   $("alphaNum").textContent = stepB.afterW.ah[1].toFixed(2);
