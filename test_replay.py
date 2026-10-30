@@ -69,6 +69,43 @@ def test_learning_curve_rises():
         os.unlink(path)
 
 
+def _synthetic_junyi_paths(n_users=30, attempts=20):
+    fd, log = tempfile.mkstemp(suffix=".csv")
+    os.close(fd)
+    fd, table = tempfile.mkstemp(suffix=".csv")
+    os.close(fd)
+    replay.make_synthetic_junyi_csv(log, table, TRUE_PARAMS,
+                                    n_users=n_users, attempts=attempts, seed=2)
+    return log, table
+
+
+def test_junyi_loader_joins_exercises_to_skills():
+    log, table = _synthetic_junyi_paths()
+    try:
+        rows, dropped, meta = datasets.load_junyi_problem_log(log, table)
+        assert meta["skill_source"] == "kc_table"
+        assert meta["columns"]["user"] == "uid"  # alias auto-detection
+        assert dropped == {}
+        assert {r["skill"] for r in rows} == {"s1", "s2"}
+        assert datasets.summarize(rows)["users"] == 30
+        fitted = replay.fit_top_skills(rows, 2)
+        assert abs(fitted["s2"]["p_learn"] - TRUE_PARAMS["s2"]["p_learn"]) < 0.11
+    finally:
+        os.unlink(log)
+        os.unlink(table)
+
+
+def test_junyi_without_table_treats_exercise_as_skill():
+    log, table = _synthetic_junyi_paths()
+    try:
+        rows, _, meta = datasets.load_junyi_problem_log(log)
+        assert meta["skill_source"] == "exercise_id"
+        assert {r["skill"] for r in rows} == {"e0", "e1"}
+    finally:
+        os.unlink(log)
+        os.unlink(table)
+
+
 def test_replay_deterministic_bounded_oracle_best():
     fitted = {k: dict(v) for k, v in TRUE_PARAMS.items()}
     a1 = replay.run_real_episode("A", fitted, seed=7, sessions=20)

@@ -9,6 +9,9 @@
                                    # BKT params (offline pipeline check)
   python3 demo.py real-data data.csv [n_skills]
                                    # load -> fit BKT -> replay A/B/Oracle
+  python3 demo.py real-data-junyi log.csv [table.csv] [n_skills]
+                                   # Junyi ProblemLog (+ exercise->KC table)
+                                   # -> fit BKT -> replay A/B/Oracle
 """
 from __future__ import annotations
 
@@ -189,13 +192,20 @@ def chat_demo(live: bool = False) -> None:
 def real_data_demo(path: str, n_skills: int = 3, sessions: int = 20) -> None:
     """ASSISTments-format CSV -> fit BKT -> replay A/B/Oracle -> report."""
     import datasets
-    import replay
 
     rows, dropped = datasets.load_csv(path)
+    print(f"Dropped rows: {dropped or 'none'}")
+    real_data_demo_rows(rows, n_skills, sessions)
+
+
+def real_data_demo_rows(rows: list, n_skills: int = 3, sessions: int = 20) -> None:
+    """Fit BKT on canonical rows -> replay A/B/Oracle -> report."""
+    import datasets
+    import replay
+
     info = datasets.summarize(rows)
     print(f"Loaded {info['attempts']} attempts from {info['users']} users, "
-          f"{info['skills']} skills (base rate {info['base_rate']:.3f}); "
-          f"dropped rows: {dropped or 'none'}")
+          f"{info['skills']} skills (base rate {info['base_rate']:.3f})")
     params_map = replay.fit_top_skills(rows, n_skills)
     for skill, p in params_map.items():
         curve = datasets.learning_curve(rows, skill, max_attempt=10)
@@ -234,5 +244,16 @@ if __name__ == "__main__":
     elif mode == "real-data":
         real_data_demo(sys.argv[2],
                        int(sys.argv[3]) if len(sys.argv) > 3 else 3)
+    elif mode == "real-data-junyi":
+        import datasets
+
+        log, rest = sys.argv[2], sys.argv[3:]
+        table = rest[0] if rest and not rest[0].isdigit() else None
+        rest = rest[1:] if table else rest
+        n = int(rest[0]) if rest else 3
+        rows, dropped, meta = datasets.load_junyi_problem_log(log, table)
+        print(f"Junyi loader: columns={meta['columns']} "
+              f"skill_source={meta['skill_source']} dropped={dropped or 'none'}")
+        real_data_demo_rows(rows, n)
     else:
         benchmark_demo()

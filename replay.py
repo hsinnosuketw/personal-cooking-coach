@@ -48,6 +48,46 @@ def make_synthetic_csv(path: str, skills_params: dict, n_users: int = 60,
                                 skill, skill])
 
 
+def make_synthetic_junyi_csv(log_path: str, table_path: str | None,
+                             skills_params: dict, n_users: int = 60,
+                             attempts: int = 25, seed: int = 0) -> None:
+    """Write Junyi-shaped files from known BKT params.
+
+    The problem log deliberately uses *alternate* header names
+    (uid / item_id / is_correct / timestamp) to exercise the loader's
+    auto-detection; the optional exercise table maps exercises to skills.
+    Each skill gets two exercises to prove the KC join works.
+    """
+    rng = random.Random(seed)
+    skills = list(skills_params)
+    exercises = [f"e{i // 2}" for i in range(2 * len(skills))]
+    ex_to_skill = {ex: skills[i // 2] for i, ex in enumerate(exercises)}
+    if table_path:
+        with open(table_path, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(["exercise", "kc"])
+            for ex, sk in ex_to_skill.items():
+                w.writerow([ex, sk])
+    else:
+        ex_to_skill = {ex: ex for ex in exercises}
+    with open(log_path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["uid", "item_id", "is_correct", "timestamp"])
+        ts = 1_700_000_000
+        for u in range(n_users):
+            user = f"u{u}"
+            for ex in exercises:
+                p = skills_params[ex_to_skill[ex]]
+                mastered = rng.random() < p["p_init"]
+                for _ in range(attempts):
+                    ts += rng.randint(30, 600)
+                    prob = (1 - p["p_slip"]) if mastered else p["p_guess"]
+                    correct = 1 if rng.random() < prob else 0
+                    if not mastered and rng.random() < p["p_learn"]:
+                        mastered = True
+                    w.writerow([user, ex, correct, ts])
+
+
 def fit_top_skills(rows: list[dict], n: int, **fit_kw) -> dict:
     """Fit BKT params for the n most frequent skills. Returns {skill: params}."""
     from datasets import to_skill_sequences  # local import: same package dir

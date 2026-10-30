@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>World-Model Coach — 3D Kitchen Duel</title>
+<style>
+  :root { --ink:#f2ece1; --dim:#c9bda9; --card:#221b14; --line:#4a3d2c;
+          --teal:#37c4b1; --orange:#f0703a; --gold:#e9c46a; --red:#e5484d; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #14100b;
+    color: var(--ink); font-family: "Avenir Next", "Trebuchet MS", Verdana, sans-serif; }
+  #scene { position: fixed; inset: 0; display: block; }
+  #err { position: fixed; left: 8px; bottom: 8px; z-index: 50; max-width: 60ch;
+    background: #3a1414; color: #ffd9d9; padding: .5rem .8rem; border-radius: 8px;
+    font-size: .82rem; display: none; }
+  .hud { position: fixed; z-index: 10; background: rgba(24,19,13,.88);
+    border: 1px solid var(--line); border-radius: 12px; padding: .6rem .8rem; }
+  #topbar { top: 10px; left: 10px; right: 10px; display: flex; gap: .7rem;
+    align-items: center; flex-wrap: wrap; }
+  #topbar h1 { font-family: Palatino, Georgia, serif; font-size: 1.05rem; margin: 0 .4rem 0 0; }
+  #topbar .btnrow { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+  button { font: inherit; font-weight: 700; cursor: pointer; border-radius: 8px;
+    padding: .42rem .8rem; border: 2px solid var(--gold); background: var(--gold); color: #231a08; }
+  button.alt { background: transparent; color: var(--ink); border-color: var(--line); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  select, input[type=range] { accent-color: var(--orange); }
+  select { background: #2c2318; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: .3rem; }
+  #sessLabel { font-weight: 800; min-width: 9ch; }
+  #panelB { top: 76px; left: 10px; width: 250px; font-size: .8rem; }
+  #panelB h2, #panelChart h2 { font-size: .85rem; margin: 0 0 .4rem; }
+  .bbar { display: grid; grid-template-columns: 52px 1fr 44px; gap: .4rem; align-items: center; margin: .25rem 0; }
+  .track { height: 10px; background: #3a2f20; border-radius: 5px; position: relative; overflow: hidden; }
+  .fill { height: 100%; background: var(--orange); }
+  .truth { position: absolute; top: -2px; width: 3px; height: 14px; background: #fff; }
+  .meter { height: 10px; background: #3a2f20; border-radius: 5px; overflow: hidden; margin: .2rem 0 .5rem; }
+  .meter > div { height: 100%; background: var(--teal); }
+  .unc { position: absolute; top: 1px; height: 8px; background: rgba(240,112,58,.35); border-radius: 4px; }
+  .gauge { width: 64px; height: 64px; border-radius: 50%; flex: 0 0 auto; display: flex;
+    align-items: center; justify-content: center;
+    background: conic-gradient(var(--orange) 0% 0%, #3a2f20 0% 100%); }
+  .gauge b { background: #221b14; border-radius: 50%; width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center; font-size: .8rem; }
+  #panelChart { top: 76px; right: 10px; width: 300px; }
+  #minichart { width: 100%; height: 150px; display: block; background: #191410;
+    border: 1px solid var(--line); border-radius: 8px; }
+  #bubbles { position: fixed; bottom: 12px; left: 10px; right: 10px; display: grid;
+    grid-template-columns: 1fr 1fr; gap: .6rem; pointer-events: none; z-index: 11; }
+  .bubble { background: rgba(24,19,13,.9); border: 1px solid var(--line);
+    border-radius: 10px; padding: .5rem .7rem; font-size: .85rem; min-height: 3.2em; }
+  .bubble b { display: block; font-size: .72rem; color: var(--dim); }
+  #banner { top: 76px; left: 50%; transform: translateX(-50%); font-weight: 800;
+    background: #4d1a12; border-color: var(--red); display: none; }
+  #readout { bottom: 12px; left: 50%; transform: translateX(-50%); font-size: .78rem;
+    color: var(--dim); white-space: nowrap; }
+  #bubbles { bottom: 54px; }
+  @media (max-width: 900px) {
+    #panelB { display: block; top: auto; bottom: 190px; left: 10px; width: 196px;
+      font-size: .68rem; max-height: 30vh; overflow: auto; }
+    #panelB h2 { font-size: .72rem; }
+    #panelChart { width: 200px; top: 196px; }
+    #bubbles { grid-template-columns: 1fr; }
+    #readout { white-space: normal; font-size: .72rem; max-width: 94vw; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="hud" id="topbar">
+  <h1>Kitchen Duel: Bandit A vs World-Model B</h1>
+  <div class="btnrow">
+    <button id="playBtn" type="button">▶ Play</button>
+    <button id="stepBtn" class="alt" type="button">Step +1</button>
+    <label>Speed <select id="speedSel"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+    <label>Seed <select id="seedSel"><option>3</option><option selected>7</option><option>12</option><option>21</option><option>42</option></select></label>
+    <label>Session <output id="sessOut">1</output>
+      <input type="range" id="sessSlider" min="1" max="40" step="1" value="1" style="width:150px"></label>
+    <label><input type="checkbox" id="xray"> X-ray (truth)</label>
+  </div>
+</div>
+<div class="hud" id="panelB">
+  <h2>Coach B's belief <span style="color:var(--dim)">(orange) vs truth (white tick)</span></h2>
+  <div id="beliefBars"></div>
+  <div style="display:flex;gap:.6rem;align-items:center"><div class="gauge" id="gateGauge"><b id="gateNum">0.0</b></div><div>gate_hat / 8<br><span style="color:var(--dim)">readiness dial: fills as B learns the gate</span></div></div>
+  <div>α̂ heat <b id="alphaNum">0.12</b> (true <span id="alphaTrue">0.14</span>)</div>
+  <div style="color:var(--dim)">noisy obs σ=0.06: <b id="obsNum" style="color:var(--ink)">–</b></div>
+</div>
+<div class="hud" id="panelChart">
+  <h2>Cumulative true gain</h2>
+  <canvas id="minichart" width="560" height="280"></canvas>
+</div>
+<div class="hud" id="banner">🔥 New stove at session 21 — heat skill dropped, learning slowed</div>
+<div id="bubbles">
+  <div class="bubble" id="bubbleA"><b>COACH A · score averages</b><span></span></div>
+  <div class="bubble" id="bubbleB"><b>COACH B · world model</b><span></span></div>
+</div>
+<div class="hud" id="readout" aria-live="polite"></div>
+<div id="err" role="alert"></div>
+<script src="sim-core.js"></script>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const errBox = document.getElementById('err');
+function showErr(msg) { errBox.style.display = 'block'; errBox.textContent = 'Error: ' + msg; }
+window.addEventListener('error', e => showErr(e.message));
+window.addEventListener('unhandledrejection', e => showErr(String(e.reason && e.reason.message || e.reason)));
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// ---------- Renderer, scene, camera, light ----------
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x14100b);
+scene.fog = new THREE.Fog(0x14100b, 26, 60);
+const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 9.5, 17.5);
+if (window.innerWidth < window.innerHeight) camera.position.set(0, 13.5, 27);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.6, 0);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.minDistance = 6; controls.maxDistance = 40;
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+const hemi = new THREE.HemisphereLight(0xfff2dd, 0x2a1f14, 0.75);
+scene.add(hemi);
+const key = new THREE.DirectionalLight(0xffe7c4, 2.2);
+key.position.set(8, 14, 9);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -14; key.shadow.camera.right = 14;
+key.shadow.camera.top = 14; key.shadow.camera.bottom = -10;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x9db8ff, 0.35);
+fill.position.set(-9, 7, -6);
+scene.add(fill);
+// ---------- Floor, backdrop, moving layer ----------
+function floorTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#241b12'; g.fillRect(0, 0, 256, 256);
+  g.strokeStyle = '#31271a'; g.lineWidth = 3;
+  for (let i = 0; i <= 4; i++) {
+    g.beginPath(); g.moveTo(i * 64, 0); g.lineTo(i * 64, 256); g.stroke();
+    g.beginPath(); g.moveTo(0, i * 64); g.lineTo(256, i * 64); g.stroke();
+  }
+  g.fillStyle = '#2c2214';
+  for (let i = 0; i < 40; i++) g.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(10, 10);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(34, 48),
+  new THREE.MeshStandardMaterial({ map: floorTexture(), roughness: 0.9, metalness: 0 }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+{ // far silhouettes: shelf rows fading into haze + one drifting dust layer
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x33261a, roughness: 0.95 });
+  for (let i = 0; i < 8; i++) {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.5, 0.8), shelfMat);
+    shelf.position.set(-16 + i * 4.6, 2.2, -13 - (i % 3));
+    scene.add(shelf);
+  }
+}
+const dustGeo = new THREE.BufferGeometry();
+{
+  const n = 120, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 36;
+    pos[i * 3 + 1] = Math.random() * 9 + 0.5;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * 30;
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+}
+const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+  color: 0xffe0b3, size: 0.08, transparent: true, opacity: 0.5, depthWrite: false }));
+scene.add(dust);
+// ---------- Shared materials & label helpers ----------
+const MAT = {
+  counter: new THREE.MeshStandardMaterial({ color: 0x6b4a2e, roughness: 0.7 }),
+  counterTop: new THREE.MeshStandardMaterial({ color: 0x8a5f3a, roughness: 0.55 }),
+  steel: new THREE.MeshStandardMaterial({ color: 0x9aa2ad, roughness: 0.3, metalness: 0.9 }),
+  steelNew: new THREE.MeshStandardMaterial({ color: 0x5f7fa6, roughness: 0.25, metalness: 0.95 }),
+  iron: new THREE.MeshStandardMaterial({ color: 0x1c1a18, roughness: 0.6, metalness: 0.4 }),
+  board: new THREE.MeshStandardMaterial({ color: 0xc7a06a, roughness: 0.8 }),
+  dice: new THREE.MeshStandardMaterial({ color: 0xf3e5c3, roughness: 0.6 }),
+  skin: new THREE.MeshStandardMaterial({ color: 0xd9a37e, roughness: 0.6 }),
+  shirtA: new THREE.MeshStandardMaterial({ color: 0x0e7c7b, roughness: 0.8 }),
+  shirtB: new THREE.MeshStandardMaterial({ color: 0xe4572e, roughness: 0.8 }),
+  apron: new THREE.MeshStandardMaterial({ color: 0xefe6d4, roughness: 0.85 }),
+  hat: new THREE.MeshStandardMaterial({ color: 0xf6f1e6, roughness: 0.7 }),
+  flame: new THREE.MeshBasicMaterial({ color: 0xff7a1a, transparent: true, opacity: 0.9 }),
+  char: new THREE.MeshBasicMaterial({ color: 0x0d0c0b }),
+  goldFood: new THREE.MeshStandardMaterial({ color: 0xd9a441, roughness: 0.55 }),
+};
+function textSprite(text, { size = 44, fg = '#f2ece1', bg = 'rgba(20,14,9,0.92)', pad = 18 } = {}) {
+  const c = document.createElement('canvas');
+  const g = c.getContext('2d');
+  g.font = `bold ${size}px Georgia, serif`;
+  const w = Math.ceil(g.measureText(text).width) + pad * 2;
+  c.width = w; c.height = size + pad * 2;
+  const g2 = c.getContext('2d');
+  g2.fillStyle = bg;
+  g2.beginPath(); g2.roundRect(0, 0, c.width, c.height, 14); g2.fill();
+  g2.font = `bold ${size}px Georgia, serif`;
+  g2.fillStyle = fg; g2.textBaseline = 'middle';
+  g2.fillText(text, pad, c.height / 2 + 2);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(c.width / 90, c.height / 90),
+    new THREE.MeshBasicMaterial({ map: t, transparent: true }));
+  m.userData.px = c.width;
+  m.userData.setText = (s) => { /* replaced by rebuild; kept for API shape */ };
+  return m;
+}
+// ---------- Kitchen builder (forms before effects) ----------
+function softSprite(inner, outer) {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(32, 32, 2, 32, 32, 30);
+  grad.addColorStop(0, inner); grad.addColorStop(1, outer);
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  return t;
+}
+const smokeTex = softSprite('rgba(60,55,50,0.85)', 'rgba(60,55,50,0)');
+const steamTex = softSprite('rgba(235,235,240,0.7)', 'rgba(235,235,240,0)');
+const DICE_N = 24;
+function makeKitchen(cx, coachName, shirtMat) {
+  const K = { x: cx, coachName, group: new THREE.Group() };
+  scene.add(K.group);
+  const add = (mesh, x, y, z) => { mesh.position.set(cx + x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; K.group.add(mesh); return mesh; };
+  // counter + top slab (rounded look via two stacked boxes), per-coach tint
+  const tint = coachName.includes("A") ? 0x6b4a2e : 0x74452c;
+  add(new THREE.Mesh(new THREE.BoxGeometry(7.6, 1.0, 3.0),
+    new THREE.MeshStandardMaterial({ color: tint, roughness: 0.7 })), 0, 0.5, 0);
+  add(new THREE.Mesh(new THREE.BoxGeometry(8.0, 0.18, 3.4),
+    new THREE.MeshStandardMaterial({ color: coachName.includes("A") ? 0x8a5f3a : 0x96684a, roughness: 0.55 })), 0, 1.09, 0);
+  // back panel with kitchen label + tile backsplash strip
+  const back = add(new THREE.Mesh(new THREE.BoxGeometry(8.0, 2.6, 0.25), MAT.counter), 0, 2.4, -1.7);
+  back.castShadow = false;
+  const tiles = add(new THREE.Mesh(new THREE.BoxGeometry(8.0, 0.9, 0.06),
+    new THREE.MeshStandardMaterial({ color: coachName.includes("A") ? 0x3f6f6e : 0x8c4f34, roughness: 0.35 })), 0, 1.75, -1.55);
+  tiles.castShadow = false;
+  const title = textSprite(coachName, { size: 52 });
+  title.position.set(cx, 3.1, -1.55); K.group.add(title);
+  // action card on a small stand, outer side so pans/flames never cross it
+  const side = cx < 0 ? -1 : 1;
+  K.cardX = cx + side * 3.55; K.cardZ = 1.15;
+  K.cardStand = add(new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.1, 0.18), MAT.iron), side * 3.55, 1.7, 1.15);
+  K.card = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.15),
+    new THREE.MeshBasicMaterial({ color: 0xf2e8d5, side: THREE.DoubleSide }));
+  K.card.position.set(K.cardX, 2.6, K.cardZ); K.card.rotation.x = -0.25;
+  K.group.add(K.card);
+  K.cardText = textSprite('', { size: 40 });
+  K.cardText.scale.set(0.9, 0.9, 1);
+  K.cardText.position.set(K.cardX, 2.6, K.cardZ + 0.02);
+  K.group.add(K.cardText);
+  const setCard = (label, sub) => {
+    const fresh = textSprite(label + (sub ? ' ' + sub : ''), { size: 38 });
+    const fit = Math.min(0.85, 1.5 / (fresh.userData.px / 90));
+    fresh.scale.set(fit, 0.9, 1); fresh.position.copy(K.cardText.position);
+    K.group.remove(K.cardText);
+    fresh.material.map.dispose(); K.cardText.material.map.dispose(); K.cardText.material.dispose();
+    K.cardText = fresh; K.group.add(K.cardText);
+  };
+  K.setCard = setCard;
+  // stove (left station): body, burner, pan + handle; body material swaps at S21
+  K.stoveBody = add(new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 2.0), MAT.steel.clone()), -2.2, 1.68, 0);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.14, 24), MAT.iron), -2.2, 2.25, 0);
+  K.pan = add(new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.8, 0.28, 24), MAT.iron), -2.2, 2.45, 0);
+  const handle = add(new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 0.22), MAT.iron), -1.2, 2.45, 0);
+  handle.castShadow = false;
+  // cutting board (middle station) + instanced dice
+  add(new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.12, 1.4), MAT.board), 0.2, 1.24, 0.35);
+  const diceGeo = new THREE.BoxGeometry(0.16, 0.16, 0.16);
+  K.dice = new THREE.InstancedMesh(diceGeo, MAT.dice, DICE_N);
+  K.dice.castShadow = true; K.group.add(K.dice);
+  K.diceBase = [];
+  for (let i = 0; i < DICE_N; i++) {
+    K.diceBase.push({ x: cx + 0.2 + (Math.random() - 0.5) * 1.5, z: 0.35 + (Math.random() - 0.5) * 0.9, r: Math.random() * Math.PI });
+  }
+  // pot (right station) with rim
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.7, 1.0, 20), MAT.steel.clone()), 2.4, 1.7, 0);
+  const rim = add(new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.09, 10, 24), MAT.iron), 2.4, 2.2, 0);
+  rim.rotation.x = Math.PI / 2;
+  K.potBody = K.group.children[K.group.children.length - 2];
+  // plate + food + char spots + quality ring
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.7, 0.12, 24),
+    new THREE.MeshStandardMaterial({ color: 0xf4efe4, roughness: 0.4 })), 0.2, 1.24, -0.85);
+  K.food = add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 18, 12),
+    MAT.goldFood.clone()), 0.2, 1.45, -0.85);
+  K.food.scale.y = 0.55;
+  K.charSpots = [];
+  for (let i = 0; i < 7; i++) {
+    const s = new THREE.Mesh(new THREE.CircleGeometry(0.09, 10), MAT.char);
+    s.rotation.x = -Math.PI / 2;
+    s.position.set(cx + 0.2 + (Math.random() - 0.5) * 0.7, 1.73, -0.85 + (Math.random() - 0.5) * 0.7);
+    s.visible = false; K.group.add(s); K.charSpots.push(s);
+  }
+  K.ring = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.06, 8, 32),
+    new THREE.MeshBasicMaterial({ color: 0xe9c46a }));
+  K.ring.rotation.x = Math.PI / 2;
+  K.ring.position.set(cx + 0.2, 1.2, -0.85);
+  K.group.add(K.ring);
+  // flame cone + stove light for the "before ready" beat
+  K.flame = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.2, 12), MAT.flame);
+  K.flame.position.set(cx - 2.2, 3.1, 0); K.flame.visible = false;
+  K.group.add(K.flame);
+  K.stoveLight = new THREE.PointLight(0xff6a1a, 0, 9);
+  K.stoveLight.position.set(cx - 2.2, 3.4, 1.5);
+  K.group.add(K.stoveLight);
+  // smoke + steam particle pools
+  const mkPuffs = (tex, n, color, size) => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+      map: tex, color, size, transparent: true, opacity: 0.75, depthWrite: false }));
+    pts.userData = { vel: new Float32Array(n), life: new Float32Array(n).fill(-1), n };
+    K.group.add(pts);
+    return pts;
+  };
+  K.smoke = mkPuffs(smokeTex, 26, 0x55504a, 1.1);
+  K.steam = mkPuffs(steamTex, 18, 0xe8e8ee, 0.8);
+  K.smoke.position.set(cx - 2.2, 2.8, 0); K.steam.position.set(cx + 2.4, 2.4, 0);
+  // chef: capsule body, apron, head, hat, two arms
+  K.chef = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 0.7, 6, 14), shirtMat);
+  body.position.y = 1.05; body.castShadow = true; K.chef.add(body);
+  const apron = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.12), MAT.apron);
+  apron.position.set(0, 1.0, 0.36); K.chef.add(apron);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 14), MAT.skin);
+  head.position.y = 2.0; head.castShadow = true; K.chef.add(head);
+  const hatBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.18, 16), MAT.hat);
+  hatBase.position.y = 2.3; K.chef.add(hatBase);
+  const hatTop = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), MAT.hat);
+  hatTop.scale.y = 0.75; hatTop.position.y = 2.48; hatTop.castShadow = true; K.chef.add(hatTop);
+  K.armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.5, 4, 8), shirtMat);
+  K.armL.position.set(-0.5, 1.35, 0.1); K.armL.rotation.z = 0.5; K.chef.add(K.armL);
+  K.armR = K.armL.clone(); K.armR.position.x = 0.5; K.armR.rotation.z = -0.5; K.chef.add(K.armR);
+  K.chef.position.set(cx, 0, 2.6);
+  K.chef.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  K.group.add(K.chef);
+  // XP ring + floating gain label
+  K.xpring = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.05, 8, 32),
+    new THREE.MeshBasicMaterial({ color: 0x9fe870, transparent: true, opacity: 0 }));
+  K.xpring.rotation.x = Math.PI / 2;
+  K.xpring.position.set(cx, 0.4, 2.6);
+  K.group.add(K.xpring);
+  K.xpLabel = textSprite('', { size: 40, fg: '#9fe870' });
+  K.xpLabel.position.set(cx, 4.35, 2.6); K.xpLabel.visible = false;
+  K.group.add(K.xpLabel);
+  return K;
+}
+// ---------- Simulation state (from sim-core.js, never invented here) ----------
+const simOpts = { seed: 7, noise: 0.05, gateK: 6, lrScale: 1, drift: true };
+let TR = null;       // {A: episode, B: episode} with per-step detail
+let OGAINS = null;   // oracle cumulative gains, HUD chart only
+let UV = null;       // exec vectors: UV.A[t], UV.B[t]
+function loadTrace() {
+  TR = SimCore.trace(simOpts.seed, simOpts, 40);
+  OGAINS = SimCore.runEpisode("O", simOpts.seed, simOpts, 40, false).gains;
+  const mkRng = (t, c) => SimCore.mulberry32(simOpts.seed * 100003 + t * 7919 + c);
+  const build = (ep, c) => ep.steps.map((s, t) => {
+    const prev = t === 0 ? 0 : ep.gains[t - 1];
+    return SimCore.execVector(s.obs, s.action, s.env.gate, ep.gains[t] - prev, mkRng(t, c));
+  });
+  UV = { A: build(TR.A, 0), B: build(TR.B, 1) };
+}
+const ACTION_SHORT = { knife_drill: "KNIFE", heat_drill: "HEAT", timing_drill: "TIMING", easy_recipe: "EASY", stretch_recipe: "STRETCH" };
+const A_LINES = {
+  knife_drill: "Knife drill. Slow, even cuts.",
+  heat_drill: "Heat drill. Hold a steady medium pan.",
+  timing_drill: "Timing drill. Land everything together.",
+  easy_recipe: "Easy recipe. Gentle combo.",
+  stretch_recipe: "Stretch recipe. Full combo.",
+};
+const B_LINES = {
+  knife_drill: "Knife drill. Accuracy before speed.",
+  heat_drill: "Pan-temperature control. Watch the shimmer, not the smoke.",
+  timing_drill: "Timing drill. Stage every ingredient.",
+  easy_recipe: "Easy recipe, combining gently.",
+  stretch_recipe: "Stretch recipe, all skills together.",
+};
+// ---------- Per-session visuals ----------
+function tempColor(T) {
+  const golden = new THREE.Color(0xd9a441), brown = new THREE.Color(0x6b4423), black = new THREE.Color(0x171310);
+  if (T <= 230) return golden.clone().lerp(brown, (T - 180) / 50);
+  return brown.clone().lerp(black, Math.min(1, (T - 230) / 60));
+}
+const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
+function applyDice(K, spread) {
+  for (let i = 0; i < DICE_N; i++) {
+    const b = K.diceBase[i];
+    const jx = (Math.sin(i * 12.9) * 0.5 + Math.sin(i * 78.2) * 0.5) * spread * 3;
+    const jz = (Math.cos(i * 39.4) * 0.5 + Math.cos(i * 11.7) * 0.5) * spread * 2;
+    _p.set(b.x + jx, 1.36, b.z + jz);
+    _e.set(0, b.r + spread * 4 * Math.sin(i * 3.3), 0); _q.setFromEuler(_e);
+    const sc = 0.7 + (i % 5) * 0.12;
+    _s.set(sc, sc, sc);
+    _m4.compose(_p, _q, _s);
+    K.dice.setMatrixAt(i, _m4);
+  }
+  K.dice.instanceMatrix.needsUpdate = true;
+}
+function puff(pool, ox, oy, oz, spread, rise, n) {
+  const pos = pool.geometry.attributes.position.array;
+  const u = pool.userData;
+  let started = 0;
+  for (let i = 0; i < u.n && started < n; i++) {
+    if (u.life[i] < 0) {
+      u.life[i] = 0;
+      pos[i * 3] = ox + (Math.random() - 0.5) * spread;
+      pos[i * 3 + 1] = oy;
+      pos[i * 3 + 2] = oz + (Math.random() - 0.5) * spread;
+      u.vel[i] = rise * (0.7 + Math.random() * 0.6);
+      started++;
+    }
+  }
+}
+function stepPuffs(pool, dt, spread) {
+  const pos = pool.geometry.attributes.position.array;
+  const u = pool.userData;
+  let alive = false;
+  for (let i = 0; i < u.n; i++) {
+    if (u.life[i] < 0) continue;
+    alive = true;
+    u.life[i] += dt;
+    pos[i * 3 + 1] += u.vel[i] * dt;
+    pos[i * 3] += Math.sin(u.life[i] * 3 + i) * dt * 0.3;
+    if (u.life[i] > 2.2) { u.life[i] = -1; pos[i * 3 + 1] = -50; }
+  }
+  pool.geometry.attributes.position.needsUpdate = true;
+  return alive;
+}
+function applySession(K, step, uv, work /*0..1*/) {
+  // dice spread from observed knife quality
+  applyDice(K, uv.cut_spread);
+  // pan colour ramp + smoke from observed heat
+  K.pan.material.color.copy(tempColor(uv.pan_temp_c));
+  const smokeRate = Math.max(0, (uv.pan_temp_c - 220) / 80);
+  if (work > 0 && smokeRate > 0.05) puff(K.smoke, 0, 0, 0, 0.7, 1.1, Math.ceil(smokeRate * 3));
+  if (work > 0) puff(K.steam, 0, 0, 0, 0.5, 0.9, 1);
+  // ring colour: obs-quality ring (coach view) — golden good, red bad
+  const qmean = (step.obs[0] + step.obs[1] + step.obs[2]) / 3;
+  K.ring.material.color.setHSL(0.12 * qmean + 0.0, 0.75, 0.28 + qmean * 0.3);
+  // charred food: near-black while attempting before ready, clearing as heat rises
+  const charAmt = uv.ready ? Math.max(0, Math.min(0.5, 0.55 - step.obs[1] * 0.8)) : 0.9;
+  K.food.material.color.copy(tempColor(uv.pan_temp_c)).lerp(new THREE.Color(0x171310), charAmt);
+  K.food.material.color.lerp(new THREE.Color(0xd9a441), 0.2 * (1 - charAmt));
+  // char spots from heat miss
+  const nChar = Math.round((1 - Math.min(1, step.obs[1] * 1.6)) * 7);
+  K.charSpots.forEach((s, i) => { s.visible = i < nChar; });
+  // flare-up when attempted before ready (truth layer, labelled on screen per plan)
+  const flare = !uv.ready;
+  K.flame.visible = flare;
+  if (flare) {
+    const p = reduced ? 1 : (0.8 + 0.35 * Math.sin(performance.now() / 90));
+    K.flame.scale.set(p, p * (reduced ? 0.8 : 1), p);
+    K.stoveLight.intensity = reduced ? 6 : 14 + 8 * Math.sin(performance.now() / 110);
+  } else K.stoveLight.intensity = 0;
+  return flare;
+}
+// ---------- HUD ----------
+const $ = id => document.getElementById(id);
+const voiceCache = new Map();
+let apiDead = false; // one probe per page load; a dead backend is never re-fetched
+async function coachBubble(kind, step, uv) {
+  const el = kind === "A" ? $("bubbleA").querySelector("span") : $("bubbleB").querySelector("span");
+  const line = (kind === "A" ? A_LINES : B_LINES)[step.action];
+  if (kind === "A") { el.textContent = line + "  [template: averages only]"; return; }
+  let plan = "";
+  try {
+    const W = { mu: step.beforeW.mu, var: step.beforeW.var, ah: step.beforeW.ah, gateHat: step.beforeW.gateHat };
+    const seq = SimCore.worldPlan(W, 2);
+    plan = ` B plans ${ACTION_SHORT[step.action]} → ${ACTION_SHORT[seq[1]]}.`;
+  } catch (e) { /* template-only fallback below */ }
+  const sys = `Current Learner Belief State: knife ${step.beforeW.mu[0].toFixed(2)}, ` +
+    `heat ${step.beforeW.mu[1].toFixed(2)}, timing ${step.beforeW.mu[2].toFixed(2)}. ` +
+    `Gate estimate ${step.beforeW.gateHat.toFixed(1)}. Optimal 2-Step Plan: run ${step.action} now. ` +
+    `Observed: pan ${Math.round(uv.pan_temp_c)} °C vs 180 target; dice spread ${Math.round(uv.cut_spread * 100)} %; ` +
+    `${Math.round(uv.late_s)} s late.`;
+  const key = `${simOpts.seed}:B:${step.session}`;
+  if (voiceCache.has(key)) { el.textContent = voiceCache.get(key); return; }
+  el.textContent = line + plan + "  [template]";
+  if (apiDead) return;
+  try {
+    const r = await fetch("/api/coach", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ system_prompt: sys, fallback: line }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const tag = d.live ? " [live Muse]" : " [offline template]";
+      voiceCache.set(key, d.text + plan + tag);
+      if (cur.session === step.session) el.textContent = voiceCache.get(key);
+    } else {
+      apiDead = true;
+    }
+  } catch (e) { apiDead = true; /* offline template stays */ }
+}
+function renderBelief(stepB) {
+  const mu = stepB.afterW.mu, vr = stepB.afterW.var;
+  const truth = stepB.env.next;
+  const xray = $("xray").checked;
+  $("beliefBars").innerHTML = ["knife", "heat", "timing"].map((s, k) => {
+    const sd = Math.sqrt(stepB.afterW.var[k]);
+    const lo = Math.max(0, mu[k] - sd) * 100, hi = Math.min(1, mu[k] + sd) * 100;
+    return `<div class="bbar"><span>${s}</span><div class="track">` +
+    `<div class="unc" style="left:${lo.toFixed(1)}%;width:${(hi - lo).toFixed(1)}%"></div>` +
+    `<div class="fill" style="width:${(mu[k] * 100).toFixed(1)}%"></div>` +
+    (xray ? `<div class="truth" style="left:${(truth[k] * 100).toFixed(1)}%"></div>` : "") +
+    `</div><b>${mu[k].toFixed(2)}</b></div>`;
+  }).join("");
+  const gpct = (stepB.afterW.gateHat / 8 * 100).toFixed(1);
+  $("gateNum").textContent = stepB.afterW.gateHat.toFixed(1);
+  $("gateGauge").style.background =
+    `conic-gradient(var(--orange) 0% ${gpct}%, #3a2f20 ${gpct}% 100%)`;
+  $("obsNum").textContent =
+    stepB.obs.map(v => v.toFixed(2)).join(" / ");
+  $("alphaNum").textContent = stepB.afterW.ah[1].toFixed(2);
+  const drifted = cur.session >= 21 && simOpts.drift;
+  $("alphaTrue").textContent = drifted ? "0.055" : (0.14 * simOpts.lrScale).toFixed(3).replace(/0$/, "");
+}
+function drawMiniChart() {
+  const cv = $("minichart"), g = cv.getContext("2d");
+  const w = cv.width, h = cv.height;
+  g.clearRect(0, 0, w, h);
+  const yMax = 1.9;
+  const X = t => 34 + (w - 44) * t / 39, Y = v => h - 18 - (h - 34) * v / yMax;
+  g.strokeStyle = "#4a3d2c"; g.fillStyle = "#c9bda9"; g.font = "20px sans-serif";
+  for (let i = 0; i <= 3; i++) {
+    const v = yMax * i / 3, y = Y(v);
+    g.beginPath(); g.moveTo(34, y); g.lineTo(w - 10, y); g.stroke();
+    g.fillText(v.toFixed(1), 2, y + 7);
+  }
+  const series = [["A", "#37c4b1"], ["B", "#f0703a"], ["O", "#8b9a7d"]];
+  series.forEach(([kind, col]) => {
+    const ys = kind === "O" ? OGAINS : TR[kind].gains;
+    g.strokeStyle = col; g.lineWidth = 4; g.beginPath();
+    const n = Math.min(cur.session, ys.length);
+    for (let t = 0; t < n; t++) { const x = X(t), y = Y(ys[t]); t === 0 ? g.moveTo(x, y) : g.lineTo(x, y); }
+    g.stroke();
+  });
+  g.strokeStyle = "#f2ece1"; g.setLineDash([8, 6]); g.beginPath();
+  g.moveTo(X(cur.session - 1), 8); g.lineTo(X(cur.session - 1), h - 18); g.stroke();
+  g.setLineDash([]);
+}
+function renderReadout(stepA, stepB, uvA, uvB) {
+  const xray = $("xray").checked;
+  const fmt = (s, uv) => `pan ${Math.round(uv.pan_temp_c)}°C · dice ±${Math.round(uv.cut_spread * 100)}% · ${Math.round(uv.late_s)}s late`;
+  let txt = `S${cur.session} A:${ACTION_SHORT[stepA.action]} [${fmt(stepA, uvA)}]  B:${ACTION_SHORT[stepB.action]} [${fmt(stepB, uvB)}]`;
+  if (xray) txt += `  | truth gate A ${stepA.env.gate.toFixed(2)} / B ${stepB.env.gate.toFixed(2)}` +
+    ` · XP A +${uvA.learned.toFixed(3)} / B +${uvB.learned.toFixed(3)} (truth)`;
+  $("readout").textContent = txt;
+}
+// ---------- Kitchens, session machine, main loop ----------
+const kA = makeKitchen(-5.2, "COACH A", MAT.shirtA);
+const kB = makeKitchen(5.2, "COACH B", MAT.shirtB);
+const STATION_X = { knife_drill: [0.2], heat_drill: [-2.2], timing_drill: [2.4],
+  easy_recipe: [-2.2, 0.2, 2.4], stretch_recipe: [-2.2, 0.2, 2.4] };
+const cur = { session: 1, phase: "card", t: 0, playing: false, speed: 1 };
+const PHASE_LEN = { card: 0.45, move: 0.6, work: 1.25, serve: 0.7 };
+function sessionSteps() {
+  const t = cur.session - 1;
+  return { A: TR.A.steps[t], B: TR.B.steps[t], uvA: UV.A[t], uvB: UV.B[t] };
+}
+function showSessionStatic() {
+  const { A, B, uvA, uvB } = sessionSteps();
+  for (const [K, step, uv] of [[kA, A, uvA], [kB, B, uvB]]) {
+    K.setCard(ACTION_SHORT[step.action], "S" + cur.session);
+    applySession(K, step, uv, 0);
+    const xs = STATION_X[step.action];
+    K.chef.position.x = K.x + xs[0];
+    K.xpLabel.visible = false;
+    K.xpring.material.opacity = 0;
+  }
+  if (simOpts.drift && cur.session >= 21) {
+    kA.stoveBody.material = MAT.steelNew; kB.stoveBody.material = MAT.steelNew;
+  } else {
+    kA.stoveBody.material = MAT.steel; kB.stoveBody.material = MAT.steel;
+  }
+  $("banner").style.display = (simOpts.drift && cur.session === 21) ? "block" : "none";
+  renderBelief(B); drawMiniChart(); renderReadout(A, B, uvA, uvB);
+  coachBubble("A", A, uvA); coachBubble("B", B, uvB);
+  $("sessOut").textContent = cur.session;
+  $("sessSlider").value = cur.session;
+}
+function startSession() {
+  const { A, B } = sessionSteps();
+  kA.setCard(ACTION_SHORT[A.action], "S" + cur.session);
+  kB.setCard(ACTION_SHORT[B.action], "S" + cur.session);
+  kA.xpLabel.userData.set = false;
+  kB.xpLabel.userData.set = false;
+  cur.phase = "card"; cur.t = 0;
+  $("banner").style.display = (simOpts.drift && cur.session === 21) ? "block" : "none";
+}
+function advancePhase(dt) {
+  cur.t += dt * cur.speed;
+  const need = PHASE_LEN[cur.phase];
+  if (cur.t < need) return false;
+  cur.t = 0;
+  cur.phase = cur.phase === "card" ? "move" : cur.phase === "move" ? "work" : cur.phase === "work" ? "serve" : "done";
+  return cur.phase === "done";
+}
+function tickSession(dt) {
+  const { A, B, uvA, uvB } = sessionSteps();
+  const work = cur.phase === "work" ? Math.min(1, cur.t / PHASE_LEN.work + 0.2) : cur.phase === "serve" ? 0.4 : 0;
+  for (const [K, step, uv] of [[kA, A, uvA], [kB, B, uvB]]) {
+    const xs = STATION_X[step.action];
+    const target = K.x + (cur.phase === "card" ? 0 : xs[Math.min(xs.length - 1, Math.floor(cur.t / PHASE_LEN[cur.phase] * xs.length)) % xs.length]);
+    K.chef.position.x += (target - K.chef.position.x) * Math.min(1, dt * 5);
+    K.chef.position.y = cur.phase === "work" && !reduced ? Math.abs(Math.sin(performance.now() / 130)) * 0.12 : 0;
+    const lift = cur.phase === "work" ? -0.9 : -0.5;
+    K.armL.rotation.z += ((0.5 + lift * 0.4) - K.armL.rotation.z) * Math.min(1, dt * 4);
+    K.armR.rotation.z += ((-0.5 - lift * 0.4) - K.armR.rotation.z) * Math.min(1, dt * 4);
+    const flare = applySession(K, step, uv, work);
+    if (!reduced && flare && cur.phase === "work") K.chef.position.x += (Math.random() - 0.5) * 0.05;
+    if (cur.phase === "serve") {
+      const p = cur.t / PHASE_LEN.serve;
+      K.xpring.material.opacity = 0.85 * (1 - p);
+      const s = 0.7 + p * 1.6;
+      K.xpring.scale.set(s, s, 1);
+      K.xpLabel.visible = true;
+    } else {
+      K.xpring.material.opacity = 0;
+      K.xpLabel.visible = false;
+    }
+  }
+  if (cur.phase === "serve" && !kB.xpLabel.userData.set) {
+    kB.xpLabel.userData.set = true;
+    const fresh = textSprite("+" + uvB.learned.toFixed(3) + " XP (truth)", { size: 40, fg: "#9fe870" });
+    fresh.position.copy(kB.xpLabel.position); kB.group.remove(kB.xpLabel); kB.xpLabel = fresh;
+    kB.group.add(kB.xpLabel); kB.xpLabel.visible = true;
+    const freshA = textSprite("+" + uvA.learned.toFixed(3) + " XP (truth)", { size: 40, fg: "#9fe870" });
+    freshA.position.copy(kA.xpLabel.position); kA.group.remove(kA.xpLabel); kA.xpLabel = freshA;
+    kA.group.add(kA.xpLabel); kA.xpLabel.visible = true;
+  }
+  if (cur.phase === "card") {
+    kA.card.rotation.y = Math.sin(cur.t / PHASE_LEN.card * Math.PI) * 0.9;
+    kB.card.rotation.y = Math.sin(cur.t / PHASE_LEN.card * Math.PI) * 0.9;
+  } else { kA.card.rotation.y = 0; kB.card.rotation.y = 0; }
+  if (simOpts.drift && cur.session >= 21) {
+    kA.stoveBody.material = MAT.steelNew; kB.stoveBody.material = MAT.steelNew;
+  } else {
+    kA.stoveBody.material = MAT.steel; kB.stoveBody.material = MAT.steel;
+  }
+}
+let lastT = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  stepPuffs(kA.smoke, dt); stepPuffs(kA.steam, dt);
+  stepPuffs(kB.smoke, dt); stepPuffs(kB.steam, dt);
+  dust.rotation.y += dt * (reduced ? 0.002 : 0.01);
+  if (cur.playing) {
+    if (advancePhase(dt)) {
+      if (cur.session >= 40) { cur.playing = false; $("playBtn").textContent = "▶ Play"; showSessionStatic(); }
+      else { cur.session++; startSession(); }
+    } else tickSession(dt);
+    const { A, B, uvA, uvB } = sessionSteps();
+    renderBelief(B); drawMiniChart(); renderReadout(A, B, uvA, uvB);
+    $("sessOut").textContent = cur.session;
+    $("sessSlider").value = cur.session;
+  }
+  controls.autoRotate = !reduced && !cur.playing && !manualCam;
+  controls.autoRotateSpeed = 0.4;
+  controls.update();
+  renderer.render(scene, camera);
+}
+// ---------- Controls ----------
+$("playBtn").addEventListener("click", () => {
+  if (cur.session >= 40) { cur.session = 1; startSession(); }
+  cur.playing = !cur.playing;
+  $("playBtn").textContent = cur.playing ? "⏸ Pause" : "▶ Play";
+  if (cur.playing && cur.phase === "done") startSession();
+});
+$("stepBtn").addEventListener("click", () => {
+  cur.playing = false; $("playBtn").textContent = "▶ Play";
+  if (cur.session < 40) { cur.session++; startSession(); showSessionStatic(); }
+});
+$("sessSlider").addEventListener("input", e => {
+  cur.playing = false; $("playBtn").textContent = "▶ Play";
+  cur.session = parseInt(e.target.value, 10);
+  startSession(); showSessionStatic();
+});
+$("speedSel").addEventListener("change", e => { cur.speed = parseFloat(e.target.value); });
+$("seedSel").addEventListener("change", e => {
+  simOpts.seed = parseInt(e.target.value, 10);
+  voiceCache.clear();
+  loadTrace();
+  cur.session = 1; cur.playing = false; $("playBtn").textContent = "▶ Play";
+  startSession(); showSessionStatic();
+});
+$("xray").addEventListener("change", () => {
+  const { B } = sessionSteps();
+  renderBelief(B);
+  const { A, uvA, uvB } = sessionSteps();
+  renderReadout(A, B, uvA, uvB);
+});
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+// ---------- Boot: live world at once, playing unless reduced motion ----------
+let manualCam = false;
+controls.addEventListener("start", () => { manualCam = true; });
+loadTrace();
+startSession();
+showSessionStatic();
+cur.playing = !reduced;
+$("playBtn").textContent = cur.playing ? "⏸ Pause" : "▶ Play";
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

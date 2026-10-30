@@ -22,8 +22,11 @@ python3 demo.py chat --live # voice the coach via Muse when MODEL_API_KEY
 python3 demo.py real-data data/assistments-2009.csv 5
                             # ASSISTments-format CSV -> fit BKT per skill ->
                             # replay A/B/Oracle on fitted dynamics
+python3 demo.py real-data-junyi data/junyi_log.csv data/junyi_table.csv 2
+                            # Junyi ProblemLog (+ optional exercise->KC table;
+                            # headers auto-detected) -> fit -> replay
 python3 test_benchmark.py   # 8 focused tests (incl. offline voice fallback)
-python3 test_replay.py      # 4 real-data path tests (synthetic CSV)
+python3 test_replay.py      # 6 real-data path tests (synthetic CSVs)
 ```
 
 No API key needed. Everything runs offline; the Meta Model API bridge

@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Secrets and local env
+.env
+.env.*
+*.pem
+
+# OS / editor
+.DS_Store
+
+# Large or generated artifacts kept locally, not in history
+_w3d/
+trajectory-*.json

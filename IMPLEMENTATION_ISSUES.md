@@ -70,11 +70,11 @@
    所以不敢寫死 header），但合成 Junyi 檔、擬合、重播、測試都還沒做。
    要問 teammate：Junyi 真檔誰負責拿？欄位對應由誰跟官方確認？
    （EdNet/Adnet 順位排在 Junyi 之後。）
-3. **Muse 即時語音還沒接。**
-   文字擷取已有 API 路徑（含離線回退），但教練回覆仍是固定模板；
-   `demo.py chat --live`、`generate_coach_reply` 都還沒寫。
-   要問 teammate：誰拿 `MODEL_API_KEY`？demo 當天沒 key 的備案就是離線模板，
-   可以接受嗎？
+3. **Muse 即時語音已接好，但沒 key 實測過。**
+   `generate_coach_reply` 與 `demo.py chat --live` 已存在，無 key 或 API
+   失敗時自動回退離線模板並標記（有測試覆蓋）。
+   要問 teammate：誰拿 `MODEL_API_KEY` 做一次真實呼叫驗證？沒 key 的備案
+   就是離線模板，可以接受嗎？
 4. **對話 demo 的觀測來源是展示用的。**
    `chat_demo` 裡信念更新用的是模擬器觀測值，文字擷取的 obs 只印出來對照；
    正式環境要把文字 obs 變成更新輸入（號稱改一行，但改了之後信念動態

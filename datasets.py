@@ -144,8 +144,8 @@ def _detect_column(headers: list[str], candidates: tuple[str, ...],
                    label: str) -> str:
     norm = {_norm_header(h): h for h in headers}
     for cand in candidates:
-        if cand in norm:
-            return norm[cand]
+        if _norm_header(cand) in norm:
+            return norm[_norm_header(cand)]
     raise ValueError(
         f"Junyi loader: no {label} column found (tried "
         f"{', '.join(candidates)}); headers are {headers}")
