@@ -120,6 +120,7 @@
       <ul style="margin:4px 0 0 18px;padding:0">
         <li><b>Steps from HD-EPIC annotations</b>: HD-EPIC's 7 steps for this recipe, tagged with the actions people annotated this cook doing in each step. Its accuracy is optimistic: the tags come from this same video.</li>
         <li><b>VLM tags in the probe's words</b>: Llama 3.2 90B Vision read the recipe's own steps and tagged each with hand actions a head-mounted camera sees (take knife, cut onion), in the words the probe knows best. It never saw the video.</li>
+        <li><b>Ground truth check</b>: not a guide but an answer key. It shows, second by second, what HD-EPIC's narrators recorded, what the model predicted for that moment, and whether the tracker's step matches the annotated one.</li>
         <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only (tab 2 shows exactly these steps). It never saw the video.</li>
       </ul>
     </div>
@@ -209,7 +210,12 @@ function showVideo(v) {
   $("vid").src = v.file;
   document.querySelectorAll("#vidSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === v.key));
   const e = v.eval || {};
-  $("vidStats").innerHTML = (e.step_accuracy === undefined ? "" : `
+  if (e.kind === "ground_truth") {
+    $("vidStats").innerHTML = `
+    <div class="stat"><b>${pct(e.verb_top5_hit)}</b><span>seconds where the true verb is in the model's top 5</span></div>
+    <div class="stat"><b>${pct(e.noun_top5_hit)}</b><span>seconds where the true noun is in the model's top 5</span></div>
+    <div class="stat"><b>${e.seconds_with_narration} s</b><span>with a narrated action</span></div>`;
+  } else $("vidStats").innerHTML = (e.step_accuracy === undefined ? "" : `
     <div class="stat"><b>${pct(e.step_accuracy)}</b><span>step tracker on the annotated step (chance ${pct(e.chance)})</span></div>`) + `
     <div class="stat"><b>${e.pauses}</b><span>"next step" pauses</span></div>
     <div class="stat"><b>${e.starts_with_a_pause_within_10s} / ${e.step_starts}</b><span>step starts caught within 10 s</span></div>`;

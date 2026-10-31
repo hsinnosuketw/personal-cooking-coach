@@ -26,6 +26,11 @@ VIDEOS = [
     ("hdepic", "Steps from HD-EPIC annotations", "guide_P08_hdepic",
      "Real time by default; pick a speed above. Green 'annotated' marks the step HD-EPIC's annotators "
      "recorded at that moment."),
+    ("truth", "Ground truth check", "truth_P08",
+     "HD-EPIC's annotation next to the model, second by second: what the narrators recorded happening now, what "
+     "V-JEPA 2 predicted one second earlier for this moment (green = the true verb or noun is in its top 5), and "
+     "the annotated recipe step against the step tracker (VLM hand-level tags). The strips at the bottom show the "
+     "whole video: annotated steps above, the tracker below."),
     ("nim", "Steps written by the NIM VLM", "guide_P08_nim",
      "No step accuracy is shown: the VLM's step 3 is not HD-EPIC's step 3 (it orders the recipe differently), "
      "so comparing step numbers would be meaningless."),
