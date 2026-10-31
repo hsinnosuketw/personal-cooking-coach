@@ -22,3 +22,7 @@ gameplay/synthetic/
 
 # V-JEPA 2 / EPIC-KITCHENS cache: weights, videos, vendored repos (python3 -m jepa.fetch)
 jepa/_cache/
+
+# Demo page media and data (python3 -m jepa.build_demo); only the page itself is tracked
+jepa/demo/*
+!jepa/demo/index.html

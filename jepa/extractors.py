@@ -133,6 +133,8 @@ class NIMRecipeExtractor:
         self.post = post or self._post  # tests pass a fake transport
         self.dropped = 0
         self.calls = self.prompt_tokens = self.completion_tokens = 0
+        self.last_raw = ""                     # the model's last answer, verbatim
+        self.rejected: list[tuple[int, str, str]] = []  # (step order, verb, noun) outside the vocabulary
 
     def _prompt(self, recipe: str) -> str:
         return (
@@ -177,7 +179,8 @@ class NIMRecipeExtractor:
             self.prompt_tokens += usage.get("prompt_tokens", 0)
             self.completion_tokens += usage.get("completion_tokens", 0)
             try:
-                return self._parse(data["choices"][0]["message"]["content"])
+                self.last_raw = data["choices"][0]["message"]["content"]
+                return self._parse(self.last_raw)
             except (ValueError, KeyError, TypeError) as e:
                 last_error = e  # malformed JSON: ask once more
         raise ValueError(f"NIM answer was not usable JSON: {last_error}")
@@ -190,6 +193,7 @@ class NIMRecipeExtractor:
             pairs = [(str(v).strip().lower(), str(n).strip().lower()) for v, n in s.get("pairs", [])]
             kept = tuple((v, n, 1.0) for v, n in pairs if v in self.vocab.verb_row and n in self.vocab.noun_row)
             self.dropped += len(pairs) - len(kept)
+            self.rejected += [(i, v, n) for v, n in pairs if (v, n, 1.0) not in kept]
             out.append(StepSpec(f"S{i + 1:02d}", str(s["text"]).strip(), i, kept))
         if not out:
             raise ValueError("no steps")

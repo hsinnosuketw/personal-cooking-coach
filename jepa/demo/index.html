@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrambled Eggs Guide</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #ffffff; --ink: #1d1d22; --muted: #6b6b76; --line: #e3e1dc;
+    --accent: #c46a00; --accent-soft: #fbe9d2; --good: #1f8a4c; --good-soft: #dff3e6;
+    --bad: #b3261e; --bad-soft: #f8dedb; --bar: #e8a64a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15151a; --panel: #1f1f26; --ink: #ececf1; --muted: #9a9aa8; --line: #31313b;
+      --accent: #ffb03b; --accent-soft: #3a2c16; --good: #5ac878; --good-soft: #17301f;
+      --bad: #ff8a80; --bad-soft: #3a1c1a; --bar: #b9822f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15151a; --panel: #1f1f26; --ink: #ececf1; --muted: #9a9aa8; --line: #31313b;
+    --accent: #ffb03b; --accent-soft: #3a2c16; --good: #5ac878; --good-soft: #17301f;
+    --bad: #ff8a80; --bad-soft: #3a1c1a; --bar: #b9822f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif; }
+  header { padding: 28px 16px 8px; max-width: 1200px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  .sub { color: var(--muted); margin: 0; }
+  nav { max-width: 1200px; margin: 16px auto 0; padding: 0 16px; display: flex; gap: 6px; flex-wrap: wrap;
+        border-bottom: 1px solid var(--line); }
+  nav button { background: none; border: 0; padding: 10px 14px; font: inherit; color: var(--muted); cursor: pointer;
+               border-bottom: 3px solid transparent; margin-bottom: -1px; }
+  nav button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; }
+  section { display: none; }
+  section.on { display: block; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+  video { width: 100%; border-radius: 10px; background: #000; display: block; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+  .seg button { border: 0; background: var(--panel); color: var(--muted); padding: 7px 12px; font: inherit; cursor: pointer; }
+  .seg button.on { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0 4px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; min-width: 150px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .note { color: var(--muted); font-size: 13px; }
+  .flow { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; margin-bottom: 18px; }
+  .flow .box { flex: 1 1 180px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .flow .box h4 { margin: 0 0 4px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .flow .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  details { margin-top: 8px; }
+  summary { cursor: pointer; color: var(--accent); }
+  pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--line);
+        border-radius: 8px; padding: 10px; font-size: 12.5px; max-height: 320px; overflow: auto; }
+  .step { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .step:first-of-type { border-top: 0; }
+  .num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent);
+         display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+  .chips { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font-size: 12.5px; padding: 2px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); }
+  .chip.drop { background: var(--bad-soft); color: var(--bad); text-decoration: line-through; }
+  .chip.gt { background: var(--accent-soft); color: var(--ink); }
+  .chip small { opacity: .7; }
+  .frames { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+  @media (max-width: 800px) { .frames { grid-template-columns: 1fr; } }
+  .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 6px; max-height: 640px; overflow: auto; align-content: start; }
+  .thumbs button { border: 2px solid transparent; padding: 0; border-radius: 8px; overflow: hidden; cursor: pointer; background: none; position: relative; }
+  .thumbs button.on { border-color: var(--accent); }
+  .thumbs img { width: 100%; display: block; aspect-ratio: 1; object-fit: cover; }
+  .thumbs span { position: absolute; left: 4px; bottom: 3px; font-size: 11px; color: #fff; background: rgba(0,0,0,.55); padding: 0 4px; border-radius: 4px; }
+  .detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 1000px) { .detail { grid-template-columns: 1fr; } }
+  .detail img { width: 100%; border-radius: 10px; display: block; }
+  .bars > div { display: grid; grid-template-columns: 1fr 52px; gap: 8px; align-items: center; margin: 3px 0; font-size: 14px; }
+  .bars i { display: block; height: 8px; background: var(--bar); border-radius: 4px; margin-top: 2px; }
+  .bars .hit { color: var(--good); font-weight: 600; }
+  h3 { margin: 14px 0 6px; font-size: 15px; }
+  .truth { background: var(--good-soft); border-radius: 8px; padding: 8px 10px; }
+  .badge { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+  .ek { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .ek .card { padding: 10px; }
+  .ek img { width: 100%; border-radius: 8px; display: block; }
+  .ok { color: var(--good); font-weight: 600; }
+  .miss { color: var(--bad); font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Scrambled Eggs Guide <span class="badge">V-JEPA 2 world model</span></h1>
+  <p class="sub">A guide that watches someone cook, predicts their next action about 1 s ahead, and tells them which recipe step comes next.</p>
+</header>
+<nav>
+  <button data-tab="play" class="on">1 · Play the guide</button>
+  <button data-tab="vlm">2 · VLM step extraction</button>
+  <button data-tab="wm">3 · World-model predictions</button>
+</nav>
+<main>
+  <section id="play" class="on">
+    <div class="seg" id="vidSwitch"></div>
+    <video id="vid" controls playsinline preload="metadata"></video>
+    <div class="stats" id="vidStats"></div>
+    <p class="note" id="vidNote"></p>
+  </section>
+
+  <section id="vlm">
+    <div class="flow">
+      <div class="box"><h4>Request</h4><div id="req"></div></div><div class="arrow">→</div>
+      <div class="box"><h4>VLM on NVIDIA NIM</h4><div id="model"></div></div><div class="arrow">→</div>
+      <div class="box"><h4>Vocabulary filter</h4><div id="vocab"></div></div><div class="arrow">→</div>
+      <div class="box"><h4>Action bank</h4><div>Each step becomes a verb profile and a noun profile the world model's predictions are scored against.</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="margin-top:0">Steps written by the VLM</h3>
+        <p class="note">Green tags are kept; struck-out red tags use words the world model can't predict, so they're dropped.</p>
+        <div id="nimSteps"></div>
+        <details><summary>Exact prompt sent</summary><pre id="prompt"></pre></details>
+        <details><summary>Model's raw answer</summary><pre id="raw"></pre></details>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Same recipe, annotated by people (HD-EPIC)</h3>
+        <p class="note">Tags here are what the cook was recorded doing during each step, with seconds spent.</p>
+        <div id="hdSteps"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="wm">
+    <p class="note" style="margin-top:0">Each frame is the last image V-JEPA 2 saw. Its encoder turns the past 4 s into latent tokens, the predictor imagines the next ~1 s in that latent space, and Meta's EPIC-KITCHENS probe names the action. Green = matches what the narrator says happened next.</p>
+    <div class="frames">
+      <div class="thumbs" id="thumbs"></div>
+      <div class="detail" id="detail"></div>
+    </div>
+    <h3 style="margin-top:28px">Scored check on EPIC-KITCHENS (other kitchens, 145 actions)</h3>
+    <div class="stats" id="ekStats"></div>
+    <div class="ek" id="ek"></div>
+  </section>
+</main>
+<script src="data.js"></script>
+<script>
+const D = window.DEMO;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const pct = (x) => `${Math.round(100 * x)}%`;
+
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav button, section").forEach((e) => e.classList.remove("on"));
+  b.classList.add("on");
+  $(b.dataset.tab).classList.add("on");
+  try { localStorage.setItem("demoTab", b.dataset.tab); } catch (e) {}
+});
+try { const t = localStorage.getItem("demoTab"); if (t) document.querySelector(`nav button[data-tab="${t}"]`)?.click(); } catch (e) {}
+
+// 1 · videos
+function showVideo(v) {
+  $("vid").src = v.file;
+  document.querySelectorAll("#vidSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === v.key));
+  const e = v.eval || {};
+  $("vidStats").innerHTML = e.step_accuracy === undefined ? "" : `
+    <div class="stat"><b>${pct(e.step_accuracy)}</b><span>guide on the annotated step (chance ${pct(e.chance)})</span></div>
+    <div class="stat"><b>${e.pauses}</b><span>"next step" pauses</span></div>
+    <div class="stat"><b>${e.starts_with_a_pause_within_10s} / ${e.step_starts}</b><span>step starts caught within 10 s</span></div>`;
+  $("vidNote").textContent = v.note;
+}
+D.videos.forEach((v) => {
+  const b = document.createElement("button");
+  b.textContent = v.label; b.dataset.k = v.key; b.onclick = () => showVideo(v);
+  $("vidSwitch").appendChild(b);
+});
+if (D.videos.length) showVideo(D.videos[0]);
+
+// 2 · VLM extraction
+const X = D.extraction;
+$("req").textContent = `"${X.request}"`;
+$("model").innerHTML = `${esc(X.model)}<br><span class="note">${X.seconds} s · ${X.tokens.prompt} tokens in, ${X.tokens.completion} out</span>`;
+$("vocab").innerHTML = `Only ${X.vocab.verbs} verbs and ${X.vocab.nouns} nouns the world model knows.<br><span class="note">${X.nim_steps.reduce((a, s) => a + s.kept.length, 0)} tags kept, ${X.nim_steps.reduce((a, s) => a + s.dropped.length, 0)} dropped</span>`;
+$("prompt").textContent = X.prompt;
+$("raw").textContent = X.raw_answer;
+$("nimSteps").innerHTML = X.nim_steps.map((s) => `
+  <div class="step"><div class="num">${s.step}</div><div>${esc(s.text)}
+    <div class="chips">${s.kept.map((p) => `<span class="chip">${esc(p)}</span>`).join("")}${s.dropped.map((p) => `<span class="chip drop">${esc(p)}</span>`).join("")}${!s.kept.length && !s.dropped.length ? '<span class="note">no tags</span>' : ""}</div>
+  </div></div>`).join("");
+$("hdSteps").innerHTML = X.hdepic_steps.map((s) => `
+  <div class="step"><div class="num">${s.step}</div><div>${esc(s.text)}
+    <div class="chips">${s.actions.map((a) => `<span class="chip gt">${esc(a.pair)} <small>${a.seconds.toFixed(1)} s</small></span>`).join("") || '<span class="note">no tags</span>'}</div>
+  </div></div>`).join("");
+
+// 3 · world-model frames
+const F = D.frames;
+const BODY = new Set(["hand", "hands", "left", "right", "finger", "fingers", "with", "the", "and", "of", "to", "in", "on", "a"]);
+const words = (s) => new Set((String(s || "").toLowerCase().match(/[a-z]+/g) || []).filter((w) => !BODY.has(w)));
+function bars(list, truthWords) {
+  return `<div class="bars">${list.map((x) => {
+    const hit = x.name.split(/[ :]/).some((w) => truthWords.has(w));
+    return `<div><div><span class="${hit ? "hit" : ""}">${esc(x.name)}</span><i style="width:${Math.max(3, 100 * x.p / Math.max(...list.map((y) => y.p)))}%"></i></div><span class="note">${x.p.toFixed(2)}</span></div>`;
+  }).join("")}</div>`;
+}
+function showFrame(i) {
+  const f = F.frames[i];
+  document.querySelectorAll("#thumbs button").forEach((b, j) => b.classList.toggle("on", i === j));
+  const tw = words(f.next_narration);
+  const cur = f.guide.current_step;
+  const top = [...f.guide.belief].sort((a, b) => b.p - a.p).slice(0, 3);
+  $("detail").innerHTML = `
+    <div><img src="frames/${esc(f.image)}" alt="frame at ${f.t} s">
+      <p class="note">t = ${Math.floor(f.t / 60)}:${String(Math.floor(f.t % 60)).padStart(2, "0")} · ${esc(f.why)}</p></div>
+    <div>
+      <div class="truth"><b>What actually happened next</b><br>${esc(f.next_narration || "—")}
+        ${f.annotated_steps.length ? `<br><span class="note">annotated recipe step: ${f.annotated_steps.join(", ")}</span>` : ""}</div>
+      <h3>World model expects in ~1 s — action</h3>${bars(f.top5.action, tw)}
+      <h3>verb</h3>${bars(f.top5.verb, tw)}
+      <h3>noun</h3>${bars(f.top5.noun, tw)}
+      <h3>Guide's step belief</h3>
+      <div class="note">current step: ${cur > 0 ? `${cur}. ${esc(F.steps[cur - 1].text)}` : "not started"}</div>
+      ${bars(top.map((b) => ({name: `${b.step}. ${F.steps[b.step - 1].text.slice(0, 48)}…`, p: b.p})), new Set())}
+    </div>`;
+}
+$("thumbs").innerHTML = F.frames.map((f, i) => `<button title="${esc(f.why)}"><img src="frames/${esc(f.image)}" alt=""><span>${Math.floor(f.t / 60)}:${String(Math.floor(f.t % 60)).padStart(2, "0")}</span></button>`).join("");
+document.querySelectorAll("#thumbs button").forEach((b, i) => b.onclick = () => showFrame(i));
+if (F.frames.length) showFrame(0);
+
+const E = D.ek;
+$("ekStats").innerHTML = ["verb", "noun", "action"].map((k) => `<div class="stat"><b>${E.summary.mean_class_recall_at5[k]}%</b><span>${k} top-5 recall (chance ${E.summary.chance_at5[k]}%)</span></div>`).join("");
+$("ek").innerHTML = E.rows.map((r) => {
+  const hit = r.top5.action.some((p) => p.id === r.truth.action.id);
+  return `<div class="card"><img src="${esc(r.thumb)}" alt=""><div style="margin-top:6px">Truth: <b>${esc(r.truth.action.name)}</b></div>
+    <div class="note">Predicted: ${r.top5.action.slice(0, 3).map((p) => esc(p.name)).join(", ")}</div>
+    <div class="${hit ? "ok" : "miss"}">${hit ? "in top 5" : "missed"}</div></div>`;
+}).join("");
+</script>
+</body>
+</html>
