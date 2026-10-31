@@ -3,6 +3,7 @@
   python3 -m jepa.fetch            code, labels, probe, slimmed ViT-L weights, 4 videos
   python3 -m jepa.fetch --videos P28_15,P04_28   pick other validation videos
   python3 -m jepa.fetch --annotations-only        EK100 labels + HD-EPIC recipes only
+  python3 -m jepa.fetch --videos "" --hd-video P08-20240614-085000   weights + one HD-EPIC video
 
 Every step skips work already done and refuses to start a download that
 would leave less than 4 GB free on the disk.
@@ -28,6 +29,7 @@ VITL_URL = "https://dl.fbaipublicfiles.com/vjepa2/vitl.pt"
 VIDEOS = ("P28_15", "P04_28", "P26_35", "P28_16")
 MIN_FREE_GB = 4
 HD_ANNOT = "https://raw.githubusercontent.com/hd-epic/hd-epic-annotations/main/"
+HD_VIDEO_URL = "https://data.bris.ac.uk/datasets/3cqb5b81wk2dc2379fx1mrxh47/Videos/"
 HD_FILES = ("high-level/complete_recipes.json", "narrations-and-action-segments/HD_EPIC_Narrations.pkl",
             "narrations-and-action-segments/HD_EPIC_verb_classes.csv",
             "narrations-and-action-segments/HD_EPIC_noun_classes.csv")
@@ -86,6 +88,7 @@ def fetch_videos(ids: list[str]) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--videos", default=",".join(VIDEOS))
+    ap.add_argument("--hd-video", default="", help="also an HD-EPIC video, e.g. P08-20240614-085000")
     ap.add_argument("--annotations-only", action="store_true", help="labels and recipes only (no weights, no video)")
     args = ap.parse_args()
     CACHE.mkdir(exist_ok=True)
@@ -99,7 +102,11 @@ def main() -> None:
         return
     download(PROBE_URL, CACHE / "ek100-vitl-256.pt", 0.21)
     slim_vitl()
-    fetch_videos(args.videos.split(","))
+    if args.hd_video:
+        name = f"{args.hd_video}.mp4"
+        download(f"{HD_VIDEO_URL}{args.hd_video.split('-')[0]}/{name}", CACHE / "hd-epic" / name, 1.0)
+    if args.videos:
+        fetch_videos(args.videos.split(","))
     print(f"done; {free_gb():.1f} GB free")
 
 

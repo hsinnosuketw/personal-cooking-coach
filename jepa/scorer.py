@@ -5,8 +5,10 @@ Batched (design doc section 4): for T predictions and N steps,
 is two matrix products, with no loop over candidates. The probe's outputs
 are sigmoid scores, so each row is normalised to a distribution first.
 
-A recipe runs in order, so a small prior favours staying on the current
-step or moving to the next one. The guide pauses when a different step
+Recipes roughly run in order, so a prior favours staying on the current
+step or moving to the next one. Real cooks interleave steps (HD-EPIC's
+P08 cracks the eggs after starting the onions), so the prior is only a
+nudge: its log is scaled by PRIOR_WEIGHT before adding it to the evidence. The guide pauses when a different step
 leads by a clear margin for `patience` ticks in a row (hysteresis), so one
 noisy second doesn't flip the suggestion.
 """
@@ -18,6 +20,7 @@ from .action_bank import ActionBankRepository
 from .domain import Prediction, PredictionResult
 
 STAY, NEXT = 0.45, 0.35  # prior mass for the current and next step; the rest is shared
+PRIOR_WEIGHT = 0.3       # 1 = trust recipe order fully; 0 = ignore it
 
 
 def _normalise(p: np.ndarray) -> np.ndarray:
@@ -65,7 +68,7 @@ class LatentStateScorer:
         """One tick. `match` lets precomputed batched scores be reused."""
         cands = self.bank.get_all_candidates()
         m = match if match is not None else match_scores(self.bank, pred.verb, pred.noun)[0]
-        scores = m + order_prior(len(cands), self.current)
+        scores = m + PRIOR_WEIGHT * order_prior(len(cands), self.current)
         post = softmax(scores)
         best = int(post.argmax())
         lead = post[best] - (post[self.current] if self.current >= 0 else 0.0)
