@@ -119,7 +119,8 @@
       <p style="margin:10px 0 0">The two versions use <b>the same world-model predictions</b>; only the recipe steps the tracker compares them with differ:</p>
       <ul style="margin:4px 0 0 18px;padding:0">
         <li><b>Steps from HD-EPIC annotations</b>: HD-EPIC's 7 steps for this recipe, tagged with the actions people annotated this cook doing in each step. Its accuracy is optimistic: the tags come from this same video.</li>
-        <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only (tab 2 shows exactly these steps). It never saw the video, so this is the honest "new recipe" setting.</li>
+        <li><b>VLM tags in the probe's words</b>: Llama 3.2 90B Vision read the recipe's own steps and tagged each with hand actions a head-mounted camera sees (take knife, cut onion), in the words the probe knows best. It never saw the video.</li>
+        <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only (tab 2 shows exactly these steps). It never saw the video.</li>
       </ul>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">

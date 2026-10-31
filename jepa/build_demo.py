@@ -18,6 +18,11 @@ SRC = RES / "demo"
 OUT = HERE / "demo"
 
 VIDEOS = [
+    ("nimhand", "VLM tags in the probe's words", "guide_P08_nim_hand",
+     "The VLM tagged the recipe's own 7 steps with camera-visible hand actions (take knife, cut onion, scrape "
+     "spatula), using the verbs and nouns the probe saw most in training. Steps line up with HD-EPIC's, so the "
+     "accuracy is measured directly. Of 3 VLM runs, this one was picked for having the most distinct tags "
+     "across steps, not for its accuracy."),
     ("hdepic", "Steps from HD-EPIC annotations", "guide_P08_hdepic",
      "Real time by default; pick a speed above. Green 'annotated' marks the step HD-EPIC's annotators "
      "recorded at that moment."),
