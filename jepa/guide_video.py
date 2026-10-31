@@ -34,12 +34,14 @@ FREEZE_S = 2.5
 
 
 def font(size: int, bold: bool = False):
-    for name in (f"DejaVuSans{'-Bold' if bold else ''}.ttf", "Arial.ttf", "Helvetica.ttc"):
+    dejavu = f"DejaVuSans{'-Bold' if bold else ''}.ttf"
+    for name in (f"/usr/share/fonts/truetype/dejavu/{dejavu}", dejavu, "/Library/Fonts/Arial.ttf",
+                 "/System/Library/Fonts/Helvetica.ttc", "Arial.ttf"):
         try:
             return ImageFont.truetype(name, size)
         except OSError:
             continue
-    return ImageFont.load_default()
+    return ImageFont.load_default(size=size)  # scalable fallback, never the tiny bitmap font
 
 
 def action_names() -> list[str]:
@@ -133,6 +135,9 @@ def render(video: Path, pred_path: Path, recipe: str, out: Path, speed: float, s
     ticks = pred["t"]
     truth = truth_steps(hd, recipe, video.stem)
     summary = evaluate(results, ticks, truth, len(cands))
+    if steps_json:  # its steps aren't HD-EPIC's, so step-number accuracy would compare different steps
+        for k in ("step_accuracy", "chance", "ticks_with_annotated_step"):
+            summary.pop(k)
     summary.update(recipe=recipe, steps_from="NIM VLM" if steps_json else "HD-EPIC annotations")
     names = action_names()
 

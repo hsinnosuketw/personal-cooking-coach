@@ -20,9 +20,11 @@ OUT = HERE / "demo"
 VIDEOS = [
     ("hdepic", "Steps from HD-EPIC annotations", "guide_P08_hdepic",
      "Recipe steps from HD-EPIC's annotators. Played at 4x; the picture freezes on each NEXT STEP decision. "
-     "Green 'annotated' marks the step the annotators recorded at that moment."),
+     "Green 'annotated' marks the step the annotators recorded at that moment. Caveat: the steps' action tags "
+     "come from this same video's annotations, so the accuracy is optimistic (in-sample)."),
     ("nim", "Steps written by the NIM VLM", "guide_P08_nim",
-     "Same predictions, but the recipe steps and their action tags were written by Llama 3.2 90B Vision on NVIDIA NIM."),
+     "Same predictions, but the recipe steps and their action tags were written by Llama 3.2 90B Vision on NVIDIA NIM. "
+     "No step accuracy is shown: its 9 steps don't line up one-to-one with HD-EPIC's 7 annotated steps."),
 ]
 
 

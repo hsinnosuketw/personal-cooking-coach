@@ -160,8 +160,8 @@ function showVideo(v) {
   $("vid").src = v.file;
   document.querySelectorAll("#vidSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === v.key));
   const e = v.eval || {};
-  $("vidStats").innerHTML = e.step_accuracy === undefined ? "" : `
-    <div class="stat"><b>${pct(e.step_accuracy)}</b><span>guide on the annotated step (chance ${pct(e.chance)})</span></div>
+  $("vidStats").innerHTML = (e.step_accuracy === undefined ? "" : `
+    <div class="stat"><b>${pct(e.step_accuracy)}</b><span>guide on the annotated step (chance ${pct(e.chance)})</span></div>`) + `
     <div class="stat"><b>${e.pauses}</b><span>"next step" pauses</span></div>
     <div class="stat"><b>${e.starts_with_a_pause_within_10s} / ${e.step_starts}</b><span>step starts caught within 10 s</span></div>`;
   $("vidNote").textContent = v.note;
