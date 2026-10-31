@@ -19,12 +19,11 @@ OUT = HERE / "demo"
 
 VIDEOS = [
     ("hdepic", "Steps from HD-EPIC annotations", "guide_P08_hdepic",
-     "Recipe steps from HD-EPIC's annotators. Played at 4x; the picture freezes on each NEXT STEP decision. "
-     "Green 'annotated' marks the step the annotators recorded at that moment. Caveat: the steps' action tags "
-     "come from this same video's annotations, so the accuracy is optimistic (in-sample)."),
+     "Real time by default; pick a speed above. Green 'annotated' marks the step HD-EPIC's annotators "
+     "recorded at that moment."),
     ("nim", "Steps written by the NIM VLM", "guide_P08_nim",
-     "Same predictions, but the recipe steps and their action tags were written by Llama 3.2 90B Vision on NVIDIA NIM. "
-     "No step accuracy is shown: its 9 steps don't line up one-to-one with HD-EPIC's 7 annotated steps."),
+     "No step accuracy is shown: the VLM's step 3 is not HD-EPIC's step 3 (it orders the recipe differently), "
+     "so comparing step numbers would be meaningless."),
 ]
 
 
@@ -57,7 +56,11 @@ def main() -> None:
     v = Vocab.load()
     vocab = {"verbs": sorted(v.verb_row), "nouns": sorted(v.noun_row), "verb_alias": v.verb_alias,
              "noun_alias": v.noun_alias}
-    data = {"videos": videos, "vocab": vocab, "extraction": json.loads((SRC / "extraction.json").read_text(encoding="utf-8")),
+    extraction = json.loads((SRC / "extraction.json").read_text(encoding="utf-8"))
+    used = json.loads((RES / "nim_P08_R03.json").read_text(encoding="utf-8"))
+    if [s["text"] for s in used["steps"]] != [s["text"] for s in extraction["nim_steps"]]:
+        raise SystemExit("tab 2 would show different NIM steps from the ones the NIM video used")
+    data = {"videos": videos, "vocab": vocab, "extraction": extraction,
             "frames": frames, "ek": {"summary": ek["summary"], "rows": rows}}
     (OUT / "data.js").write_text("window.DEMO = " + json.dumps(data, ensure_ascii=False) + ";\n", encoding="utf-8")
     print(f"built {OUT}/index.html: {len(videos)} videos, {len(frames['frames'])} frames, {len(rows)} EPIC examples")

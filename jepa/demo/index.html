@@ -109,7 +109,23 @@
 </nav>
 <main>
   <section id="play" class="on">
-    <div class="seg" id="vidSwitch"></div>
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="margin-top:0">How to read the video</h3>
+      <ol style="margin:0 0 0 18px;padding:0">
+        <li><b>World model (V-JEPA 2)</b>, once per second: looks at the last ~3.2 s of video and predicts the action ~1 s ahead. It only sees pixels; it never reads the recipe. Panel: <i>"V-JEPA 2 expects in ~1 s"</i>.</li>
+        <li><b>Step tracker</b> (our code, <code>scorer.py</code>): compares that prediction with each recipe step's action tags and keeps a belief over which step the cook is on. Panel: <i>"Step tracker"</i> bars. When a different step leads clearly for 2 s, the picture freezes with <b>NEXT STEP</b>.</li>
+        <li><b>Inside the current step</b>: the step's own actions (e.g. <i>mix egg</i>, <i>put shell:egg</i>) ranked by how likely the world model finds each one ~1 s ahead.</li>
+      </ol>
+      <p style="margin:10px 0 0">The two versions use <b>the same world-model predictions</b>; only the recipe steps the tracker compares them with differ:</p>
+      <ul style="margin:4px 0 0 18px;padding:0">
+        <li><b>Steps from HD-EPIC annotations</b>: HD-EPIC's 7 steps for this recipe, tagged with the actions people annotated this cook doing in each step. Its accuracy is optimistic: the tags come from this same video.</li>
+        <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only (tab 2 shows exactly these steps). It never saw the video, so this is the honest "new recipe" setting.</li>
+      </ul>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <div class="seg" id="vidSwitch"></div>
+      <div class="seg" id="speed"></div>
+    </div>
     <video id="vid" controls playsinline preload="metadata"></video>
     <div class="stats" id="vidStats"></div>
     <p class="note" id="vidNote"></p>
@@ -151,7 +167,7 @@
   </section>
 
   <section id="wm">
-    <p class="note" style="margin-top:0">Each frame is the last image V-JEPA 2 saw. Its encoder turns the past 4 s into latent tokens, the predictor imagines the next ~1 s in that latent space, and Meta's EPIC-KITCHENS probe names the action. Green = matches what the narrator says happened next.</p>
+    <p class="note" style="margin-top:0">Each frame is the last image V-JEPA 2 saw. It predicts once per second of video: its encoder turns the past ~3.2 s (32 frames) into latent tokens, the predictor imagines the next ~1 s in that latent space, and Meta's EPIC-KITCHENS probe names the action. Green = matches what the narrator says happened next.</p>
     <div class="frames">
       <div class="thumbs" id="thumbs"></div>
       <div class="detail" id="detail"></div>
@@ -177,12 +193,23 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
 try { const t = localStorage.getItem("demoTab"); if (t) document.querySelector(`nav button[data-tab="${t}"]`)?.click(); } catch (e) {}
 
 // 1 · videos
+let rate = 1;
+function setRate(r) {
+  rate = r; $("vid").playbackRate = r;
+  document.querySelectorAll("#speed button").forEach((b) => b.classList.toggle("on", Number(b.dataset.r) === r));
+}
+[0.5, 1, 1.5, 2, 4, 8].forEach((r) => {
+  const b = document.createElement("button"); b.textContent = `${r}×`; b.dataset.r = r; b.onclick = () => setRate(r);
+  $("speed").appendChild(b);
+});
+$("vid").addEventListener("loadedmetadata", () => { $("vid").playbackRate = rate; });
+setRate(1);
 function showVideo(v) {
   $("vid").src = v.file;
   document.querySelectorAll("#vidSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === v.key));
   const e = v.eval || {};
   $("vidStats").innerHTML = (e.step_accuracy === undefined ? "" : `
-    <div class="stat"><b>${pct(e.step_accuracy)}</b><span>guide on the annotated step (chance ${pct(e.chance)})</span></div>`) + `
+    <div class="stat"><b>${pct(e.step_accuracy)}</b><span>step tracker on the annotated step (chance ${pct(e.chance)})</span></div>`) + `
     <div class="stat"><b>${e.pauses}</b><span>"next step" pauses</span></div>
     <div class="stat"><b>${e.starts_with_a_pause_within_10s} / ${e.step_starts}</b><span>step starts caught within 10 s</span></div>`;
   $("vidNote").innerHTML = `${esc(v.note)} <a href="${esc(v.file)}" target="_blank">Open the MP4 directly</a> if it doesn't play here.`;
@@ -272,7 +299,7 @@ function showFrame(i) {
       <h3>World model expects in ~1 s — action</h3>${bars(f.top5.action, tw)}
       <h3>verb</h3>${bars(f.top5.verb, tw)}
       <h3>noun</h3>${bars(f.top5.noun, tw)}
-      <h3>Guide's step belief</h3>
+      <h3>Step tracker's belief</h3>
       <div class="note">current step: ${cur > 0 ? `${cur}. ${esc(F.steps[cur - 1].text)}` : "not started"}</div>
       ${bars(top.map((b) => ({name: `${b.step}. ${F.steps[b.step - 1].text.slice(0, 48)}…`, p: b.p})), new Set())}
     </div>`;

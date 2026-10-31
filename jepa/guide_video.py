@@ -3,9 +3,11 @@
   python3 -m jepa.guide_video VIDEO.mp4 PRED.npz --recipe P08_R03 --out guide.mp4 [--speed 4]
   ... --steps-json nim_steps.json   use steps written by the NIM VLM instead of HD-EPIC's
 
-Left: the cooking video, sped up. Right: what V-JEPA 2 expects about 1 s
-ahead, every step's live score, the guide's current step and, for honesty,
-the step HD-EPIC's annotators marked at that moment. When the scorer
+Left: the cooking video, in real time by default (the demo page lets the
+viewer change playback speed). Right: what V-JEPA 2 expects about 1 s
+ahead, the current step's own actions, the step tracker's belief over the
+recipe steps (scored from V-JEPA 2's predictions, see scorer.py) and, for
+honesty, the step HD-EPIC's annotators marked at that moment. When the scorer
 decides a new step is starting, the frame freezes with a NEXT STEP banner.
 Runs on the predictions precompute.py saved, so no torch is needed here.
 """
@@ -118,7 +120,7 @@ def draw_panel(img: Image.Image, title: str, res, top_actions, truth_now: set[in
                    fill=INK if i == best else MUTED)
             y += 23
         y += 10
-    d.text((x0, y), "Recipe steps (bar = guide's belief)", font=font(16, True), fill=ACCENT)
+    d.text((x0, y), "Step tracker: which recipe step is the cook on?", font=font(16, True), fill=ACCENT)
     y += 28
     post = res.extras["posterior"] if res is not None else np.zeros(len(cands))
     row_h = max(36, min(64, (H - y - 8) // max(1, len(cands))))
@@ -144,7 +146,7 @@ def banner(img: Image.Image, text: str):
 
 
 def render(video: Path, pred_path: Path, recipe: str, out: Path, speed: float, steps_json: Path | None,
-           start: float | None, end: float | None) -> dict:
+           start: float | None, end: float | None, out_fps: int = 15) -> dict:
     vocab = Vocab.load()
     hd = HDEpicExtractor(vocab)
     steps = ManualRecipeExtractor(vocab).extract_steps(str(steps_json)) if steps_json else hd.extract_steps(recipe)
@@ -165,11 +167,10 @@ def render(video: Path, pred_path: Path, recipe: str, out: Path, speed: float, s
     fps = cap.get(cv2.CAP_PROP_FPS)
     start = start if start is not None else max(0.0, min(s0 for _, s0, _ in truth) - 15)
     end = end if end is not None else min(cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps, max(s1 for _, _, s1 in truth) + 10)
-    out_fps = 30
     raw = out.with_suffix(".raw.mp4")
     writer = cv2.VideoWriter(str(raw), cv2.VideoWriter_fourcc(*"mp4v"), out_fps, (W, H))
     title = hd.recipes[recipe]["name"]
-    note = f"{speed:g}x speed · steps: {summary['steps_from']}"
+    note = (f"{speed:g}x · " if speed != 1 else "") + f"steps: {summary['steps_from']}"
     shown_pauses = set()
     cap.set(cv2.CAP_PROP_POS_FRAMES, int(start * fps))
     t = start
@@ -216,13 +217,14 @@ def main() -> None:
     ap.add_argument("pred", type=Path)
     ap.add_argument("--recipe", required=True, help="HD-EPIC recipe id, e.g. P08_R03 (also gives the ground truth)")
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--speed", type=float, default=4.0)
+    ap.add_argument("--speed", type=float, default=1.0, help="baked-in speed-up; 1 = real time (the page sets playback speed)")
+    ap.add_argument("--fps", type=int, default=15, help="output frames per second")
     ap.add_argument("--steps-json", type=Path, default=None)
     ap.add_argument("--start", type=float, default=None)
     ap.add_argument("--end", type=float, default=None)
     args = ap.parse_args()
     print(json.dumps(render(args.video, args.pred, args.recipe, args.out, args.speed, args.steps_json,
-                            args.start, args.end), indent=1))
+                            args.start, args.end, args.fps), indent=1))
 
 
 if __name__ == "__main__":
