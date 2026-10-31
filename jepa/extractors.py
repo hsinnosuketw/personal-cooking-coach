@@ -130,12 +130,14 @@ class NIMRecipeExtractor:
 
     tag_steps() is the other mode: the recipe text is given (as a user would
     hand it over) and the VLM only writes each step's action tags.
-    distinct=True asks for tags that tell the steps apart: a step tracker
-    can't separate steps that all say "mix egg".
+    distinct=True asks for tags that tell the steps apart. It sounds right
+    (a tracker can't separate steps that all say "mix egg") but measured
+    worse on P08 (compare_vlm.py): the specific actions it picks are the
+    ones the EK100 probe reads poorly on HD-EPIC. So it is off by default.
     """
 
     def __init__(self, vocab: Vocab, model: str = NIM_MODEL, images: list[Path] = (), timeout: float = 180.0,
-                 retries: int = 1, post=None, n_steps: int | None = None, distinct: bool = True):
+                 retries: int = 1, post=None, n_steps: int | None = None, distinct: bool = False):
         self.vocab, self.model, self.images, self.n_steps = vocab, model, list(images), n_steps
         self.distinct = distinct
         self.timeout, self.retries = timeout, retries
