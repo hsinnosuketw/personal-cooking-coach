@@ -1,5 +1,7 @@
-numpy>=1.26
-matplotlib>=3.8
-pydantic>=2.6
-fastapi>=0.110
-uvicorn>=0.29
+# jepa/ on a laptop (tests, demo build, VLM calls)
+numpy
+pandas
+opencv-python
+pillow
+pyyaml
+# the world model itself (Colab GPU): torch, torchvision, einops

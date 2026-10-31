@@ -11,14 +11,14 @@ __pycache__/
 .DS_Store
 
 # Large or generated artifacts kept locally, not in history
-_w3d/
-trajectory-*.json
+archive/_w3d/
+archive/trajectory-*.json
 
 # Live-coach session logs (local runs, may hold learner data)
-livecoach/runs/
+archive/livecoach/runs/
 
 # Synthetic test rounds (regenerate with: python3 -m chef bots)
-gameplay/synthetic/
+archive/gameplay/synthetic/
 
 # V-JEPA 2 / EPIC-KITCHENS cache: weights, videos, vendored repos (python3 -m jepa.fetch)
 jepa/_cache/
