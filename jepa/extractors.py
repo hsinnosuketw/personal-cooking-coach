@@ -127,11 +127,17 @@ class NIMRecipeExtractor:
     through EPIC-KITCHENS' synonym lists (whisk -> mix); tags with no class
     are dropped and counted. n_steps fixes the step count so the answer can
     be compared row by row with another source's steps.
+
+    tag_steps() is the other mode: the recipe text is given (as a user would
+    hand it over) and the VLM only writes each step's action tags.
+    distinct=True asks for tags that tell the steps apart: a step tracker
+    can't separate steps that all say "mix egg".
     """
 
     def __init__(self, vocab: Vocab, model: str = NIM_MODEL, images: list[Path] = (), timeout: float = 180.0,
-                 retries: int = 1, post=None, n_steps: int | None = None):
+                 retries: int = 1, post=None, n_steps: int | None = None, distinct: bool = True):
         self.vocab, self.model, self.images, self.n_steps = vocab, model, list(images), n_steps
+        self.distinct = distinct
         self.timeout, self.retries = timeout, retries
         self.post = post or self._post  # tests pass a fake transport
         self.dropped = 0
@@ -140,6 +146,17 @@ class NIMRecipeExtractor:
         self.rejected: list[tuple[int, str, str]] = []  # (step order, verb, noun) outside the vocabulary
         self.mapped: list[tuple[int, str, str]] = []    # (step order, "whisk egg", "mix egg") synonym rewrites
 
+    DISTINCT = (
+        " Choose tags that tell the steps apart, because a camera will use them to recognise which step the "
+        "cook is on: never give the same [verb, noun] pair to two steps; prefer what is specific to the step "
+        "(crack egg, spray pan, peel onion, grate cheese) over generic actions that happen in many steps (mix, "
+        "take, put) unless that generic action is the step's main action; include the hand actions a camera "
+        "would see while doing the step, such as taking out or putting away its own container or utensil.")
+
+    def _vocab_lists(self) -> str:
+        return ("using ONLY these verbs:\n" + ", ".join(sorted(self.vocab.verb_row)) +
+                "\nand ONLY these nouns:\n" + ", ".join(sorted(self.vocab.noun_row)))
+
     def _prompt(self, recipe: str) -> str:
         return (
             f"Write the cooking steps for: {recipe}.\n"
@@ -147,9 +164,23 @@ class NIMRecipeExtractor:
             + (f"exactly {self.n_steps} steps" if self.n_steps else "4-10 steps") +
             " in cooking order. Write each step like a recipe card: 1-3 sentences with the utensil, the heat "
             "level and the cue for when it is done. For each step list the 1-4 hand actions it involves as "
-            "[verb, noun] pairs, using "
-            "ONLY these verbs:\n" + ", ".join(sorted(self.vocab.verb_row)) +
-            "\nand ONLY these nouns:\n" + ", ".join(sorted(self.vocab.noun_row)))
+            "[verb, noun] pairs," + (self.DISTINCT if self.distinct else "") + " Use " + self._vocab_lists())
+
+    def _tag_prompt(self, name: str, texts: list[str]) -> str:
+        numbered = "\n".join(f"{i + 1}. {t}" for i, t in enumerate(texts))
+        return (
+            f"Here is a recipe for {name} with {len(texts)} steps:\n{numbered}\n\n"
+            "For each step, list the 2-5 hand actions a head-mounted camera would see while the cook does it, as "
+            "[verb, noun] pairs. Return only JSON: {\"steps\": [{\"text\": \"<the step, copied>\", \"pairs\": "
+            f"[[verb, noun], ...]}}]}} with exactly {len(texts)} steps in the same order." +
+            (self.DISTINCT if self.distinct else "") + " Use " + self._vocab_lists())
+
+    def tag_steps(self, name: str, texts: list[str]) -> list[StepSpec]:
+        """The recipe's own step texts are kept; the VLM only supplies the tags."""
+        steps = self._ask(self._tag_prompt(name, texts))
+        if len(steps) != len(texts):
+            raise ValueError(f"asked for {len(texts)} steps, got {len(steps)}")
+        return [StepSpec(s.step_id, t.strip(), s.order, s.pairs) for s, t in zip(steps, texts)]
 
     def _post(self, body: dict) -> dict:
         key = os.environ.get("NVIDIA_API_KEY")
@@ -173,7 +204,10 @@ class NIMRecipeExtractor:
                 raise
 
     def extract_steps(self, recipe: str) -> list[StepSpec]:
-        content = [{"type": "text", "text": self._prompt(recipe)}]
+        return self._ask(self._prompt(recipe))
+
+    def _ask(self, prompt: str) -> list[StepSpec]:
+        content = [{"type": "text", "text": prompt}]
         for img in self.images:
             b64 = base64.b64encode(Path(img).read_bytes()).decode()
             content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}})
