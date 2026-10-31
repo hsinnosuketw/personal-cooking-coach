@@ -63,6 +63,15 @@
   .chips { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 5px; }
   .chip { font-size: 12.5px; padding: 2px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); }
   .chip.drop { background: var(--bad-soft); color: var(--bad); text-decoration: line-through; }
+  .chip.map { background: #dde8fb; color: #1d4fa8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip.map { background: #1b2a44; color: #9cc0ff; } }
+  :root[data-theme="dark"] .chip.map { background: #1b2a44; color: #9cc0ff; }
+  table.cmp { width: 100%; border-collapse: collapse; }
+  table.cmp th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  table.cmp td { vertical-align: top; padding: 10px 8px; border-top: 1px solid var(--line); width: 48%; }
+  table.cmp td:first-child { width: 4%; }
+  table.cmp .wc { font-size: 12px; color: var(--muted); }
+  @media (max-width: 700px) { table.cmp, table.cmp tbody, table.cmp tr, table.cmp td { display: block; width: 100% !important; } table.cmp thead { display: none; } }
   .chip.gt { background: var(--accent-soft); color: var(--ink); }
   .chip small { opacity: .7; }
   .frames { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
@@ -108,24 +117,36 @@
 
   <section id="vlm">
     <div class="flow">
-      <div class="box"><h4>Request</h4><div id="req"></div></div><div class="arrow">→</div>
-      <div class="box"><h4>VLM on NVIDIA NIM</h4><div id="model"></div></div><div class="arrow">→</div>
-      <div class="box"><h4>Vocabulary filter</h4><div id="vocab"></div></div><div class="arrow">→</div>
-      <div class="box"><h4>Action bank</h4><div>Each step becomes a verb profile and a noun profile the world model's predictions are scored against.</div></div>
+      <div class="box"><h4>1 · Request</h4><div id="req"></div><div class="note" id="reqSrc"></div></div><div class="arrow">→</div>
+      <div class="box"><h4>2 · VLM on NVIDIA NIM</h4><div id="model"></div></div><div class="arrow">→</div>
+      <div class="box"><h4>3 · Vocabulary filter</h4><div id="vocab"></div></div><div class="arrow">→</div>
+      <div class="box"><h4>4 · Action bank</h4><div>Each step becomes a verb profile and a noun profile. The world model's predictions are scored against them every second.</div></div>
     </div>
-    <div class="grid2">
-      <div class="card">
-        <h3 style="margin-top:0">Steps written by the VLM</h3>
-        <p class="note">Green tags are kept; struck-out red tags use words the world model can't predict, so they're dropped.</p>
-        <div id="nimSteps"></div>
-        <details><summary>Exact prompt sent</summary><pre id="prompt"></pre></details>
-        <details><summary>Model's raw answer</summary><pre id="raw"></pre></details>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">What the vocabulary filter does</h3>
+      <p style="margin:0 0 8px">The world model can only <b>name</b> actions through Meta's EPIC-KITCHENS probe, whose output layer has one row per verb (<span id="nv"></span>) and per noun (<span id="nn"></span>). A tag is <b>known</b> when it lands on one of those rows:</p>
+      <ol style="margin:0 0 10px 18px;padding:0">
+        <li>the word is a class name itself (<i>cut</i>, <i>onion</i>), or</li>
+        <li>EPIC-KITCHENS' annotators listed it as a synonym of a class (<i>whisk → mix</i>, <i>crack → break</i>, <i>chop → cut</i>; <span id="nsyn"></span>), or</li>
+        <li>for nouns, its singular or its head noun is (<i>chillies → chilli</i>, <i>cottage cheese → cheese</i>).</li>
+      </ol>
+      <p class="note" style="margin:0 0 8px">Anything else has no row in the model's output, so the world model could never predict it and the tag is dropped. Try a word:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="tryKind" style="font:inherit;padding:6px"><option value="verb">verb</option><option value="noun">noun</option></select>
+        <input id="tryWord" placeholder="e.g. whisk, saute, skillet" style="font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);min-width:220px">
+        <span id="tryOut" class="note"></span>
       </div>
-      <div class="card">
-        <h3 style="margin-top:0">Same recipe, annotated by people (HD-EPIC)</h3>
-        <p class="note">Tags here are what the cook was recorded doing during each step, with seconds spent.</p>
-        <div id="hdSteps"></div>
-      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Step by step: VLM vs people (same recipe, same number of steps)</h3>
+      <p class="note">The VLM was asked for exactly <span id="nsteps"></span> recipe-card steps so each row can be compared. Left tags: <span class="chip">kept</span> <span class="chip map">mapped synonym</span> <span class="chip drop">dropped</span>. Right tags: what the cook was recorded doing in that step, with seconds spent.</p>
+      <table class="cmp"><thead><tr><th>#</th><th>Written by the VLM</th><th>Annotated by people (HD-EPIC)</th></tr></thead><tbody id="cmp"></tbody></table>
+      <details><summary>Exact prompt sent, and where the word lists come from</summary>
+        <p class="note">The verb and noun lists are the probe's output classes: the class names in EPIC-KITCHENS' <code>EPIC_100_verb_classes.csv</code> / <code>EPIC_100_noun_classes.csv</code> that occur in a (verb, noun) action of <code>EPIC_100_train.csv</code>, the same rule Meta's code uses to build the probe's output layer. They are sorted alphabetically and pasted into the prompt.</p>
+        <pre id="prompt"></pre></details>
+      <details><summary>Model's raw answer</summary><pre id="raw"></pre></details>
     </div>
   </section>
 
@@ -164,7 +185,7 @@ function showVideo(v) {
     <div class="stat"><b>${pct(e.step_accuracy)}</b><span>guide on the annotated step (chance ${pct(e.chance)})</span></div>`) + `
     <div class="stat"><b>${e.pauses}</b><span>"next step" pauses</span></div>
     <div class="stat"><b>${e.starts_with_a_pause_within_10s} / ${e.step_starts}</b><span>step starts caught within 10 s</span></div>`;
-  $("vidNote").textContent = v.note;
+  $("vidNote").innerHTML = `${esc(v.note)} <a href="${esc(v.file)}" target="_blank">Open the MP4 directly</a> if it doesn't play here.`;
 }
 D.videos.forEach((v) => {
   const b = document.createElement("button");
@@ -172,22 +193,59 @@ D.videos.forEach((v) => {
   $("vidSwitch").appendChild(b);
 });
 if (D.videos.length) showVideo(D.videos[0]);
+else $("vidNote").textContent = "No rendered video yet: run python3 -m jepa.build_demo after the render finishes.";
 
 // 2 · VLM extraction
-const X = D.extraction;
+const X = D.extraction, VB = D.vocab;
 $("req").textContent = `"${X.request}"`;
+$("reqSrc").textContent = X.request_source || "";
 $("model").innerHTML = `${esc(X.model)}<br><span class="note">${X.seconds} s · ${X.tokens.prompt} tokens in, ${X.tokens.completion} out</span>`;
-$("vocab").innerHTML = `Only ${X.vocab.verbs} verbs and ${X.vocab.nouns} nouns the world model knows.<br><span class="note">${X.nim_steps.reduce((a, s) => a + s.kept.length, 0)} tags kept, ${X.nim_steps.reduce((a, s) => a + s.dropped.length, 0)} dropped</span>`;
+const nKept = X.nim_steps.reduce((a, s) => a + s.kept.length, 0), nMap = X.nim_steps.reduce((a, s) => a + (s.mapped || []).length, 0), nDrop = X.nim_steps.reduce((a, s) => a + s.dropped.length, 0);
+$("vocab").innerHTML = `Keeps only actions the world model can name.<br><span class="note">${nKept} tags kept (${nMap} via synonyms), ${nDrop} dropped</span>`;
+$("nv").textContent = `${X.vocab.verbs} verbs`; $("nn").textContent = `${X.vocab.nouns} nouns`;
+$("nsyn").textContent = `${X.vocab.verb_synonyms} verb and ${X.vocab.noun_synonyms} noun synonyms`;
+$("nsteps").textContent = X.n_steps || X.nim_steps.length;
 $("prompt").textContent = X.prompt;
 $("raw").textContent = X.raw_answer;
-$("nimSteps").innerHTML = X.nim_steps.map((s) => `
-  <div class="step"><div class="num">${s.step}</div><div>${esc(s.text)}
-    <div class="chips">${s.kept.map((p) => `<span class="chip">${esc(p)}</span>`).join("")}${s.dropped.map((p) => `<span class="chip drop">${esc(p)}</span>`).join("")}${!s.kept.length && !s.dropped.length ? '<span class="note">no tags</span>' : ""}</div>
-  </div></div>`).join("");
-$("hdSteps").innerHTML = X.hdepic_steps.map((s) => `
-  <div class="step"><div class="num">${s.step}</div><div>${esc(s.text)}
-    <div class="chips">${s.actions.map((a) => `<span class="chip gt">${esc(a.pair)} <small>${a.seconds.toFixed(1)} s</small></span>`).join("") || '<span class="note">no tags</span>'}</div>
-  </div></div>`).join("");
+
+function canon(kind, word) {  // same rule as jepa/vocab.py Vocab.canon
+  const w = String(word).trim().toLowerCase().replace(/-/g, " ").split(/\s+/).filter(Boolean).join(" ");
+  if (!w) return null;
+  const keys = new Set(kind === "verb" ? VB.verbs : VB.nouns), alias = kind === "verb" ? VB.verb_alias : VB.noun_alias;
+  const k = keys.has(w.replace(/ /g, ":")) ? w.replace(/ /g, ":") : w;
+  if (keys.has(k)) return {key: k, how: "class name"};
+  if (kind === "verb") {
+    if (alias[w]) return {key: alias[w], how: "synonym"};
+    const f = alias[w.split(" ")[0]]; return f ? {key: f, how: "synonym of first word"} : null;
+  }
+  for (const c of [w, w.split(" ").pop()]) {
+    for (const f of [c, c.endsWith("s") ? c.slice(0, -1) : null, c.endsWith("es") ? c.slice(0, -2) : null, c.endsWith("ies") ? c.slice(0, -3) + "y" : null]) {
+      if (f && keys.has(f)) return {key: f, how: c === w ? (f === w ? "class name" : "singular") : "head noun"};
+      if (f && alias[f]) return {key: alias[f], how: c === w ? "synonym" : "synonym of head noun"};
+    }
+  }
+  return null;
+}
+function tryIt() {
+  const w = $("tryWord").value; if (!w.trim()) { $("tryOut").textContent = ""; return; }
+  const r = canon($("tryKind").value, w);
+  $("tryOut").innerHTML = r ? `<span class="chip${r.how === "class name" ? "" : " map"}">${esc(w)} → ${esc(r.key)}</span> <span class="note">${esc(r.how)}: the model has a row for it</span>`
+                            : `<span class="chip drop">${esc(w)}</span> <span class="note">no row in the model's output: dropped</span>`;
+}
+$("tryWord").oninput = tryIt; $("tryKind").onchange = tryIt;
+
+const wordCount = (t) => t.trim().split(/\s+/).length;
+$("cmp").innerHTML = X.nim_steps.map((s, i) => {
+  const h = X.hdepic_steps[i];
+  const mappedTo = new Set((s.mapped || []).map((m) => m.to));
+  const left = s.kept.filter((k) => !mappedTo.has(k)).map((k) => `<span class="chip">${esc(k)}</span>`).join("")
+    + (s.mapped || []).map((m) => `<span class="chip map" title="mapped through EPIC-KITCHENS synonyms">${esc(m.from)} → ${esc(m.to)}</span>`).join("")
+    + s.dropped.map((d) => `<span class="chip drop">${esc(d)}</span>`).join("");
+  const right = h ? h.actions.map((a) => `<span class="chip gt">${esc(a.pair)} <small>${a.seconds.toFixed(1)} s</small></span>`).join("") : "";
+  return `<tr><td><div class="num">${i + 1}</div></td>
+    <td>${esc(s.text)} <span class="wc">${wordCount(s.text)} words</span><div class="chips">${left || '<span class="note">no tags</span>'}</div></td>
+    <td>${h ? `${esc(h.text)} <span class="wc">${wordCount(h.text)} words</span><div class="chips">${right || '<span class="note">no tags</span>'}</div>` : '<span class="note">—</span>'}</td></tr>`;
+}).join("");
 
 // 3 · world-model frames
 const F = D.frames;

@@ -53,7 +53,11 @@ def main() -> None:
         shutil.copy2(RES / r["thumb"], OUT / "ek" / name)
         rows.append(dict(r, thumb=f"ek/{name}"))
 
-    data = {"videos": videos, "extraction": json.loads((SRC / "extraction.json").read_text(encoding="utf-8")),
+    from .vocab import Vocab
+    v = Vocab.load()
+    vocab = {"verbs": sorted(v.verb_row), "nouns": sorted(v.noun_row), "verb_alias": v.verb_alias,
+             "noun_alias": v.noun_alias}
+    data = {"videos": videos, "vocab": vocab, "extraction": json.loads((SRC / "extraction.json").read_text(encoding="utf-8")),
             "frames": frames, "ek": {"summary": ek["summary"], "rows": rows}}
     (OUT / "data.js").write_text("window.DEMO = " + json.dumps(data, ensure_ascii=False) + ";\n", encoding="utf-8")
     print(f"built {OUT}/index.html: {len(videos)} videos, {len(frames['frames'])} frames, {len(rows)} EPIC examples")

@@ -76,7 +76,7 @@ def test_nim_extractor_parses_fenced_json_drops_unknown_keys_and_retries():
     answers = iter([
         {"choices": [{"message": {"content": "Sure! not json"}}]},
         {"choices": [{"message": {"content": "```json\n" + json.dumps({"steps": [
-            {"text": "Crack eggs", "pairs": [["take", "egg"], ["whisk", "egg"]]},
+            {"text": "Crack eggs", "pairs": [["take", "egg"], ["fling", "egg"]]},
             {"text": "Chop onion", "pairs": [["Cut", "Onion"]]}]}) + "\n```"}}],
          "usage": {"prompt_tokens": 900, "completion_tokens": 80}},
     ])
@@ -87,6 +87,19 @@ def test_nim_extractor_parses_fenced_json_drops_unknown_keys_and_retries():
     assert steps[0].pairs == (("take", "egg", 1.0),) and steps[1].pairs == (("cut", "onion", 1.0),)
     assert ex.dropped == 1 and ex.calls == 2 and ex.prompt_tokens == 900
     assert sent[0]["model"] == extractors.NIM_MODEL and "ONLY these verbs" in sent[0]["messages"][0]["content"][0]["text"]
+
+
+def test_free_text_words_map_onto_the_probe_classes_through_synonyms():
+    v = Vocab({"mix": 0, "cut": 1, "pick:up": 2}, {"egg": 0, "shell:egg": 1},
+              verb_alias={"whisk": "mix", "chop": "cut"}, noun_alias={"egg shell": "shell:egg"})
+    assert v.canon("verb", "Whisk") == "mix" and v.canon("verb", "chop finely") == "cut"
+    assert v.canon("verb", "pick up") == "pick:up" and v.canon("noun", "egg shell") == "shell:egg"
+    assert v.canon("verb", "heat") is None
+    ex = extractors.NIMRecipeExtractor(v, post=lambda body: {"choices": [{"message": {"content": json.dumps(
+        {"steps": [{"text": "Beat eggs", "pairs": [["whisk", "egg"], ["mix", "egg"], ["heat", "egg"]]}]})}}]})
+    steps = ex.extract_steps("eggs")
+    assert steps[0].pairs == (("mix", "egg", 1.0),), "synonym and key collapse into one tag"
+    assert ex.mapped == [(0, "whisk egg", "mix egg")] and ex.rejected == [(0, "heat", "egg")]
 
 
 def test_nim_extractor_needs_a_key_and_never_calls_out_without_one():

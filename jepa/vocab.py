@@ -7,7 +7,8 @@ ids for every verb and noun the probe knows (checked 2026-10-31).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import ast
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
@@ -27,9 +28,33 @@ def class_maps(train_csv: Path) -> dict:
 
 @dataclass(frozen=True)
 class Vocab:
-    """Class keys ("cut", "onion") <-> probe output rows."""
+    """Class keys ("cut", "onion") <-> probe output rows.
+
+    A word "is known" when it maps to a row of the probe's output layer:
+    either it is a class key, or EPIC-KITCHENS lists it among that class's
+    instances (synonyms its annotators merged, e.g. whisk -> mix, chop -> cut).
+    """
     verb_row: dict[str, int]
     noun_row: dict[str, int]
+    verb_alias: dict[str, str] = field(default_factory=dict)
+    noun_alias: dict[str, str] = field(default_factory=dict)
+
+    def canon(self, kind: str, word: str) -> str | None:
+        """The probe's class key for a free-text verb or noun, or None if it has no row."""
+        w = " ".join(str(word).strip().lower().replace("-", " ").split())
+        rows, alias = (self.verb_row, self.verb_alias) if kind == "verb" else (self.noun_row, self.noun_alias)
+        key = w.replace(" ", ":") if w.replace(" ", ":") in rows else w
+        if key in rows:
+            return key
+        if kind == "verb":
+            return alias.get(w) or (alias.get(w.split(" ")[0]) if w else None)
+        # nouns: the word, its singular, then the head noun (last word: "cottage cheese" -> cheese)
+        for cand in (w, w.split(" ")[-1]) if w else ():
+            for form in (cand, cand[:-1] if cand.endswith("s") else None, cand[:-2] if cand.endswith("es") else None,
+                         cand[:-3] + "y" if cand.endswith("ies") else None):
+                if form and (form in rows or form in alias):
+                    return form if form in rows else alias[form]
+        return None
 
     @property
     def n_verbs(self) -> int:
@@ -42,7 +67,23 @@ class Vocab:
     @classmethod
     def load(cls, cache: Path = CACHE) -> "Vocab":
         maps = class_maps(cache / "EPIC_100_train.csv")
-        verbs = pd.read_csv(cache / "EPIC_100_verb_classes.csv").set_index("id").key
-        nouns = pd.read_csv(cache / "EPIC_100_noun_classes.csv").set_index("id").key
-        return cls(verb_row={verbs[c]: r for c, r in maps["verbs"].items()},
-                   noun_row={nouns[c]: r for c, r in maps["nouns"].items()})
+        vdf = pd.read_csv(cache / "EPIC_100_verb_classes.csv").set_index("id")
+        ndf = pd.read_csv(cache / "EPIC_100_noun_classes.csv").set_index("id")
+        verb_row = {vdf.key[c]: r for c, r in maps["verbs"].items()}
+        noun_row = {ndf.key[c]: r for c, r in maps["nouns"].items()}
+        return cls(verb_row, noun_row, _aliases(vdf, verb_row, first_word=True), _aliases(ndf, noun_row))
+
+
+def _aliases(df: pd.DataFrame, rows: dict[str, int], first_word: bool = False) -> dict[str, str]:
+    """instance word -> class key, for classes the probe has a row for. When a
+    word is an instance of several classes, the first class (lowest id) wins."""
+    out: dict[str, str] = {}
+    for key, instances in zip(df.key, df.instances):
+        if key not in rows:
+            continue
+        for inst in ast.literal_eval(instances):
+            w = " ".join(inst.lower().replace("-", " ").split())
+            out.setdefault(w, key)
+            if first_word:
+                out.setdefault(w.split(" ")[0], key)
+    return out

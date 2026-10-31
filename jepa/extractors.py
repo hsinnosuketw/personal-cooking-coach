@@ -121,26 +121,33 @@ class ManualRecipeExtractor:
 class NIMRecipeExtractor:
     """A VLM on NVIDIA's hosted NIM (OpenAI-compatible) writes the steps.
 
-    recipe = a request such as "scrambled eggs with onion". Reference images
-    (e.g. a photo of the ingredients) are optional. The model must answer
-    with EK100 verb and noun keys; anything else is dropped and counted.
+    recipe = a request such as "scrambled eggs with onion" (see hd_request()
+    for one built from an HD-EPIC recipe). Reference images (e.g. a photo of
+    the ingredients) are optional. Tags are mapped onto the probe's classes
+    through EPIC-KITCHENS' synonym lists (whisk -> mix); tags with no class
+    are dropped and counted. n_steps fixes the step count so the answer can
+    be compared row by row with another source's steps.
     """
 
     def __init__(self, vocab: Vocab, model: str = NIM_MODEL, images: list[Path] = (), timeout: float = 180.0,
-                 retries: int = 1, post=None):
-        self.vocab, self.model, self.images = vocab, model, list(images)
+                 retries: int = 1, post=None, n_steps: int | None = None):
+        self.vocab, self.model, self.images, self.n_steps = vocab, model, list(images), n_steps
         self.timeout, self.retries = timeout, retries
         self.post = post or self._post  # tests pass a fake transport
         self.dropped = 0
         self.calls = self.prompt_tokens = self.completion_tokens = 0
         self.last_raw = ""                     # the model's last answer, verbatim
         self.rejected: list[tuple[int, str, str]] = []  # (step order, verb, noun) outside the vocabulary
+        self.mapped: list[tuple[int, str, str]] = []    # (step order, "whisk egg", "mix egg") synonym rewrites
 
     def _prompt(self, recipe: str) -> str:
         return (
             f"Write the cooking steps for: {recipe}.\n"
-            "Return only JSON: {\"steps\": [{\"text\": \"...\", \"pairs\": [[verb, noun], ...]}]} with 4-10 steps "
-            "in cooking order. For each step list the 1-4 hand actions it involves as [verb, noun] pairs, using "
+            "Return only JSON: {\"steps\": [{\"text\": \"...\", \"pairs\": [[verb, noun], ...]}]} with "
+            + (f"exactly {self.n_steps} steps" if self.n_steps else "4-10 steps") +
+            " in cooking order. Write each step like a recipe card: 1-3 sentences with the utensil, the heat "
+            "level and the cue for when it is done. For each step list the 1-4 hand actions it involves as "
+            "[verb, noun] pairs, using "
             "ONLY these verbs:\n" + ", ".join(sorted(self.vocab.verb_row)) +
             "\nand ONLY these nouns:\n" + ", ".join(sorted(self.vocab.noun_row)))
 
@@ -190,11 +197,31 @@ class NIMRecipeExtractor:
         steps = json.loads(m.group(0) if m else text)["steps"]
         out = []
         for i, s in enumerate(steps):
-            pairs = [(str(v).strip().lower(), str(n).strip().lower()) for v, n in s.get("pairs", [])]
-            kept = tuple((v, n, 1.0) for v, n in pairs if v in self.vocab.verb_row and n in self.vocab.noun_row)
-            self.dropped += len(pairs) - len(kept)
-            self.rejected += [(i, v, n) for v, n in pairs if (v, n, 1.0) not in kept]
+            kept = []
+            for v, n in s.get("pairs", []):
+                v, n = str(v).strip().lower(), str(n).strip().lower()
+                cv, cn = self.vocab.canon("verb", v), self.vocab.canon("noun", n)
+                if cv is None or cn is None:
+                    self.dropped += 1
+                    self.rejected.append((i, v, n))
+                    continue
+                if (cv, cn) != (v, n):
+                    self.mapped.append((i, f"{v} {n}", f"{cv} {cn}"))
+                if (cv, cn, 1.0) not in kept:
+                    kept.append((cv, cn, 1.0))
+            kept = tuple(kept)
             out.append(StepSpec(f"S{i + 1:02d}", str(s["text"]).strip(), i, kept))
         if not out:
             raise ValueError("no steps")
         return out
+
+
+def hd_request(recipe: dict) -> str:
+    """A request built only from an HD-EPIC recipe's name and ingredient names,
+    so the VLM gets what a user would type, not the annotated steps."""
+    names = []
+    for cap in recipe["captures"]:
+        for ing in cap["ingredients"].values():
+            if ing["name"] not in names:
+                names.append(ing["name"])
+    return f"{recipe['name']} (ingredients: {', '.join(names)})"

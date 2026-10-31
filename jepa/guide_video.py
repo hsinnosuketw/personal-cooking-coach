@@ -85,28 +85,48 @@ def evaluate(results, ticks, truth, n_steps: int) -> dict:
             "pauses": len(pauses), "step_starts": len(starts), "starts_with_a_pause_within_10s": near}
 
 
-def draw_panel(img: Image.Image, title: str, res, top_actions, truth_now: set[int], cands, t: float, note: str):
+def step_actions(step, vocab: Vocab, p_verb: np.ndarray, p_noun: np.ndarray, k: int = 4) -> list[tuple[str, float]]:
+    """A step's own actions (its top-k tags) with how likely V-JEPA 2 finds each
+    one about 1 s ahead: P(verb) x P(noun) from the probe."""
+    tags = sorted(step.pairs, key=lambda x: -x[2])[:k]
+    return [(f"{v} {n}", float(p_verb[vocab.verb_row[v]]) * float(p_noun[vocab.noun_row[n]])) for v, n, _ in tags]
+
+
+def draw_panel(img: Image.Image, title: str, res, top_actions, truth_now: set[int], cands, t: float, note: str,
+               fine: list[tuple[str, float]] = ()):
     d = ImageDraw.Draw(img)
     x0 = SIDE + 24
     d.rectangle([SIDE, 0, W, H], fill=PANEL)
-    d.text((x0, 18), title, font=font(24, True), fill=INK)
-    d.text((x0, 52), f"t = {int(t // 60)}:{int(t % 60):02d}   {note}", font=font(15), fill=MUTED)
-    d.text((x0, 86), "V-JEPA 2 expects in ~1 s:", font=font(16, True), fill=ACCENT)
+    d.text((x0, 16), title, font=font(24, True), fill=INK)
+    d.text((x0, 48), f"t = {int(t // 60)}:{int(t % 60):02d}   {note}", font=font(15), fill=MUTED)
+    d.text((x0, 78), "V-JEPA 2 expects in ~1 s (any action):", font=font(16, True), fill=ACCENT)
     for i, (name, p) in enumerate(top_actions):
-        y = 112 + i * 24
-        d.rectangle([x0, y + 4, x0 + int(150 * p), y + 18], fill=(110, 85, 40))
+        y = 102 + i * 23
+        d.rectangle([x0, y + 4, x0 + int(150 * p), y + 17], fill=(110, 85, 40))
         d.text((x0 + 160, y), f"{name}  {p:.2f}", font=font(16), fill=INK)
-    y = 112 + len(top_actions) * 24 + 18
-    d.text((x0, y), "Recipe steps (bar = guide's belief)", font=font(16, True), fill=ACCENT)
-    y += 30
-    post = res.extras["posterior"] if res is not None else np.zeros(len(cands))
+    y = 102 + len(top_actions) * 23 + 12
     cur = res.extras["current"] if res is not None else -1
-    row_h = max(44, min(64, (H - y - 20) // max(1, len(cands))))
+    if fine:
+        d.text((x0, y), f"Inside step {cur + 1 if cur >= 0 else '-'}: which action is next?", font=font(16, True),
+               fill=ACCENT)
+        y += 26
+        top = max(p for _, p in fine) or 1.0
+        best = max(range(len(fine)), key=lambda i: fine[i][1])
+        for i, (name, p) in enumerate(fine):
+            d.rectangle([x0, y + 5, x0 + int(150 * p / top), y + 17], fill=GOOD if i == best else (60, 110, 75))
+            d.text((x0 + 160, y), name + ("   <- most likely" if i == best else ""), font=font(16, i == best),
+                   fill=INK if i == best else MUTED)
+            y += 23
+        y += 10
+    d.text((x0, y), "Recipe steps (bar = guide's belief)", font=font(16, True), fill=ACCENT)
+    y += 28
+    post = res.extras["posterior"] if res is not None else np.zeros(len(cands))
+    row_h = max(36, min(64, (H - y - 8) // max(1, len(cands))))
     for k, c in enumerate(cands):
         yy = y + k * row_h
         if k == cur:
-            d.rectangle([x0 - 10, yy - 4, W - 12, yy + row_h - 8], outline=ACCENT, width=2)
-        d.rectangle([x0, yy + row_h - 18, x0 + int((W - x0 - 40) * float(post[k])), yy + row_h - 12], fill=ACCENT)
+            d.rectangle([x0 - 10, yy - 4, W - 12, yy + row_h - 6], outline=ACCENT, width=2)
+        d.rectangle([x0, yy + row_h - 16, x0 + int((W - x0 - 40) * float(post[k])), yy + row_h - 11], fill=ACCENT)
         label = textwrap.shorten(f"{k + 1}. {c.raw_text}", 58, placeholder="…")
         d.text((x0, yy), label, font=font(15, k == cur), fill=INK if k == cur else MUTED)
         if k in truth_now:
@@ -166,7 +186,11 @@ def render(video: Path, pred_path: Path, recipe: str, out: Path, speed: float, s
         img = Image.new("RGB", (W, H))
         img.paste(Image.fromarray(cv2.cvtColor(cv2.resize(bgr, (SIDE, SIDE)), cv2.COLOR_BGR2RGB)), (0, 0))
         top = [] if i < 0 else [(names[a], float(pred["action"][i][a])) for a in np.argsort(-pred["action"][i].astype(float))[:3]]
-        draw_panel(img, title, res, top, active(truth, t), cands, t, note)
+        fine = []
+        if res is not None:
+            k = res.extras["current"] if res.extras["current"] >= 0 else res.extras["best"]
+            fine = step_actions(steps[k], vocab, pred["verb"][i].astype(float), pred["noun"][i].astype(float))
+        draw_panel(img, title, res, top, active(truth, t), cands, t, note, fine)
         frame = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
         writer.write(frame)
         if res is not None and res.should_pause and i not in shown_pauses:
