@@ -87,3 +87,13 @@ def _aliases(df: pd.DataFrame, rows: dict[str, int], first_word: bool = False) -
             if first_word:
                 out.setdefault(w.split(" ")[0], key)
     return out
+
+
+def class_frequencies(cache: Path = CACHE) -> tuple[dict[str, int], dict[str, int]]:
+    """How often each verb and noun class is narrated in EPIC_100_train.csv: what
+    the probe saw most while it was trained (not taken from any test video)."""
+    t = pd.read_csv(cache / "EPIC_100_train.csv")
+    vkey = pd.read_csv(cache / "EPIC_100_verb_classes.csv").set_index("id").key
+    nkey = pd.read_csv(cache / "EPIC_100_noun_classes.csv").set_index("id").key
+    return ({vkey[c]: int(n) for c, n in t.verb_class.value_counts().items()},
+            {nkey[c]: int(n) for c, n in t.noun_class.value_counts().items()})

@@ -137,9 +137,10 @@ class NIMRecipeExtractor:
     """
 
     def __init__(self, vocab: Vocab, model: str = NIM_MODEL, images: list[Path] = (), timeout: float = 180.0,
-                 retries: int = 1, post=None, n_steps: int | None = None, distinct: bool = False):
+                 retries: int = 1, post=None, n_steps: int | None = None, distinct: bool = False,
+                 hand_level: bool = False, frequencies: tuple[dict, dict] | None = None):
         self.vocab, self.model, self.images, self.n_steps = vocab, model, list(images), n_steps
-        self.distinct = distinct
+        self.distinct, self.hand_level, self.frequencies = distinct, hand_level, frequencies
         self.timeout, self.retries = timeout, retries
         self.post = post or self._post  # tests pass a fake transport
         self.dropped = 0
@@ -155,7 +156,23 @@ class NIMRecipeExtractor:
         "take, put) unless that generic action is the step's main action; include the hand actions a camera "
         "would see while doing the step, such as taking out or putting away its own container or utensil.")
 
+    HAND = (
+        " Describe what the cook's HANDS do, the way a head-mounted camera sees it, not what the recipe says "
+        "happens to the food. Recipe verbs such as add, season, fold, cook or serve are rarely visible as such: "
+        "write the hand movements instead. For example, for making tea and a salad (a different dish, only to "
+        "show the level of detail): open the cupboard, take the cup, take the kettle, put the kettle at the tap, "
+        "turn-on the tap, put the teabag, pour the water, open the fridge, take the tomato, take the knife, cut "
+        "the tomato, wash the knife, put the plate. Include fetching and putting "
+        "away the step's containers, tools and ingredients. Give 3-6 pairs per step. The verbs are listed most "
+        "frequent first: prefer the frequent ones when they describe the movement.")
+
     def _vocab_lists(self) -> str:
+        if self.hand_level and self.frequencies:
+            vf, nf = self.frequencies
+            verbs = sorted(self.vocab.verb_row, key=lambda w: -vf.get(w, 0))
+            nouns = sorted(self.vocab.noun_row, key=lambda w: -nf.get(w, 0))
+            return ("using ONLY these verbs (most frequent first):\n" + ", ".join(verbs) +
+                    "\nand ONLY these nouns (most frequent first):\n" + ", ".join(nouns))
         return ("using ONLY these verbs:\n" + ", ".join(sorted(self.vocab.verb_row)) +
                 "\nand ONLY these nouns:\n" + ", ".join(sorted(self.vocab.noun_row)))
 
@@ -175,7 +192,8 @@ class NIMRecipeExtractor:
             "For each step, list the 2-5 hand actions a head-mounted camera would see while the cook does it, as "
             "[verb, noun] pairs. Return only JSON: {\"steps\": [{\"text\": \"<the step, copied>\", \"pairs\": "
             f"[[verb, noun], ...]}}]}} with exactly {len(texts)} steps in the same order." +
-            (self.DISTINCT if self.distinct else "") + " Use " + self._vocab_lists())
+            (self.HAND if self.hand_level else "") + (self.DISTINCT if self.distinct else "") +
+            " Use " + self._vocab_lists())
 
     def tag_steps(self, name: str, texts: list[str]) -> list[StepSpec]:
         """The recipe's own step texts are kept; the VLM only supplies the tags."""
