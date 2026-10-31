@@ -28,6 +28,7 @@ import torch
 import yaml
 
 from . import clips
+from .vocab import class_maps
 
 HERE = Path(__file__).parent
 CACHE = HERE / "_cache"
@@ -47,17 +48,6 @@ def _import_vendored():
     from evals.action_anticipation_frozen.models import init_classifier
     from evals.action_anticipation_frozen.modelcustom import vit_encoder_predictor_concat_ar as wrapper
     return init_classifier, wrapper
-
-
-def class_maps(train_csv: Path) -> dict:
-    """Probe label order, built exactly as the repo's filter_annotations() does
-    (evals/action_anticipation_frozen/epickitchens.py)."""
-    tdf = pd.read_csv(train_csv)
-    tactions = set([(v, n) for v, n in zip(tdf["verb_class"].values, tdf["noun_class"].values)])
-    tverbs = set([v for v, _ in tactions])
-    tnouns = set([n for _, n in tactions])
-    return dict(verbs={k: i for i, k in enumerate(tverbs)}, nouns={k: i for i, k in enumerate(tnouns)},
-                actions={k: i for i, k in enumerate(tactions)})
 
 
 def load_model(device: torch.device):
