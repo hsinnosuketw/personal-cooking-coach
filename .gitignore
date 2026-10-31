@@ -19,3 +19,6 @@ livecoach/runs/
 
 # Synthetic test rounds (regenerate with: python3 -m chef bots)
 gameplay/synthetic/
+
+# V-JEPA 2 / EPIC-KITCHENS cache: weights, videos, vendored repos (python3 -m jepa.fetch)
+jepa/_cache/
