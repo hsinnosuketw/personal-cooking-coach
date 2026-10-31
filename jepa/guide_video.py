@@ -157,18 +157,23 @@ def render(video: Path, pred_path: Path, recipe: str, out: Path, speed: float, s
     ticks = pred["t"]
     truth = truth_steps(hd, recipe, video.stem)
     summary = evaluate(results, ticks, truth, len(cands))
-    if steps_json:  # its steps aren't HD-EPIC's, so step-number accuracy would compare different steps
+    aligned = steps_json and json.loads(steps_json.read_text()).get("aligned_to") == recipe
+    if steps_json and not aligned:  # its steps aren't HD-EPIC's, so step-number accuracy would compare different steps
         for k in ("step_accuracy", "chance", "ticks_with_annotated_step"):
             summary.pop(k)
-    summary.update(recipe=recipe, steps_from="NIM VLM" if steps_json else "HD-EPIC annotations")
+    summary.update(recipe=recipe, steps_from=("NIM VLM, hand-level tags" if aligned else "NIM VLM") if steps_json
+                   else "HD-EPIC annotations")
     names = action_names()
 
     cap = cv2.VideoCapture(str(video))
     fps = cap.get(cv2.CAP_PROP_FPS)
     start = start if start is not None else max(0.0, min(s0 for _, s0, _ in truth) - 15)
     end = end if end is not None else min(cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps, max(s1 for _, _, s1 in truth) + 10)
-    raw = out.with_suffix(".raw.mp4")
-    writer = cv2.VideoWriter(str(raw), cv2.VideoWriter_fourcc(*"mp4v"), out_fps, (W, H))
+    # Browsers need H.264. With ffmpeg: write mp4v, then convert. Without it (e.g. a Mac), OpenCV's own
+    # avc1 encoder writes H.264 directly.
+    use_ffmpeg = shutil.which("ffmpeg") is not None
+    raw = out.with_suffix(".raw.mp4") if use_ffmpeg else out
+    writer = cv2.VideoWriter(str(raw), cv2.VideoWriter_fourcc(*("mp4v" if use_ffmpeg else "avc1")), out_fps, (W, H))
     title = hd.recipes[recipe]["name"]
     note = (f"{speed:g}x · " if speed != 1 else "") + f"steps: {summary['steps_from']}"
     shown_pauses = set()
@@ -201,12 +206,10 @@ def render(video: Path, pred_path: Path, recipe: str, out: Path, speed: float, s
             for _ in range(int(FREEZE_S * out_fps)):
                 writer.write(frozen)
     writer.release()
-    if shutil.which("ffmpeg"):  # H.264 so browsers and phones play it
+    if use_ffmpeg:  # H.264 so browsers and phones play it
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(raw), "-c:v", "libx264", "-pix_fmt", "yuv420p",
                         "-crf", "23", "-movflags", "+faststart", str(out)], check=True)
         raw.unlink()
-    else:
-        raw.rename(out)
     out.with_suffix(".json").write_text(json.dumps(summary, indent=1), encoding="utf-8")
     return summary
 
