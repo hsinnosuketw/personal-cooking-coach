@@ -126,7 +126,7 @@ class NIMRecipeExtractor:
     with EK100 verb and noun keys; anything else is dropped and counted.
     """
 
-    def __init__(self, vocab: Vocab, model: str = NIM_MODEL, images: list[Path] = (), timeout: float = 60.0,
+    def __init__(self, vocab: Vocab, model: str = NIM_MODEL, images: list[Path] = (), timeout: float = 180.0,
                  retries: int = 1, post=None):
         self.vocab, self.model, self.images = vocab, model, list(images)
         self.timeout, self.retries = timeout, retries
@@ -156,6 +156,10 @@ class NIMRecipeExtractor:
             except urllib.error.HTTPError as e:
                 if e.code in (429, 500, 502, 503) and attempt < self.retries:
                     time.sleep(1.0 + attempt)
+                    continue
+                raise
+            except TimeoutError:  # a long answer from a busy shared endpoint
+                if attempt < self.retries:
                     continue
                 raise
 
