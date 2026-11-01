@@ -37,6 +37,11 @@ python3 -m jepa.serve_demo                    # same page on http://127.0.0.1:80
 cloudflared tunnel --url http://127.0.0.1:8080   # optional public https link while it runs
 ```
 
+Step by step, one stage per cell: `jepa/pipeline.ipynb` (rebuild it with
+`python3 -m jepa.make_notebook` after changing any `jepa/*.py`, since it
+carries a copy of the code). In VS Code, pick the Colab kernel (Google
+Colab extension) with a T4 GPU and run it top to bottom.
+
 The model itself runs on a GPU (Colab T4: ~2 s per prediction; an M1 Mac
 took 45-178 s and ran out of memory):
 

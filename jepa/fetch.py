@@ -11,6 +11,7 @@ would leave less than 4 GB free on the disk.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import shutil
 import subprocess
 import sys
@@ -39,17 +40,43 @@ def free_gb() -> float:
     return shutil.disk_usage(CACHE).free / 1e9
 
 
-def download(url: str, dest: Path, size_gb: float = 0.0) -> Path:
+def download(url: str, dest: Path, size_gb: float = 0.0, parts: int = 1) -> Path:
+    """parts > 1 fetches byte ranges in parallel: data.bris.ac.uk gives each
+    connection ~0.13 MB/s, eight together ~1.25 MB/s."""
     if dest.exists():
         return dest
     if free_gb() - size_gb < MIN_FREE_GB:
         sys.exit(f"not enough disk for {dest.name}: {free_gb():.1f} GB free, needs {size_gb:.1f} + {MIN_FREE_GB}")
     print(f"downloading {url} ({size_gb:.2f} GB)", flush=True)
     part = dest.with_suffix(dest.suffix + ".part")
-    with urllib.request.urlopen(url) as r, open(part, "wb") as f:
-        shutil.copyfileobj(r, f, 1 << 22)
+    if parts > 1:
+        _download_ranges(url, part, parts)
+    else:
+        with urllib.request.urlopen(url) as r, open(part, "wb") as f:
+            shutil.copyfileobj(r, f, 1 << 22)
     part.rename(dest)
     return dest
+
+
+def _download_ranges(url: str, part: Path, parts: int) -> None:
+    with urllib.request.urlopen(urllib.request.Request(url, method="HEAD")) as r:
+        size = int(r.headers["Content-Length"])
+    with open(part, "wb") as f:
+        f.truncate(size)
+    bounds = [(i * size // parts, (i + 1) * size // parts - 1) for i in range(parts)]
+
+    def fetch(b):
+        req = urllib.request.Request(url, headers={"Range": f"bytes={b[0]}-{b[1]}"})
+        with urllib.request.urlopen(req) as r, open(part, "r+b") as f:
+            if r.status != 206:
+                raise IOError(f"server ignored the byte range for {url}")
+            f.seek(b[0])
+            shutil.copyfileobj(r, f, 1 << 22)
+
+    with concurrent.futures.ThreadPoolExecutor(parts) as pool:
+        list(pool.map(fetch, bounds))
+    if part.stat().st_size != size:
+        raise IOError(f"{part.name}: got {part.stat().st_size} of {size} bytes")
 
 
 def clone(url: str, dest: Path) -> str:
@@ -85,12 +112,7 @@ def fetch_videos(ids: list[str]) -> None:
                         "--output-path", str(CACHE.resolve())], cwd=dl, check=True)
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--videos", default=",".join(VIDEOS))
-    ap.add_argument("--hd-video", default="", help="also an HD-EPIC video, e.g. P08-20240614-085000")
-    ap.add_argument("--annotations-only", action="store_true", help="labels and recipes only (no weights, no video)")
-    args = ap.parse_args()
+def prepare(videos: list[str] = (), hd_video: str = "", annotations_only: bool = False) -> None:
     CACHE.mkdir(exist_ok=True)
     print("vjepa2 commit", clone(VJEPA_REPO, CACHE / "vjepa2"))
     for name in ANNOT_FILES:
@@ -98,16 +120,25 @@ def main() -> None:
     (CACHE / "hd-epic").mkdir(exist_ok=True)
     for name in HD_FILES:
         download(HD_ANNOT + name, CACHE / "hd-epic" / Path(name).name)
-    if args.annotations_only:
+    if annotations_only:
         return
     download(PROBE_URL, CACHE / "ek100-vitl-256.pt", 0.21)
     slim_vitl()
-    if args.hd_video:
-        name = f"{args.hd_video}.mp4"
-        download(f"{HD_VIDEO_URL}{args.hd_video.split('-')[0]}/{name}", CACHE / "hd-epic" / name, 1.0)
-    if args.videos:
-        fetch_videos(args.videos.split(","))
+    if hd_video:
+        name = f"{hd_video}.mp4"
+        download(f"{HD_VIDEO_URL}{hd_video.split('-')[0]}/{name}", CACHE / "hd-epic" / name, 1.0, parts=8)
+    if videos:
+        fetch_videos(list(videos))
     print(f"done; {free_gb():.1f} GB free")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--videos", default=",".join(VIDEOS))
+    ap.add_argument("--hd-video", default="", help="also an HD-EPIC video, e.g. P08-20240614-085000")
+    ap.add_argument("--annotations-only", action="store_true", help="labels and recipes only (no weights, no video)")
+    args = ap.parse_args()
+    prepare([v for v in args.videos.split(",") if v], args.hd_video, args.annotations_only)
 
 
 if __name__ == "__main__":
