@@ -33,6 +33,8 @@ pip install -r requirements.txt
 python3 test_jepa.py                         # 9 tests, no torch or network
 python3 -m jepa.fetch --annotations-only     # EPIC-KITCHENS + HD-EPIC labels and recipes
 python3 -m jepa.build_demo && open jepa/demo/index.html   # needs the rendered media in jepa/results/demo/
+python3 -m jepa.serve_demo                    # same page on http://127.0.0.1:8080, videos seekable
+cloudflared tunnel --url http://127.0.0.1:8080   # optional public https link while it runs
 ```
 
 The model itself runs on a GPU (Colab T4: ~2 s per prediction; an M1 Mac
