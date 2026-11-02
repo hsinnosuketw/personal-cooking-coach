@@ -66,6 +66,7 @@
   .rk.next { background: var(--good); color: var(--panel); }
   .rk.cur { background: var(--accent); color: var(--panel); }
   .rk.st { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+  #dishSwitch button.on { background: var(--coachc); color: #fff; }
   .when ul { margin: 2px 0 0; padding-left: 20px; }
   .flow .blist { margin: 0 0 6px; padding-left: 18px; font-size: 14px; }
   .flow .blist li { margin: 2px 0; }
@@ -158,6 +159,7 @@
       <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision Model</h4><p class="bdesc">The decision model combines the coach's advice with the user's actions that the world model predicts, and turns them into one concrete next move, every second.</p><ul class="blist"><li><b>Decision model:</b> <a href="https://huggingface.co/LiquidAI/d1-2B" target="_blank" rel="noopener">Liquid AI d1-2B</a></li></ul><p class="bdesc">Every second it reads the coach's latest advice and reasoning, the world model's prediction and the current step, then in one pass scores every action in the recipe's Actions Bank, picks the next step and decides whether to remind the cook now; a decision takes 57 ms on an A100 GPU.</p></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <div class="seg" id="dishSwitch"></div>
       <div class="seg" id="runSwitch"></div>
       <div class="seg" id="speed2"></div>
 
@@ -191,7 +193,8 @@ const pct = (x) => `${Math.round(100 * x)}%`;
 
 
 // 1 · coach + decision: one or more runs (window.COACH_RUNS), switchable
-const RUNS = window.COACH_RUNS || (window.COACH ? {"Coach": window.COACH} : {});
+const EXAMPLES = window.COACH_EXAMPLES || (window.COACH_RUNS ? {"Scrambled Eggs": window.COACH_RUNS} : {});
+let RUNS = {}, DISH = "";
 let C = null, end = 1, lastKey = "";
 const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 const STEPC = ["#e69f00", "#56b4e9", "#009e73", "#f0e442", "#0072b2", "#d55e00", "#cc79a7"];
@@ -287,10 +290,12 @@ function load(label) {
   render(t0);
 }
 
-const labels = Object.keys(RUNS);
-if (!labels.length) {
-  $("lvWm").innerHTML = '<span class="note">No coach data yet: run stage 19b of jepa/pipeline.ipynb.</span>';
-} else {
+function loadDish(dish) {
+  DISH = dish; RUNS = EXAMPLES[dish];
+  document.querySelectorAll("#dishSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === dish));
+  $("recipeName").textContent = dish;
+  $("runSwitch").innerHTML = "";
+  const labels = Object.keys(RUNS);
   labels.forEach((label) => {
     const b = document.createElement("button"); b.textContent = label; b.dataset.k = label; b.onclick = () => load(label);
     $("runSwitch").appendChild(b);
@@ -298,9 +303,25 @@ if (!labels.length) {
   $("runSwitch").style.display = labels.length > 1 ? "" : "none";
   let start = labels[0];
   try { const saved = localStorage.getItem("coachRun"); if (saved && RUNS[saved]) start = saved; } catch (e) {}
+  try { localStorage.setItem("coachDish", dish); } catch (e) {}
+  $("cvid").currentTime = 0;
+  load(start);
+}
+
+const dishes = Object.keys(EXAMPLES);
+if (!dishes.length) {
+  $("lvWm").innerHTML = '<span class="note">No coach data yet: run stage 19b of jepa/pipeline.ipynb.</span>';
+} else {
+  dishes.forEach((dish) => {
+    const b = document.createElement("button"); b.textContent = dish; b.dataset.k = dish; b.onclick = () => loadDish(dish);
+    $("dishSwitch").appendChild(b);
+  });
+  $("dishSwitch").style.display = dishes.length > 1 ? "" : "none";
   $("cvid").addEventListener("timeupdate", () => render($("cvid").currentTime));
   $("cvid").addEventListener("seeked", () => render($("cvid").currentTime));
-  load(start);
+  let first = dishes[0];
+  try { const saved = localStorage.getItem("coachDish"); if (saved && EXAMPLES[saved]) first = saved; } catch (e) {}
+  loadDish(first);
 }
 
 </script>
