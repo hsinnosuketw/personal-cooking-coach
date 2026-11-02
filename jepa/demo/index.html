@@ -34,8 +34,6 @@
                border-bottom: 3px solid transparent; margin-bottom: -1px; }
   nav button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
   main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; }
-  section { display: none; }
-  section.on { display: block; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
@@ -100,6 +98,7 @@
   .live h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
   .live .wm h4 { color: var(--accent); } .live .co h4 { color: var(--coachc); } .live .dm h4 { color: var(--good); }
   .advice { font-size: 14.5px; }
+  .ico { width: 22px; height: 22px; vertical-align: -6px; margin-right: 6px; }
   .pending { color: var(--muted); font-size: 13px; font-style: italic; }
   .speak { display: inline-block; margin-top: 6px; font-size: 13px; padding: 2px 8px; border-radius: 6px; }
   .speak.yes { background: var(--good-soft); color: var(--good); font-weight: 600; }
@@ -125,16 +124,12 @@
   <h1>Scrambled Eggs Coach <span class="badge">V-JEPA 2 · Muse Glimmer · d1</span></h1>
   <p class="sub">A world model watches someone cook and predicts their next action; a coach LLM reads that and the recipe and says what to do next; a decision model turns the advice into one concrete next action, every second.</p>
 </header>
-<nav>
-  <button data-tab="coach" class="on">1 · Coach + Decision</button>
-  <button data-tab="play">2 · Step-tracker videos</button>
-</nav>
-<main>
+<main style="padding-top:8px">
   <section id="coach" class="on">
     <div class="flow">
       <div class="box"><h4>1 · World model</h4><div><b>V-JEPA 2</b> + Meta's EPIC-KITCHENS probe. Every second it reads the last 3.2 s of video and predicts the action ~0.8 s ahead. <span class="note">0.47 s per prediction (T4, fp16)</span></div></div><div class="arrow">→</div>
-      <div class="box"><h4 style="color:var(--coachc)">2 · Coach</h4><div><b>Muse Glimmer 30B</b>, reasoning low. Reads the recipe, what the cook has done and the prediction; says what to do next and why. Asked when the step tracker changes step or after 60 s. <span class="note" id="coachLat"></span></div></div><div class="arrow">→</div>
-      <div class="box"><h4 style="color:var(--good)">3 · Decision model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
+      <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><div><b>Muse Glimmer 30B</b>, reasoning low. Reads the recipe, what the cook has done and the prediction; says what to do next and why. Asked when the step tracker changes step or after 60 s. <span class="note" id="coachLat"></span></div></div><div class="arrow">→</div>
+      <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
       <div class="seg" id="speed2"></div>
@@ -144,9 +139,9 @@
     <div class="timeline" id="tl" title="Top: annotated recipe steps. Bottom: coach thinking (asked → answered). Click to jump."></div>
     <p class="note" style="margin:0">Timeline: coloured bars = recipe steps HD-EPIC annotated; blue bars = the coach thinking (from the moment it is asked until its answer arrives). Click to jump.</p>
     <div class="live">
-      <div class="card wm"><h4>World model · now</h4><div id="lvWm"></div></div>
-      <div class="card co"><h4>Coach · latest advice</h4><div id="lvCo"></div></div>
-      <div class="card dm"><h4>Decision model · now</h4><div id="lvDm"></div></div>
+      <div class="card wm"><h4>World Model's User Next Actions Predictions</h4><div class="note">V-JEPA 2 + EPIC-KITCHENS probe, ~0.8 s ahead</div><div id="lvWm"></div></div>
+      <div class="card co"><h4><img class="ico" src="icons/chef.png" alt="">Coach's Suggestions</h4><div class="note" id="coDesc"></div><div id="lvCo"></div></div>
+      <div class="card dm"><h4><img class="ico" src="icons/recipe.png" alt="">Decision Model: Next recipe move</h4><div class="note">Liquid AI d1-2B, every second: picks the next action from the Actions Bank. Input: the coach's latest suggestion and reasoning, the world model's top 3 actions, the step tracker's step and the time.</div><div id="lvDm"></div></div>
     </div>
     <div class="card" style="margin-top:16px">
       <h3 style="margin-top:0">Every coach call <span class="note" id="callsSum"></span></h3>
@@ -161,47 +156,12 @@
     </div>
   </section>
 
-  <section id="play">
-    <div class="card" style="margin-bottom:14px">
-      <h3 style="margin-top:0">How to read the video</h3>
-      <ol style="margin:0 0 0 18px;padding:0">
-        <li><b>World model (V-JEPA 2)</b>, once per second: looks at the last ~3.2 s of video and predicts the action ~1 s ahead. It only sees pixels; it never reads the recipe. Panel: <i>"V-JEPA 2 expects in ~1 s"</i>.</li>
-        <li><b>Step tracker</b> (our code, <code>scorer.py</code>): compares that prediction with each recipe step's action tags and keeps a belief over which step the cook is on. Panel: <i>"Step tracker"</i> bars. When a different step leads clearly for 2 s, the picture freezes with <b>NEXT STEP</b>.</li>
-        <li><b>Inside the current step</b>: the step's own actions (e.g. <i>mix egg</i>, <i>put shell:egg</i>) ranked by how likely the world model finds each one ~1 s ahead.</li>
-      </ol>
-      <p style="margin:10px 0 0">The two versions use <b>the same world-model predictions</b>; only the recipe steps the tracker compares them with differ:</p>
-      <ul style="margin:4px 0 0 18px;padding:0">
-        <li><b>Steps from HD-EPIC annotations</b>: HD-EPIC's 7 steps for this recipe, tagged with the actions people annotated this cook doing in each step. Its accuracy is optimistic: the tags come from this same video.</li>
-        <li><b>VLM tags in the probe's words</b>: Llama 3.2 90B Vision read the recipe's own steps and tagged each with hand actions a head-mounted camera sees (take knife, cut onion), in the words the probe knows best. It never saw the video.</li>
-        <li><b>Ground truth check</b>: not a guide but an answer key. It shows, second by second, what HD-EPIC's narrators recorded, what the model predicted for that moment, and whether the tracker's step matches the annotated one.</li>
-        <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only. It never saw the video.</li>
-      </ul>
-    </div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-      <div class="seg" id="vidSwitch"></div>
-      <div class="seg" id="speed"></div>
-    </div>
-    <video id="vid" controls playsinline preload="metadata"></video>
-    <div class="stats" id="vidStats"></div>
-    <p class="note" id="vidNote"></p>
-  </section>
-
 </main>
-<script src="data.js"></script>
 <script src="coach.js"></script>
 <script>
-const D = window.DEMO || {videos: []};
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const pct = (x) => `${Math.round(100 * x)}%`;
-
-document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
-  document.querySelectorAll("nav button, section").forEach((e) => e.classList.remove("on"));
-  b.classList.add("on");
-  $(b.dataset.tab).classList.add("on");
-  try { localStorage.setItem("demoTab", b.dataset.tab); } catch (e) {}
-});
-try { const t = localStorage.getItem("demoTab"); if (t) document.querySelector(`nav button[data-tab="${t}"]`)?.click(); } catch (e) {}
 
 
 // 1 · coach + decision
@@ -226,6 +186,7 @@ if (!C) {
 } else {
   if (C.video) $("cvid").src = C.video;
   const end = C.ticks[C.ticks.length - 1].t + 1;
+  $("coDesc").textContent = `${C.coach.replace("Glimmer", "Muse Glimmer 30B:")}; asked when the step changes or every 60 s`;
   $("coachLat").textContent = `median ${C.latency.coach_median_s.toFixed(0)} s per answer (self-hosted, A100)`;
   $("selfLat").textContent = `${C.latency.coach_median_s.toFixed(0)} s`;
   $("callsSum").textContent = `· ${C.latency.calls} calls, median ${C.latency.coach_median_s.toFixed(1)} s, max ${C.latency.coach_max_s.toFixed(1)} s · ${C.coach}`;
@@ -275,41 +236,6 @@ if (!C) {
       `<tr class="${r[0] === C.compare.choice ? "pick" : ""}">${r.map((v) => `<td>${v === null ? "–" : esc(v)}</td>`).join("")}</tr>`).join("")}</tbody>`;
   } else $("cmpCard").style.display = "none";
 }
-
-// 2 · step-tracker videos
-let rate = 1;
-function setRate(r) {
-  rate = r; $("vid").playbackRate = r;
-  document.querySelectorAll("#speed button").forEach((b) => b.classList.toggle("on", Number(b.dataset.r) === r));
-}
-[0.5, 1, 1.5, 2, 4, 8].forEach((r) => {
-  const b = document.createElement("button"); b.textContent = `${r}×`; b.dataset.r = r; b.onclick = () => setRate(r);
-  $("speed").appendChild(b);
-});
-$("vid").addEventListener("loadedmetadata", () => { $("vid").playbackRate = rate; });
-setRate(1);
-function showVideo(v) {
-  $("vid").src = v.file;
-  document.querySelectorAll("#vidSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === v.key));
-  const e = v.eval || {};
-  if (e.kind === "ground_truth") {
-    $("vidStats").innerHTML = `
-    <div class="stat"><b>${pct(e.verb_top5_hit)}</b><span>seconds where the true verb is in the model's top 5</span></div>
-    <div class="stat"><b>${pct(e.noun_top5_hit)}</b><span>seconds where the true noun is in the model's top 5</span></div>
-    <div class="stat"><b>${e.seconds_with_narration} s</b><span>with a narrated action</span></div>`;
-  } else $("vidStats").innerHTML = (e.step_accuracy === undefined ? "" : `
-    <div class="stat"><b>${pct(e.step_accuracy)}</b><span>step tracker on the annotated step (chance ${pct(e.chance)})</span></div>`) + `
-    <div class="stat"><b>${e.pauses}</b><span>"next step" pauses</span></div>
-    <div class="stat"><b>${e.starts_with_a_pause_within_10s} / ${e.step_starts}</b><span>step starts caught within 10 s</span></div>`;
-  $("vidNote").innerHTML = `${esc(v.note)} <a href="${esc(v.file)}" target="_blank">Open the MP4 directly</a> if it doesn't play here.`;
-}
-D.videos.forEach((v) => {
-  const b = document.createElement("button");
-  b.textContent = v.label; b.dataset.k = v.key; b.onclick = () => showVideo(v);
-  $("vidSwitch").appendChild(b);
-});
-if (D.videos.length) showVideo(D.videos[0]);
-else $("vidNote").textContent = "No rendered video yet: run python3 -m jepa.build_demo after the render finishes.";
 
 </script>
 <p class="note" style="margin:32px 16px;text-align:center">Video and annotations: <a href="https://hd-epic.github.io/">HD-EPIC</a> and <a href="https://epic-kitchens.github.io/">EPIC-KITCHENS-100</a> (University of Bristol), CC BY-NC 4.0, shown here for non-commercial research. Models: Meta V-JEPA 2 ViT-L (MIT), Meta Muse Glimmer 30B (Apache 2.0), Liquid AI d1-2B (LFM Open License v1.0).</p>
