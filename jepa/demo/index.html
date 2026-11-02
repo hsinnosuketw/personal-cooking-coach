@@ -50,6 +50,10 @@
   .flow .box { flex: 1 1 180px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
   .flow .box h4 { margin: 0 0 4px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
   .flow .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  .flow .bdesc { margin: 0 0 6px; }
+  .flow .blist { margin: 0 0 6px; padding-left: 18px; font-size: 14px; }
+  .flow .blist li { margin: 2px 0; }
+  .flow a { color: var(--accent); }
   details { margin-top: 8px; }
   summary { cursor: pointer; color: var(--accent); }
   pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--line);
@@ -137,7 +141,7 @@
 <main style="padding-top:8px">
   <section id="coach" class="on">
     <div class="flow">
-      <div class="box"><h4>1 · World Model</h4><div><b>V-JEPA 2</b> + Meta's EPIC-KITCHENS probe. Every second it reads the last 3.2 s of video and predicts the action ~0.8 s ahead. <span class="note">0.47 s per prediction (T4, fp16)</span></div></div><div class="arrow">→</div>
+      <div class="box"><h4>1 · World Model</h4><p class="bdesc">The world model inspects the actions the user has done and predicts the user's next move.</p><ul class="blist"><li><b>World model:</b> <a href="https://github.com/facebookresearch/vjepa2" target="_blank" rel="noopener">V-JEPA 2</a> (ViT-L)</li><li><b>Probing classifier:</b> <a href="https://github.com/facebookresearch/vjepa2#evaluation-attentive-probes" target="_blank" rel="noopener">V-JEPA 2 attentive probe for EPIC-KITCHENS-100 action anticipation</a></li></ul><p class="bdesc">Every second it takes the last 3.2 s of video (32 frames), imagines the scene about 0.8 s ahead in its latent space, and the probe names the most likely actions (e.g. <i>take egg</i>); each prediction takes 0.47 s on a T4 GPU.</p></div><div class="arrow">→</div>
       <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><div><b>Muse Glimmer 30B</b>, reasoning low. Reads the recipe, what the cook has done and the prediction; says what to do next and why. Asked when the step tracker changes step or after 60 s. <span class="note" id="coachLat"></span></div></div><div class="arrow">→</div>
       <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision Model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
     </div>
