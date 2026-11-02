@@ -95,9 +95,19 @@
   .miss { color: var(--bad); font-weight: 600; }
   .live { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
   @media (max-width: 900px) { .live { grid-template-columns: 1fr; } }
-  .live h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .live h4 { margin: 0 0 6px; font-size: 16px; }
   .live .wm h4 { color: var(--accent); } .live .co h4 { color: var(--coachc); } .live .dm h4 { color: var(--good); }
   .advice { font-size: 14.5px; }
+  .about { margin: 0 0 10px; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .about li { margin: 1px 0; }
+  .about b { color: var(--ink); font-weight: 600; }
+  .live .out { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .check { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .check span { font-size: 13px; padding: 2px 8px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+  .check span.done { background: var(--good-soft); color: var(--good); border-color: transparent; }
+  .check span.prog { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 600; }
+  .align { margin-top: 6px; font-size: 13px; }
+  .align.bad { color: var(--bad); } .align.ok { color: var(--good); }
   .ico { width: 22px; height: 22px; vertical-align: -6px; margin-right: 6px; }
   .pending { color: var(--muted); font-size: 13px; font-style: italic; }
   .speak { display: inline-block; margin-top: 6px; font-size: 13px; padding: 2px 8px; border-radius: 6px; }
@@ -127,9 +137,9 @@
 <main style="padding-top:8px">
   <section id="coach" class="on">
     <div class="flow">
-      <div class="box"><h4>1 · World model</h4><div><b>V-JEPA 2</b> + Meta's EPIC-KITCHENS probe. Every second it reads the last 3.2 s of video and predicts the action ~0.8 s ahead. <span class="note">0.47 s per prediction (T4, fp16)</span></div></div><div class="arrow">→</div>
+      <div class="box"><h4>1 · World Model</h4><div><b>V-JEPA 2</b> + Meta's EPIC-KITCHENS probe. Every second it reads the last 3.2 s of video and predicts the action ~0.8 s ahead. <span class="note">0.47 s per prediction (T4, fp16)</span></div></div><div class="arrow">→</div>
       <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><div><b>Muse Glimmer 30B</b>, reasoning low. Reads the recipe, what the cook has done and the prediction; says what to do next and why. Asked when the step tracker changes step or after 60 s. <span class="note" id="coachLat"></span></div></div><div class="arrow">→</div>
-      <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
+      <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision Model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
       <div class="seg" id="speed2"></div>
@@ -139,14 +149,14 @@
     <div class="timeline" id="tl" title="Top: annotated recipe steps. Bottom: coach thinking (asked → answered). Click to jump."></div>
     <p class="note" style="margin:0">Timeline: coloured bars = recipe steps HD-EPIC annotated; blue bars = the coach thinking (from the moment it is asked until its answer arrives). Click to jump.</p>
     <div class="live">
-      <div class="card wm"><h4>World Model's User Next Actions Predictions</h4><div class="note">V-JEPA 2 + EPIC-KITCHENS probe, ~0.8 s ahead</div><div id="lvWm"></div></div>
-      <div class="card co"><h4><img class="ico" src="icons/chef.png" alt="">Coach's Suggestions</h4><div class="note" id="coDesc"></div><div id="lvCo"></div></div>
-      <div class="card dm"><h4><img class="ico" src="icons/recipe.png" alt="">Decision Model: Next recipe move</h4><div class="note">Liquid AI d1-2B, every second: picks the next action from the Actions Bank. Input: the coach's latest suggestion and reasoning, the world model's top 3 actions, the step tracker's step and the time.</div><div id="lvDm"></div></div>
+      <div class="card wm"><h4>World Model's User Next Actions Predictions</h4><ul class="about"><li><b>Description:</b> Predicts what the cook will do about a second from now.</li><li><b>Model:</b> Meta V-JEPA 2 with an EPIC-KITCHENS action probe.</li><li><b>Input:</b> The last 3.2 seconds of the cooking video.</li></ul><div class="out" id="lvWm"></div></div>
+      <div class="card co"><h4><img class="ico" src="icons/chef.png" alt="">Coach's Suggestions</h4><ul class="about"><li><b>Description:</b> Says what to do next and why, using the recipe.</li><li><b>Model:</b> Meta Muse Glimmer 30B.</li><li><b>Input:</b> <span id="coIn">The recipe, the cook's recent actions and the world model's prediction.</span></li></ul><div class="out" id="lvCo"></div></div>
+      <div class="card dm"><h4><img class="ico" src="icons/recipe.png" alt="">Decision Model: Next Recipe Move</h4><ul class="about"><li><b>Description:</b> Picks the next recipe action, every second.</li><li><b>Model:</b> Liquid AI d1-2B.</li><li><b>Input:</b> <span id="dmIn">The coach's advice, the world model's prediction and the current step.</span></li></ul><div class="out" id="lvDm"></div></div>
     </div>
     <div class="card" style="margin-top:16px">
       <h3 style="margin-top:0">Every coach call <span class="note" id="callsSum"></span></h3>
       <p class="note" style="margin-top:0">Click a row to jump to the moment the advice arrives.</p>
-      <div class="scroll"><table class="calls"><thead><tr><th>asked</th><th>answered</th><th>tracker step</th><th>Next (coach)</th></tr></thead><tbody id="calls"></tbody></table></div>
+      <div class="scroll"><table class="calls"><thead><tr><th>asked</th><th>answered</th><th>tracker step</th><th id="trigHead" style="display:none">why asked</th><th>Next (coach)</th></tr></thead><tbody id="calls"></tbody></table></div>
     </div>
     <div class="card" style="margin-top:16px" id="cmpCard">
       <h3 style="margin-top:0">Choosing the coach setting</h3>
@@ -186,7 +196,6 @@ if (!C) {
 } else {
   if (C.video) $("cvid").src = C.video;
   const end = C.ticks[C.ticks.length - 1].t + 1;
-  $("coDesc").textContent = `${C.coach.replace("Glimmer", "Muse Glimmer 30B:")}; asked when the step changes or every 60 s`;
   $("coachLat").textContent = `median ${C.latency.coach_median_s.toFixed(0)} s per answer (self-hosted, A100)`;
   $("selfLat").textContent = `${C.latency.coach_median_s.toFixed(0)} s`;
   $("callsSum").textContent = `· ${C.latency.calls} calls, median ${C.latency.coach_median_s.toFixed(1)} s, max ${C.latency.coach_max_s.toFixed(1)} s · ${C.coach}`;
@@ -195,7 +204,13 @@ if (!C) {
     + C.calls.map((c) => `<b style="left:${100 * c.t / end}%;width:${Math.max(0.3, 100 * (c.ready - c.t) / end)}%" title="coach asked ${mmss(c.t)}, answered ${mmss(c.ready)}"></b>`).join("")
     + '<u id="cur"></u>';
   tl.onclick = (e) => { const r = tl.getBoundingClientRect(); $("cvid").currentTime = end * (e.clientX - r.left) / r.width; };
-  $("calls").innerHTML = C.calls.map((c, i) => `<tr data-i="${i}"><td class="n">${mmss(c.t)}</td><td class="n">${mmss(c.ready)} <span>(${c.sec.toFixed(0)} s)</span></td><td class="n">${c.step + 1}</td><td>${esc(c.next)}</td></tr>`).join("");
+  const hasTrig = C.calls.some((c) => c.trigger);
+  if (C.ticks[0].ledger) {
+    $("coIn").textContent = "The recipe, its checklist, recent actions and what the cook should vs. is doing.";
+    $("dmIn").textContent = "The coach's advice, the checklist, the prediction and the current step.";
+  }
+  if (hasTrig) $("trigHead").style.display = "";
+  $("calls").innerHTML = C.calls.map((c, i) => `<tr data-i="${i}"><td class="n">${mmss(c.t)}</td><td class="n">${mmss(c.ready)} <span>(${c.sec.toFixed(0)} s)</span></td><td class="n">${c.step + 1}</td>${hasTrig ? `<td class="n">${esc(c.trigger || "")}</td>` : ""}<td>${esc(c.next)}</td></tr>`).join("");
   document.querySelectorAll("#calls tr").forEach((tr) => tr.onclick = () => { $("cvid").currentTime = C.calls[tr.dataset.i].ready + 0.1; $("cvid").scrollIntoView({behavior: "smooth", block: "center"}); });
 
   let lastKey = "";
@@ -222,7 +237,9 @@ if (!C) {
     $("lvCo").innerHTML = co;
     $("lvDm").innerHTML = `<div class="note">next action (Actions Bank):</div>${barList(k.d1.map(([a, s, p]) => [`${esc(a)} <span class="note">· step ${s}</span>`, p]), "var(--good)")}
       <div style="margin-top:6px">next step: <b>${k.d1_step}</b>. <span class="note">${esc((C.steps[k.d1_step - 1] || "").slice(0, 70))}…</span></div>
-      <span class="speak ${k.speak > 0.5 ? "yes" : "no"}">remind the cook now? P = ${k.speak.toFixed(2)}</span>`;
+      <span class="speak ${k.speak > 0.5 ? "yes" : "no"}">remind the cook now? P = ${k.speak.toFixed(2)}</span>`
+      + (k.ledger ? `<div class="check">${k.ledger.map((st, j) => `<span class="${st === "done" ? "done" : st === "in progress" ? "prog" : ""}" title="${esc(C.steps[j])}">${st === "done" ? "✓" : st === "in progress" ? "▶" : "○"} ${j + 1}</span>`).join("")}</div>
+        <div class="align ${k.aligned ? "ok" : "bad"}">should: <b>${esc(k.should)}</b> · doing: <b>${esc(k.wm[0][0])}</b> · ${k.aligned ? "aligned" : `misaligned ${k.streak} s`}</div>` : "");
     document.querySelectorAll("#calls tr").forEach((tr) => tr.classList.toggle("on", Number(tr.dataset.i) === ci));
   }
   $("cvid").addEventListener("timeupdate", () => render($("cvid").currentTime));
