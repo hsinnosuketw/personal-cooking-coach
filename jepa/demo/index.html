@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scrambled Eggs Guide</title>
+<title>Scrambled Eggs Coach</title>
 <style>
   :root {
     --bg: #f6f5f2; --panel: #ffffff; --ink: #1d1d22; --muted: #6b6b76; --line: #e3e1dc;
     --accent: #c46a00; --accent-soft: #fbe9d2; --good: #1f8a4c; --good-soft: #dff3e6;
-    --bad: #b3261e; --bad-soft: #f8dedb; --bar: #e8a64a;
+    --bad: #b3261e; --bad-soft: #f8dedb; --bar: #e8a64a; --coachc: #2f6fd0;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #15151a; --panel: #1f1f26; --ink: #ececf1; --muted: #9a9aa8; --line: #31313b;
       --accent: #ffb03b; --accent-soft: #3a2c16; --good: #5ac878; --good-soft: #17301f;
-      --bad: #ff8a80; --bad-soft: #3a1c1a; --bar: #b9822f;
+      --bad: #ff8a80; --bad-soft: #3a1c1a; --bar: #b9822f; --coachc: #79a8ff;
     }
   }
   :root[data-theme="dark"] {
     --bg: #15151a; --panel: #1f1f26; --ink: #ececf1; --muted: #9a9aa8; --line: #31313b;
     --accent: #ffb03b; --accent-soft: #3a2c16; --good: #5ac878; --good-soft: #17301f;
-    --bad: #ff8a80; --bad-soft: #3a1c1a; --bar: #b9822f;
+    --bad: #ff8a80; --bad-soft: #3a1c1a; --bar: #b9822f; --coachc: #79a8ff;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink);
@@ -95,20 +95,73 @@
   .ek img { width: 100%; border-radius: 8px; display: block; }
   .ok { color: var(--good); font-weight: 600; }
   .miss { color: var(--bad); font-weight: 600; }
+  .live { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+  @media (max-width: 900px) { .live { grid-template-columns: 1fr; } }
+  .live h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .live .wm h4 { color: var(--accent); } .live .co h4 { color: var(--coachc); } .live .dm h4 { color: var(--good); }
+  .advice { font-size: 14.5px; }
+  .pending { color: var(--muted); font-size: 13px; font-style: italic; }
+  .speak { display: inline-block; margin-top: 6px; font-size: 13px; padding: 2px 8px; border-radius: 6px; }
+  .speak.yes { background: var(--good-soft); color: var(--good); font-weight: 600; }
+  .speak.no { background: var(--bg); color: var(--muted); }
+  .calls { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .calls th { text-align: left; font-size: 12.5px; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  .calls td { padding: 8px; border-top: 1px solid var(--line); vertical-align: top; }
+  .calls tr { cursor: pointer; } .calls tr.on td { background: var(--accent-soft); }
+  .calls td.n { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cmp2 { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .cmp2 th, .cmp2 td { padding: 6px 8px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  .cmp2 th:first-child, .cmp2 td:first-child { text-align: left; white-space: normal; }
+  .cmp2 tr.pick td { background: var(--good-soft); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  .timeline { position: relative; height: 34px; margin: 10px 0 2px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+  .timeline i { position: absolute; top: 4px; height: 12px; border-radius: 3px; }
+  .timeline b { position: absolute; bottom: 4px; height: 10px; background: var(--coachc); border-radius: 3px; opacity: .85; }
+  .timeline u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); }
 </style>
 </head>
 <body>
 <header>
-  <h1>Scrambled Eggs Guide <span class="badge">V-JEPA 2 world model</span></h1>
-  <p class="sub">A guide that watches someone cook, predicts their next action about 1 s ahead, and tells them which recipe step comes next.</p>
+  <h1>Scrambled Eggs Coach <span class="badge">V-JEPA 2 · Muse Glimmer · d1</span></h1>
+  <p class="sub">A world model watches someone cook and predicts their next action; a coach LLM reads that and the recipe and says what to do next; a decision model turns the advice into one concrete next action, every second.</p>
 </header>
 <nav>
-  <button data-tab="play" class="on">1 · Play the guide</button>
-  <button data-tab="vlm">2 · VLM step extraction</button>
-  <button data-tab="wm">3 · World-model predictions</button>
+  <button data-tab="coach" class="on">1 · Coach + Decision</button>
+  <button data-tab="play">2 · Step-tracker videos</button>
 </nav>
 <main>
-  <section id="play" class="on">
+  <section id="coach" class="on">
+    <div class="flow">
+      <div class="box"><h4>1 · World model</h4><div><b>V-JEPA 2</b> + Meta's EPIC-KITCHENS probe. Every second it reads the last 3.2 s of video and predicts the action ~0.8 s ahead. <span class="note">0.47 s per prediction (T4, fp16)</span></div></div><div class="arrow">→</div>
+      <div class="box"><h4 style="color:var(--coachc)">2 · Coach</h4><div><b>Muse Glimmer 30B</b>, reasoning low. Reads the recipe, what the cook has done and the prediction; says what to do next and why. Asked when the step tracker changes step or after 60 s. <span class="note" id="coachLat"></span></div></div><div class="arrow">→</div>
+      <div class="box"><h4 style="color:var(--good)">3 · Decision model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <div class="seg" id="speed2"></div>
+      <span class="note">Advice appears only once the coach has actually answered, so the delay you see is real.</span>
+    </div>
+    <video id="cvid" controls playsinline preload="metadata"></video>
+    <div class="timeline" id="tl" title="Top: annotated recipe steps. Bottom: coach thinking (asked → answered). Click to jump."></div>
+    <p class="note" style="margin:0">Timeline: coloured bars = recipe steps HD-EPIC annotated; blue bars = the coach thinking (from the moment it is asked until its answer arrives). Click to jump.</p>
+    <div class="live">
+      <div class="card wm"><h4>World model · now</h4><div id="lvWm"></div></div>
+      <div class="card co"><h4>Coach · latest advice</h4><div id="lvCo"></div></div>
+      <div class="card dm"><h4>Decision model · now</h4><div id="lvDm"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-top:0">Every coach call <span class="note" id="callsSum"></span></h3>
+      <p class="note" style="margin-top:0">Click a row to jump to the moment the advice arrives.</p>
+      <div class="scroll"><table class="calls"><thead><tr><th>asked</th><th>answered</th><th>tracker step</th><th>Next (coach)</th></tr></thead><tbody id="calls"></tbody></table></div>
+    </div>
+    <div class="card" style="margin-top:16px" id="cmpCard">
+      <h3 style="margin-top:0">Choosing the coach setting</h3>
+      <p class="note" style="margin-top:0">Each Glimmer setting was asked at the same <span id="nMoments"></span> moments (only the past was visible) to end with <code>STEP: n</code>. Correct = the step this cook worked on next, or the next step in recipe order. Latency on NVIDIA NIM, one call at a time. With so few moments at temperature 1, 1–2 answers apart is noise.</p>
+      <div class="scroll"><table class="cmp2" id="cmp2"></table></div>
+      <p style="margin:10px 0 0">Full reasoning was no more accurate and ~6× slower, and it needs ~3,000 tokens, so smaller <code>max_tokens</code> caps cut its answers off. <b>Reasoning low with max_tokens 1024</b> answers every time in ~500 tokens. Served on our own A100 (FP8) it takes <b id="selfLat"></b> per call instead of ~32 s on NIM. No setting picks the step better than the step tracker alone: the coach's value is the advice, not the step number.</p>
+    </div>
+  </section>
+
+  <section id="play">
     <div class="card" style="margin-bottom:14px">
       <h3 style="margin-top:0">How to read the video</h3>
       <ol style="margin:0 0 0 18px;padding:0">
@@ -121,7 +174,7 @@
         <li><b>Steps from HD-EPIC annotations</b>: HD-EPIC's 7 steps for this recipe, tagged with the actions people annotated this cook doing in each step. Its accuracy is optimistic: the tags come from this same video.</li>
         <li><b>VLM tags in the probe's words</b>: Llama 3.2 90B Vision read the recipe's own steps and tagged each with hand actions a head-mounted camera sees (take knife, cut onion), in the words the probe knows best. It never saw the video.</li>
         <li><b>Ground truth check</b>: not a guide but an answer key. It shows, second by second, what HD-EPIC's narrators recorded, what the model predicted for that moment, and whether the tracker's step matches the annotated one.</li>
-        <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only (tab 2 shows exactly these steps). It never saw the video.</li>
+        <li><b>Steps written by the NIM VLM</b>: Llama 3.2 90B Vision wrote 7 steps and their action tags from the recipe name and ingredients only. It never saw the video.</li>
       </ul>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
@@ -133,55 +186,11 @@
     <p class="note" id="vidNote"></p>
   </section>
 
-  <section id="vlm">
-    <div class="flow">
-      <div class="box"><h4>1 · Request</h4><div id="req"></div><div class="note" id="reqSrc"></div></div><div class="arrow">→</div>
-      <div class="box"><h4>2 · VLM on NVIDIA NIM</h4><div id="model"></div></div><div class="arrow">→</div>
-      <div class="box"><h4>3 · Vocabulary filter</h4><div id="vocab"></div></div><div class="arrow">→</div>
-      <div class="box"><h4>4 · Action bank</h4><div>Each step becomes a verb profile and a noun profile. The world model's predictions are scored against them every second.</div></div>
-    </div>
-
-    <div class="card" style="margin-bottom:16px">
-      <h3 style="margin-top:0">What the vocabulary filter does</h3>
-      <p style="margin:0 0 8px">The world model can only <b>name</b> actions through Meta's EPIC-KITCHENS probe, whose output layer has one row per verb (<span id="nv"></span>) and per noun (<span id="nn"></span>). A tag is <b>known</b> when it lands on one of those rows:</p>
-      <ol style="margin:0 0 10px 18px;padding:0">
-        <li>the word is a class name itself (<i>cut</i>, <i>onion</i>), or</li>
-        <li>EPIC-KITCHENS' annotators listed it as a synonym of a class (<i>whisk → mix</i>, <i>crack → break</i>, <i>chop → cut</i>; <span id="nsyn"></span>), or</li>
-        <li>for nouns, its singular or its head noun is (<i>chillies → chilli</i>, <i>cottage cheese → cheese</i>).</li>
-      </ol>
-      <p class="note" style="margin:0 0 8px">Anything else has no row in the model's output, so the world model could never predict it and the tag is dropped. Try a word:</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <select id="tryKind" style="font:inherit;padding:6px"><option value="verb">verb</option><option value="noun">noun</option></select>
-        <input id="tryWord" placeholder="e.g. whisk, saute, skillet" style="font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);min-width:220px">
-        <span id="tryOut" class="note"></span>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-top:0">Step by step: VLM vs people (same recipe, same number of steps)</h3>
-      <p class="note">The VLM was asked for exactly <span id="nsteps"></span> recipe-card steps so each row can be compared. Left tags: <span class="chip">kept</span> <span class="chip map">mapped synonym</span> <span class="chip drop">dropped</span>. Right tags: what the cook was recorded doing in that step, with seconds spent.</p>
-      <table class="cmp"><thead><tr><th>#</th><th>Written by the VLM</th><th>Annotated by people (HD-EPIC)</th></tr></thead><tbody id="cmp"></tbody></table>
-      <details><summary>Exact prompt sent, and where the word lists come from</summary>
-        <p class="note">The verb and noun lists are the probe's output classes: the class names in EPIC-KITCHENS' <code>EPIC_100_verb_classes.csv</code> / <code>EPIC_100_noun_classes.csv</code> that occur in a (verb, noun) action of <code>EPIC_100_train.csv</code>, the same rule Meta's code uses to build the probe's output layer. They are sorted alphabetically and pasted into the prompt.</p>
-        <pre id="prompt"></pre></details>
-      <details><summary>Model's raw answer</summary><pre id="raw"></pre></details>
-    </div>
-  </section>
-
-  <section id="wm">
-    <p class="note" style="margin-top:0">Each frame is the last image V-JEPA 2 saw. It predicts once per second of video: its encoder turns the past ~3.2 s (32 frames) into latent tokens, the predictor imagines the next ~1 s in that latent space, and Meta's EPIC-KITCHENS probe names the action. Green = matches what the narrator says happened next.</p>
-    <div class="frames">
-      <div class="thumbs" id="thumbs"></div>
-      <div class="detail" id="detail"></div>
-    </div>
-    <h3 style="margin-top:28px">Scored check on EPIC-KITCHENS (other kitchens, 145 actions)</h3>
-    <div class="stats" id="ekStats"></div>
-    <div class="ek" id="ek"></div>
-  </section>
 </main>
 <script src="data.js"></script>
+<script src="coach.js"></script>
 <script>
-const D = window.DEMO;
+const D = window.DEMO || {videos: []};
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const pct = (x) => `${Math.round(100 * x)}%`;
@@ -194,7 +203,80 @@ document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
 });
 try { const t = localStorage.getItem("demoTab"); if (t) document.querySelector(`nav button[data-tab="${t}"]`)?.click(); } catch (e) {}
 
-// 1 · videos
+
+// 1 · coach + decision
+const C = window.COACH;
+const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+const STEPC = ["#e69f00", "#56b4e9", "#009e73", "#f0e442", "#0072b2", "#d55e00", "#cc79a7"];
+let crate = 1;
+function setRate2(r) {
+  crate = r; $("cvid").playbackRate = r;
+  document.querySelectorAll("#speed2 button").forEach((b) => b.classList.toggle("on", Number(b.dataset.r) === r));
+}
+[0.5, 1, 1.5, 2, 4, 8].forEach((r) => {
+  const b = document.createElement("button"); b.textContent = `${r}×`; b.dataset.r = r; b.onclick = () => setRate2(r);
+  $("speed2").appendChild(b);
+});
+$("cvid").addEventListener("loadedmetadata", () => { $("cvid").playbackRate = crate; });
+setRate2(1);
+const barList = (rows, colour) => `<div class="bars">${rows.map(([name, p]) =>
+  `<div><div>${name}<i style="width:${Math.max(3, 100 * p)}%;background:${colour}"></i></div><span class="note">${p.toFixed(2)}</span></div>`).join("")}</div>`;
+if (!C) {
+  $("lvWm").innerHTML = '<span class="note">No coach data yet: run stage 19b of jepa/pipeline.ipynb.</span>';
+} else {
+  if (C.video) $("cvid").src = C.video;
+  const end = C.ticks[C.ticks.length - 1].t + 1;
+  $("coachLat").textContent = `median ${C.latency.coach_median_s.toFixed(0)} s per answer (self-hosted, A100)`;
+  $("selfLat").textContent = `${C.latency.coach_median_s.toFixed(0)} s`;
+  $("callsSum").textContent = `· ${C.latency.calls} calls, median ${C.latency.coach_median_s.toFixed(1)} s, max ${C.latency.coach_max_s.toFixed(1)} s · ${C.coach}`;
+  const tl = $("tl");
+  tl.innerHTML = C.truth.map(([k, a, b]) => `<i style="left:${100 * a / end}%;width:${Math.max(0.3, 100 * (b - a) / end)}%;background:${STEPC[k % 7]}" title="step ${k + 1}"></i>`).join("")
+    + C.calls.map((c) => `<b style="left:${100 * c.t / end}%;width:${Math.max(0.3, 100 * (c.ready - c.t) / end)}%" title="coach asked ${mmss(c.t)}, answered ${mmss(c.ready)}"></b>`).join("")
+    + '<u id="cur"></u>';
+  tl.onclick = (e) => { const r = tl.getBoundingClientRect(); $("cvid").currentTime = end * (e.clientX - r.left) / r.width; };
+  $("calls").innerHTML = C.calls.map((c, i) => `<tr data-i="${i}"><td class="n">${mmss(c.t)}</td><td class="n">${mmss(c.ready)} <span>(${c.sec.toFixed(0)} s)</span></td><td class="n">${c.step + 1}</td><td>${esc(c.next)}</td></tr>`).join("");
+  document.querySelectorAll("#calls tr").forEach((tr) => tr.onclick = () => { $("cvid").currentTime = C.calls[tr.dataset.i].ready + 0.1; $("cvid").scrollIntoView({behavior: "smooth", block: "center"}); });
+
+  let lastKey = "";
+  function render(t) {
+    let i = 0;
+    while (i + 1 < C.ticks.length && C.ticks[i + 1].t <= t) i++;
+    const k = C.ticks[i];
+    const ready = C.calls.filter((c) => c.ready <= t), asked = C.calls.filter((c) => c.t <= t && t < c.ready);
+    const ci = ready.length ? C.calls.indexOf(ready[ready.length - 1]) : -1;
+    $("cur").style.left = `${100 * t / end}%`;
+    const key = `${i}|${ci}|${asked.length}`;
+    if (key === lastKey) return;
+    lastKey = key;
+    const ann = C.truth.filter(([s, a, b]) => a <= t && t <= b).map(([s]) => s + 1);
+    $("lvWm").innerHTML = `<div class="note">t = ${mmss(t)} · expects in ~0.8 s:</div>${barList(k.wm.map(([a, p]) => [esc(a), p]), "var(--bar)")}
+      <div class="note" style="margin-top:6px">step tracker: <b>step ${k.tracker + 1}</b> · annotated: ${ann.length ? ann.join(", ") : "none (between steps)"}</div>`;
+    let co = asked.length ? `<div class="pending">thinking… asked at ${mmss(asked[0].t)}</div>` : "";
+    if (ci >= 0) {
+      const c = C.calls[ci];
+      co += `<div class="note">asked ${mmss(c.t)}, answered ${mmss(c.ready)} (${c.sec.toFixed(0)} s)</div><div class="advice">${esc(c.next)}</div>
+        <details><summary>Full answer</summary><pre>${esc(c.text)}</pre></details>
+        <details><summary>Coach's reasoning</summary><pre>${esc(c.thinking)}</pre></details>`;
+    } else if (!asked.length) co = '<span class="note">no advice yet</span>';
+    $("lvCo").innerHTML = co;
+    $("lvDm").innerHTML = `<div class="note">next action (Actions Bank):</div>${barList(k.d1.map(([a, s, p]) => [`${esc(a)} <span class="note">· step ${s}</span>`, p]), "var(--good)")}
+      <div style="margin-top:6px">next step: <b>${k.d1_step}</b>. <span class="note">${esc((C.steps[k.d1_step - 1] || "").slice(0, 70))}…</span></div>
+      <span class="speak ${k.speak > 0.5 ? "yes" : "no"}">remind the cook now? P = ${k.speak.toFixed(2)}</span>`;
+    document.querySelectorAll("#calls tr").forEach((tr) => tr.classList.toggle("on", Number(tr.dataset.i) === ci));
+  }
+  $("cvid").addEventListener("timeupdate", () => render($("cvid").currentTime));
+  $("cvid").addEventListener("seeked", () => render($("cvid").currentTime));
+  render(0);
+
+  if (C.compare) {
+    const cols = C.compare.columns;
+    $("nMoments").textContent = C.compare.moments;
+    $("cmp2").innerHTML = `<thead><tr>${cols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${C.compare.rows.map((r) =>
+      `<tr class="${r[0] === C.compare.choice ? "pick" : ""}">${r.map((v) => `<td>${v === null ? "–" : esc(v)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  } else $("cmpCard").style.display = "none";
+}
+
+// 2 · step-tracker videos
 let rate = 1;
 function setRate(r) {
   rate = r; $("vid").playbackRate = r;
@@ -229,101 +311,7 @@ D.videos.forEach((v) => {
 if (D.videos.length) showVideo(D.videos[0]);
 else $("vidNote").textContent = "No rendered video yet: run python3 -m jepa.build_demo after the render finishes.";
 
-// 2 · VLM extraction
-const X = D.extraction, VB = D.vocab;
-$("req").textContent = `"${X.request}"`;
-$("reqSrc").textContent = X.request_source || "";
-$("model").innerHTML = `${esc(X.model)}<br><span class="note">${X.seconds} s · ${X.tokens.prompt} tokens in, ${X.tokens.completion} out</span>`;
-const nKept = X.nim_steps.reduce((a, s) => a + s.kept.length, 0), nMap = X.nim_steps.reduce((a, s) => a + (s.mapped || []).length, 0), nDrop = X.nim_steps.reduce((a, s) => a + s.dropped.length, 0);
-$("vocab").innerHTML = `Keeps only actions the world model can name.<br><span class="note">${nKept} tags kept (${nMap} via synonyms), ${nDrop} dropped</span>`;
-$("nv").textContent = `${X.vocab.verbs} verbs`; $("nn").textContent = `${X.vocab.nouns} nouns`;
-$("nsyn").textContent = `${X.vocab.verb_synonyms} verb and ${X.vocab.noun_synonyms} noun synonyms`;
-$("nsteps").textContent = X.n_steps || X.nim_steps.length;
-$("prompt").textContent = X.prompt;
-$("raw").textContent = X.raw_answer;
-
-function canon(kind, word) {  // same rule as jepa/vocab.py Vocab.canon
-  const w = String(word).trim().toLowerCase().replace(/-/g, " ").split(/\s+/).filter(Boolean).join(" ");
-  if (!w) return null;
-  const keys = new Set(kind === "verb" ? VB.verbs : VB.nouns), alias = kind === "verb" ? VB.verb_alias : VB.noun_alias;
-  const k = keys.has(w.replace(/ /g, ":")) ? w.replace(/ /g, ":") : w;
-  if (keys.has(k)) return {key: k, how: "class name"};
-  if (kind === "verb") {
-    if (alias[w]) return {key: alias[w], how: "synonym"};
-    const f = alias[w.split(" ")[0]]; return f ? {key: f, how: "synonym of first word"} : null;
-  }
-  for (const c of [w, w.split(" ").pop()]) {
-    for (const f of [c, c.endsWith("s") ? c.slice(0, -1) : null, c.endsWith("es") ? c.slice(0, -2) : null, c.endsWith("ies") ? c.slice(0, -3) + "y" : null]) {
-      if (f && keys.has(f)) return {key: f, how: c === w ? (f === w ? "class name" : "singular") : "head noun"};
-      if (f && alias[f]) return {key: alias[f], how: c === w ? "synonym" : "synonym of head noun"};
-    }
-  }
-  return null;
-}
-function tryIt() {
-  const w = $("tryWord").value; if (!w.trim()) { $("tryOut").textContent = ""; return; }
-  const r = canon($("tryKind").value, w);
-  $("tryOut").innerHTML = r ? `<span class="chip${r.how === "class name" ? "" : " map"}">${esc(w)} → ${esc(r.key)}</span> <span class="note">${esc(r.how)}: the model has a row for it</span>`
-                            : `<span class="chip drop">${esc(w)}</span> <span class="note">no row in the model's output: dropped</span>`;
-}
-$("tryWord").oninput = tryIt; $("tryKind").onchange = tryIt;
-
-const wordCount = (t) => t.trim().split(/\s+/).length;
-$("cmp").innerHTML = X.nim_steps.map((s, i) => {
-  const h = X.hdepic_steps[i];
-  const mappedTo = new Set((s.mapped || []).map((m) => m.to));
-  const left = s.kept.filter((k) => !mappedTo.has(k)).map((k) => `<span class="chip">${esc(k)}</span>`).join("")
-    + (s.mapped || []).map((m) => `<span class="chip map" title="mapped through EPIC-KITCHENS synonyms">${esc(m.from)} → ${esc(m.to)}</span>`).join("")
-    + s.dropped.map((d) => `<span class="chip drop">${esc(d)}</span>`).join("");
-  const right = h ? h.actions.map((a) => `<span class="chip gt">${esc(a.pair)} <small>${a.seconds.toFixed(1)} s</small></span>`).join("") : "";
-  return `<tr><td><div class="num">${i + 1}</div></td>
-    <td>${esc(s.text)} <span class="wc">${wordCount(s.text)} words</span><div class="chips">${left || '<span class="note">no tags</span>'}</div></td>
-    <td>${h ? `${esc(h.text)} <span class="wc">${wordCount(h.text)} words</span><div class="chips">${right || '<span class="note">no tags</span>'}</div>` : '<span class="note">—</span>'}</td></tr>`;
-}).join("");
-
-// 3 · world-model frames
-const F = D.frames;
-const BODY = new Set(["hand", "hands", "left", "right", "finger", "fingers", "with", "the", "and", "of", "to", "in", "on", "a"]);
-const words = (s) => new Set((String(s || "").toLowerCase().match(/[a-z]+/g) || []).filter((w) => !BODY.has(w)));
-function bars(list, truthWords) {
-  return `<div class="bars">${list.map((x) => {
-    const hit = x.name.split(/[ :]/).some((w) => truthWords.has(w));
-    return `<div><div><span class="${hit ? "hit" : ""}">${esc(x.name)}</span><i style="width:${Math.max(3, 100 * x.p / Math.max(...list.map((y) => y.p)))}%"></i></div><span class="note">${x.p.toFixed(2)}</span></div>`;
-  }).join("")}</div>`;
-}
-function showFrame(i) {
-  const f = F.frames[i];
-  document.querySelectorAll("#thumbs button").forEach((b, j) => b.classList.toggle("on", i === j));
-  const tw = words(f.next_narration);
-  const cur = f.guide.current_step;
-  const top = [...f.guide.belief].sort((a, b) => b.p - a.p).slice(0, 3);
-  $("detail").innerHTML = `
-    <div><img src="frames/${esc(f.image)}" alt="frame at ${f.t} s">
-      <p class="note">t = ${Math.floor(f.t / 60)}:${String(Math.floor(f.t % 60)).padStart(2, "0")} · ${esc(f.why)}</p></div>
-    <div>
-      <div class="truth"><b>What actually happened next</b><br>${esc(f.next_narration || "—")}
-        ${f.annotated_steps.length ? `<br><span class="note">annotated recipe step: ${f.annotated_steps.join(", ")}</span>` : ""}</div>
-      <h3>World model expects in ~1 s — action</h3>${bars(f.top5.action, tw)}
-      <h3>verb</h3>${bars(f.top5.verb, tw)}
-      <h3>noun</h3>${bars(f.top5.noun, tw)}
-      <h3>Step tracker's belief</h3>
-      <div class="note">current step: ${cur > 0 ? `${cur}. ${esc(F.steps[cur - 1].text)}` : "not started"}</div>
-      ${bars(top.map((b) => ({name: `${b.step}. ${F.steps[b.step - 1].text.slice(0, 48)}…`, p: b.p})), new Set())}
-    </div>`;
-}
-$("thumbs").innerHTML = F.frames.map((f, i) => `<button title="${esc(f.why)}"><img src="frames/${esc(f.image)}" alt=""><span>${Math.floor(f.t / 60)}:${String(Math.floor(f.t % 60)).padStart(2, "0")}</span></button>`).join("");
-document.querySelectorAll("#thumbs button").forEach((b, i) => b.onclick = () => showFrame(i));
-if (F.frames.length) showFrame(0);
-
-const E = D.ek;
-$("ekStats").innerHTML = ["verb", "noun", "action"].map((k) => `<div class="stat"><b>${E.summary.mean_class_recall_at5[k]}%</b><span>${k} top-5 recall (chance ${E.summary.chance_at5[k]}%)</span></div>`).join("");
-$("ek").innerHTML = E.rows.map((r) => {
-  const hit = r.top5.action.some((p) => p.id === r.truth.action.id);
-  return `<div class="card"><img src="${esc(r.thumb)}" alt=""><div style="margin-top:6px">Truth: <b>${esc(r.truth.action.name)}</b></div>
-    <div class="note">Predicted: ${r.top5.action.slice(0, 3).map((p) => esc(p.name)).join(", ")}</div>
-    <div class="${hit ? "ok" : "miss"}">${hit ? "in top 5" : "missed"}</div></div>`;
-}).join("");
 </script>
-<p class="note" style="margin:32px 16px;text-align:center">Video and annotations: <a href="https://hd-epic.github.io/">HD-EPIC</a> and <a href="https://epic-kitchens.github.io/">EPIC-KITCHENS-100</a> (University of Bristol), CC BY-NC 4.0, shown here for non-commercial research. Model: Meta V-JEPA 2 ViT-L (MIT).</p>
+<p class="note" style="margin:32px 16px;text-align:center">Video and annotations: <a href="https://hd-epic.github.io/">HD-EPIC</a> and <a href="https://epic-kitchens.github.io/">EPIC-KITCHENS-100</a> (University of Bristol), CC BY-NC 4.0, shown here for non-commercial research. Models: Meta V-JEPA 2 ViT-L (MIT), Meta Muse Glimmer 30B (Apache 2.0), Liquid AI d1-2B (LFM Open License v1.0).</p>
 </body>
 </html>
