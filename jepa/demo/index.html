@@ -52,6 +52,20 @@
   .flow .arrow { align-self: center; color: var(--muted); font-size: 20px; }
   .flow .bdesc { margin: 0 0 6px; }
   .when { font-size: 14px; margin-bottom: 12px; }
+  .toprow { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 16px; margin-bottom: 12px; align-items: start; }
+  @media (max-width: 800px) { .toprow { grid-template-columns: 1fr; } }
+  .recipe { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; }
+  .recipe ol { margin: 6px 0 0; padding-left: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 14px; }
+  @media (max-width: 800px) { .recipe ol { grid-template-columns: 1fr; } }
+  .recipe li { padding: 4px 8px; border-radius: 8px; border: 1px solid transparent; line-height: 1.35; }
+  .recipe li .n { font-weight: 700; margin-right: 4px; }
+  .recipe li .more { color: var(--muted); }
+  .recipe li.next { border-color: var(--good); background: var(--good-soft); }
+  .recipe li.cur { outline: 1px dashed var(--accent); }
+  .rk { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 5px; border-radius: 5px; margin-left: 4px; vertical-align: 1px; }
+  .rk.next { background: var(--good); color: var(--panel); }
+  .rk.cur { background: var(--accent); color: var(--panel); }
+  .rk.st { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
   .when ul { margin: 2px 0 0; padding-left: 20px; }
   .flow .blist { margin: 0 0 6px; padding-left: 18px; font-size: 14px; }
   .flow .blist li { margin: 2px 0; }
@@ -146,7 +160,12 @@
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
       <div class="seg" id="runSwitch"></div>
       <div class="seg" id="speed2"></div>
+
+    </div>
+    <div class="toprow">
       <div class="when"><b>Coach's Suggestions show up when:</b><ul id="whenList"></ul></div>
+      <div class="recipe"><b>Recipe: <span id="recipeName">Scrambled Eggs</span></b> <span class="note">· <span class="rk next">next</span> = decision model's Next Step · <span class="rk cur">now</span> = step tracker</span>
+        <ol id="recipeList"></ol></div>
     </div>
     <video id="cvid" controls playsinline preload="metadata"></video>
     <div class="timeline" id="tl" title="Top: annotated recipe steps. Bottom: coach thinking (asked → answered). Click to jump."></div>
@@ -222,6 +241,15 @@ function render(t) {
     + (k.ledger ? `<div class="check">${k.ledger.map((st, j) => `<span class="${st === "done" ? "done" : st === "in progress" ? "prog" : ""}" title="${esc(C.steps[j])}">${st === "done" ? "✓" : st === "in progress" ? "▶" : "○"} ${j + 1}</span>`).join("")}</div>
       <div class="align ${k.aligned ? "ok" : "bad"}">should: <b>${esc(k.should)}</b> · doing: <b>${esc(k.wm[0][0])}</b> · ${state}</div>` : "");
   document.querySelectorAll("#calls tr").forEach((tr) => tr.classList.toggle("on", Number(tr.dataset.i) === ci));
+  const marks = {"done": "✓ done", "in progress": "▶ in progress"};
+  document.querySelectorAll("#recipeList li").forEach((li) => {
+    const n = Number(li.dataset.k), st = k.ledger ? k.ledger[n - 1] : null;
+    li.classList.toggle("next", n === k.d1_step);
+    li.classList.toggle("cur", n === k.tracker + 1);
+    li.querySelector(".tags").innerHTML = (n === k.d1_step ? '<span class="rk next">next</span>' : "")
+      + (n === k.tracker + 1 ? '<span class="rk cur">now</span>' : "")
+      + (st && marks[st] ? `<span class="rk st">${marks[st]}</span>` : "");
+  });
 }
 
 function load(label) {
@@ -232,6 +260,10 @@ function load(label) {
   if (C.video) { $("cvid").src = C.video; $("cvid").currentTime = t0; }
   end = C.ticks[C.ticks.length - 1].t + 1;
   lastKey = "";
+  $("recipeList").innerHTML = C.steps.map((text, j) => {
+    const first = text.match(/^[^.]*\.?/)[0], rest = text.slice(first.length).trim();
+    return `<li data-k="${j + 1}"><span class="n">${j + 1}.</span>${esc(first)}${rest ? ` <span class="more">${esc(rest)}</span>` : ""}<span class="tags"></span></li>`;
+  }).join("");
   $("coachWhen").textContent = C.ticks[0].recent
     ? `${C.when[0].replace(" (action segments)", "")} (or sooner for a skipped step or a minute off the recipe)`
     : "When the step changes, or after 60 s without advice";
