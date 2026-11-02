@@ -122,10 +122,6 @@
   .calls td { padding: 8px; border-top: 1px solid var(--line); vertical-align: top; }
   .calls tr { cursor: pointer; } .calls tr.on td { background: var(--accent-soft); }
   .calls td.n { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .cmp2 { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  .cmp2 th, .cmp2 td { padding: 6px 8px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
-  .cmp2 th:first-child, .cmp2 td:first-child { text-align: left; white-space: normal; }
-  .cmp2 tr.pick td { background: var(--good-soft); font-weight: 600; }
   .scroll { overflow-x: auto; }
   .timeline { position: relative; height: 34px; margin: 10px 0 2px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
   .timeline i { position: absolute; top: 4px; height: 12px; border-radius: 3px; }
@@ -142,8 +138,8 @@
   <section id="coach" class="on">
     <div class="flow">
       <div class="box"><h4>1 · World Model</h4><p class="bdesc">The world model inspects the actions the user has done and predicts the user's next move.</p><ul class="blist"><li><b>World model:</b> <a href="https://github.com/facebookresearch/vjepa2" target="_blank" rel="noopener">V-JEPA 2</a> (ViT-L)</li><li><b>Probing classifier:</b> <a href="https://github.com/facebookresearch/vjepa2#evaluation-attentive-probes" target="_blank" rel="noopener">V-JEPA 2 attentive probe for EPIC-KITCHENS-100 action anticipation</a></li></ul><p class="bdesc">Every second it takes the last 3.2 s of video (32 frames), imagines the scene about 0.8 s ahead in its latent space, and the probe names the most likely actions (e.g. <i>take egg</i>); each prediction takes 0.47 s on a T4 GPU.</p></div><div class="arrow">→</div>
-      <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><div><b>Muse Glimmer 30B</b>, reasoning low. Reads the recipe, what the cook has done and the prediction; says what to do next and why. Asked when the step tracker changes step or after 60 s. <span class="note" id="coachLat"></span></div></div><div class="arrow">→</div>
-      <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision Model</h4><div><b>Liquid AI d1-2B</b>. Every second, reads the latest advice + the newest prediction and picks the next action from the recipe's Actions Bank, the next step, and whether to remind the cook now. <span class="note">57 ms per decision (A100)</span></div></div>
+      <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><p class="bdesc">The coach understands where the cook is in the recipe and tells the cook what to do next and why.</p><ul class="blist"><li><b>Coach model:</b> <a href="https://dev.meta.ai/models/muse-glimmer" target="_blank" rel="noopener">Muse Glimmer</a> (30B, reasoning low)</li></ul><p class="bdesc">When the step changes, or after 60 s without advice, it reads the recipe, what the cook has done so far (the world model's recent predictions) and the current prediction, reasons briefly, and writes the next thing to do and why; an answer takes about <span id="coachLat">14 s</span>.</p></div><div class="arrow">→</div>
+      <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision Model</h4><p class="bdesc">The decision model combines the coach's advice with the user's actions that the world model predicts, and turns them into one concrete next move, every second.</p><ul class="blist"><li><b>Decision model:</b> <a href="https://huggingface.co/LiquidAI/d1-2B" target="_blank" rel="noopener">Liquid AI d1-2B</a></li></ul><p class="bdesc">Every second it reads the coach's latest advice and reasoning, the world model's prediction and the current step, then in one pass scores every action in the recipe's Actions Bank, picks the next step and decides whether to remind the cook now; a decision takes 57 ms on an A100 GPU.</p></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
       <div class="seg" id="speed2"></div>
@@ -161,12 +157,6 @@
       <h3 style="margin-top:0">Every coach call <span class="note" id="callsSum"></span></h3>
       <p class="note" style="margin-top:0">Click a row to jump to the moment the advice arrives.</p>
       <div class="scroll"><table class="calls"><thead><tr><th>asked</th><th>answered</th><th>tracker step</th><th id="trigHead" style="display:none">why asked</th><th>Next (coach)</th></tr></thead><tbody id="calls"></tbody></table></div>
-    </div>
-    <div class="card" style="margin-top:16px" id="cmpCard">
-      <h3 style="margin-top:0">Choosing the coach setting</h3>
-      <p class="note" style="margin-top:0">Each Glimmer setting was asked at the same <span id="nMoments"></span> moments (only the past was visible) to end with <code>STEP: n</code>. Correct = the step this cook worked on next, or the next step in recipe order. Latency on NVIDIA NIM, one call at a time. With so few moments at temperature 1, 1–2 answers apart is noise.</p>
-      <div class="scroll"><table class="cmp2" id="cmp2"></table></div>
-      <p style="margin:10px 0 0">Full reasoning was no more accurate and ~6× slower, and it needs ~3,000 tokens, so smaller <code>max_tokens</code> caps cut its answers off. <b>Reasoning low with max_tokens 1024</b> answers every time in ~500 tokens. Served on our own A100 (FP8) it takes <b id="selfLat"></b> per call instead of ~32 s on NIM. No setting picks the step better than the step tracker alone: the coach's value is the advice, not the step number.</p>
     </div>
   </section>
 
@@ -200,8 +190,7 @@ if (!C) {
 } else {
   if (C.video) $("cvid").src = C.video;
   const end = C.ticks[C.ticks.length - 1].t + 1;
-  $("coachLat").textContent = `median ${C.latency.coach_median_s.toFixed(0)} s per answer (self-hosted, A100)`;
-  $("selfLat").textContent = `${C.latency.coach_median_s.toFixed(0)} s`;
+  $("coachLat").textContent = `${C.latency.coach_median_s.toFixed(0)} s on an A100 GPU`;
   $("callsSum").textContent = `· ${C.latency.calls} calls, median ${C.latency.coach_median_s.toFixed(1)} s, max ${C.latency.coach_max_s.toFixed(1)} s · ${C.coach}`;
   const tl = $("tl");
   tl.innerHTML = C.truth.map(([k, a, b]) => `<i style="left:${100 * a / end}%;width:${Math.max(0.3, 100 * (b - a) / end)}%;background:${STEPC[k % 7]}" title="step ${k + 1}"></i>`).join("")
@@ -250,12 +239,6 @@ if (!C) {
   $("cvid").addEventListener("seeked", () => render($("cvid").currentTime));
   render(0);
 
-  if (C.compare) {
-    const cols = C.compare.columns;
-    $("nMoments").textContent = C.compare.moments;
-    $("cmp2").innerHTML = `<thead><tr>${cols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${C.compare.rows.map((r) =>
-      `<tr class="${r[0] === C.compare.choice ? "pick" : ""}">${r.map((v) => `<td>${v === null ? "–" : esc(v)}</td>`).join("")}</tr>`).join("")}</tbody>`;
-  } else $("cmpCard").style.display = "none";
 }
 
 </script>
