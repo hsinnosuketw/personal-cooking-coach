@@ -140,12 +140,13 @@
   <section id="coach" class="on">
     <div class="flow">
       <div class="box"><h4>1 · World Model</h4><p class="bdesc">The world model inspects the actions the user has done and predicts the user's next move.</p><ul class="blist"><li><b>World model:</b> <a href="https://github.com/facebookresearch/vjepa2" target="_blank" rel="noopener">V-JEPA 2</a> (ViT-L)</li><li><b>Probing classifier:</b> <a href="https://github.com/facebookresearch/vjepa2#evaluation-attentive-probes" target="_blank" rel="noopener">V-JEPA 2 attentive probe for EPIC-KITCHENS-100 action anticipation</a></li></ul><p class="bdesc">Every second it takes the last 3.2 s of video (32 frames), imagines the scene about 0.8 s ahead in its latent space, and the probe names the most likely actions (e.g. <i>take egg</i>); each prediction takes 0.47 s on a T4 GPU.</p></div><div class="arrow">→</div>
-      <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><p class="bdesc">The coach understands where the cook is in the recipe and tells the cook what to do next and why.</p><ul class="blist"><li><b>Coach model:</b> <a href="https://dev.meta.ai/models/muse-glimmer" target="_blank" rel="noopener">Muse Glimmer</a> (30B, reasoning low)</li></ul><p class="bdesc">When the step changes, or after 60 s without advice, it reads the recipe, what the cook has done so far (the world model's recent predictions) and the current prediction, reasons briefly, and writes the next thing to do and why; an answer takes about <span id="coachLat">14 s</span>.</p></div><div class="arrow">→</div>
+      <div class="box"><h4 style="color:var(--coachc)"><img class="ico" src="icons/chef.png" alt="">2 · Coach</h4><p class="bdesc">The coach understands where the cook is in the recipe and tells the cook what to do next and why.</p><ul class="blist"><li><b>Coach model:</b> <a href="https://dev.meta.ai/models/muse-glimmer" target="_blank" rel="noopener">Muse Glimmer</a> (30B, reasoning low)</li></ul><p class="bdesc"><span id="coachWhen">When the step changes, or after 60 s without advice</span>, it reads the recipe, what the cook has done so far (the world model's recent predictions) and the current prediction, reasons briefly, and writes the next thing to do and why; an answer takes about <span id="coachLat">14 s</span>.</p></div><div class="arrow">→</div>
       <div class="box"><h4 style="color:var(--good)"><img class="ico" src="icons/recipe.png" alt="">3 · Decision Model</h4><p class="bdesc">The decision model combines the coach's advice with the user's actions that the world model predicts, and turns them into one concrete next move, every second.</p><ul class="blist"><li><b>Decision model:</b> <a href="https://huggingface.co/LiquidAI/d1-2B" target="_blank" rel="noopener">Liquid AI d1-2B</a></li></ul><p class="bdesc">Every second it reads the coach's latest advice and reasoning, the world model's prediction and the current step, then in one pass scores every action in the recipe's Actions Bank, picks the next step and decides whether to remind the cook now; a decision takes 57 ms on an A100 GPU.</p></div>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <div class="seg" id="runSwitch"></div>
       <div class="seg" id="speed2"></div>
-      <div class="when"><b>Coach's Suggestions show up when:</b><ul><li>Step changes</li><li>1 minute without advice</li></ul></div>
+      <div class="when"><b>Coach's Suggestions show up when:</b><ul id="whenList"></ul></div>
     </div>
     <video id="cvid" controls playsinline preload="metadata"></video>
     <div class="timeline" id="tl" title="Top: annotated recipe steps. Bottom: coach thinking (asked → answered). Click to jump."></div>
@@ -170,8 +171,9 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<"
 const pct = (x) => `${Math.round(100 * x)}%`;
 
 
-// 1 · coach + decision
-const C = window.COACH;
+// 1 · coach + decision: one or more runs (window.COACH_RUNS), switchable
+const RUNS = window.COACH_RUNS || (window.COACH ? {"Coach": window.COACH} : {});
+let C = null, end = 1, lastKey = "";
 const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 const STEPC = ["#e69f00", "#56b4e9", "#009e73", "#f0e442", "#0072b2", "#d55e00", "#cc79a7"];
 let crate = 1;
@@ -187,60 +189,86 @@ $("cvid").addEventListener("loadedmetadata", () => { $("cvid").playbackRate = cr
 setRate2(1);
 const barList = (rows, colour) => `<div class="bars">${rows.map(([name, p]) =>
   `<div><div>${name}<i style="width:${Math.max(3, 100 * p)}%;background:${colour}"></i></div><span class="note">${p.toFixed(2)}</span></div>`).join("")}</div>`;
-if (!C) {
-  $("lvWm").innerHTML = '<span class="note">No coach data yet: run stage 19b of jepa/pipeline.ipynb.</span>';
-} else {
-  if (C.video) $("cvid").src = C.video;
-  const end = C.ticks[C.ticks.length - 1].t + 1;
+
+function render(t) {
+  if (!C) return;
+  let i = 0;
+  while (i + 1 < C.ticks.length && C.ticks[i + 1].t <= t) i++;
+  const k = C.ticks[i];
+  const ready = C.calls.filter((c) => c.ready <= t), asked = C.calls.filter((c) => c.t <= t && t < c.ready);
+  const ci = ready.length ? C.calls.indexOf(ready[ready.length - 1]) : -1;
+  $("cur").style.left = `${100 * t / end}%`;
+  const key = `${i}|${ci}|${asked.length}`;
+  if (key === lastKey) return;
+  lastKey = key;
+  const ann = C.truth.filter(([s, a, b]) => a <= t && t <= b).map(([s]) => s + 1);
+  $("lvWm").innerHTML = `<div class="note">t = ${mmss(t)} · expects in ~0.8 s:</div>${barList(k.wm.map(([a, p]) => [esc(a), p]), "var(--bar)")}
+    <div class="note" style="margin-top:6px">step tracker: <b>step ${k.tracker + 1}</b> · annotated: ${ann.length ? ann.join(", ") : "none (between steps)"}</div>`
+    + (k.recent ? `<div style="margin-top:6px"><b>Recent actions:</b> ${k.recent.map((r) => esc(r.split(" s ").slice(1).join(" s ").split(" (")[0])).join(" → ")}</div>` : "");
+  let co = asked.length ? `<div class="pending">thinking… asked at ${mmss(asked[0].t)}</div>` : "";
+  if (ci >= 0) {
+    const c = C.calls[ci];
+    const why = c.trigger ? ` · ${esc(c.trigger)}` : "";
+    co += `<div class="note">asked ${mmss(c.t)}, answered ${mmss(c.ready)} (${c.sec.toFixed(0)} s${why})</div><div class="advice">${esc(c.next)}</div>
+      <details><summary>Full answer</summary><pre>${esc(c.text)}</pre></details>
+      <details><summary>Coach's reasoning</summary><pre>${esc(c.thinking)}</pre></details>`;
+  } else if (!asked.length) co = '<span class="note">no advice yet</span>';
+  $("lvCo").innerHTML = co;
+  const state = k.recent ? (k.aligned ? "same step" : "different step") : (k.aligned ? "aligned" : `misaligned ${k.streak} s`);
+  $("lvDm").innerHTML = `<div class="note">next action (Actions Bank):</div>${barList(k.d1.map(([a, s, p]) => [`${esc(a)} <span class="note">· step ${s}</span>`, p]), "var(--good)")}
+    <div style="margin-top:6px"><b>User Current Step:</b> ${k.tracker + 1}. <span class="note">${esc((C.steps[k.tracker] || "").slice(0, 60))}…</span></div>
+    <div><b>Next Step:</b> ${k.d1_step}. <span class="note">${esc((C.steps[k.d1_step - 1] || "").slice(0, 60))}…</span></div>
+    <span class="speak ${k.speak > 0.5 ? "yes" : "no"}">Remind the Cook Now? P = ${k.speak.toFixed(2)}</span>`
+    + (k.ledger ? `<div class="check">${k.ledger.map((st, j) => `<span class="${st === "done" ? "done" : st === "in progress" ? "prog" : ""}" title="${esc(C.steps[j])}">${st === "done" ? "✓" : st === "in progress" ? "▶" : "○"} ${j + 1}</span>`).join("")}</div>
+      <div class="align ${k.aligned ? "ok" : "bad"}">should: <b>${esc(k.should)}</b> · doing: <b>${esc(k.wm[0][0])}</b> · ${state}</div>` : "");
+  document.querySelectorAll("#calls tr").forEach((tr) => tr.classList.toggle("on", Number(tr.dataset.i) === ci));
+}
+
+function load(label) {
+  C = RUNS[label];
+  document.querySelectorAll("#runSwitch button").forEach((b) => b.classList.toggle("on", b.dataset.k === label));
+  try { localStorage.setItem("coachRun", label); } catch (e) {}
+  const t0 = $("cvid").currentTime || 0;
+  if (C.video) { $("cvid").src = C.video; $("cvid").currentTime = t0; }
+  end = C.ticks[C.ticks.length - 1].t + 1;
+  lastKey = "";
+  $("coachWhen").textContent = C.ticks[0].recent
+    ? `${C.when[0].replace(" (action segments)", "")} (or sooner for a skipped step or a minute off the recipe)`
+    : "When the step changes, or after 60 s without advice";
+  $("whenList").innerHTML = (C.when || ["Step changes", "1 minute without advice"]).map((w) => `<li>${esc(w)}</li>`).join("");
   $("coachLat").textContent = `${C.latency.coach_median_s.toFixed(0)} s on an A100 GPU`;
-  $("callsSum").textContent = `· ${C.latency.calls} calls, median ${C.latency.coach_median_s.toFixed(1)} s, max ${C.latency.coach_max_s.toFixed(1)} s · ${C.coach}`;
+  $("callsSum").textContent = `· ${C.latency.calls} calls, median ${C.latency.coach_median_s.toFixed(1)} s, max ${C.latency.coach_max_s.toFixed(1)} s`;
   const tl = $("tl");
   tl.innerHTML = C.truth.map(([k, a, b]) => `<i style="left:${100 * a / end}%;width:${Math.max(0.3, 100 * (b - a) / end)}%;background:${STEPC[k % 7]}" title="step ${k + 1}"></i>`).join("")
     + C.calls.map((c) => `<b style="left:${100 * c.t / end}%;width:${Math.max(0.3, 100 * (c.ready - c.t) / end)}%" title="coach asked ${mmss(c.t)}, answered ${mmss(c.ready)}"></b>`).join("")
     + '<u id="cur"></u>';
   tl.onclick = (e) => { const r = tl.getBoundingClientRect(); $("cvid").currentTime = end * (e.clientX - r.left) / r.width; };
   const hasTrig = C.calls.some((c) => c.trigger);
-  if (C.ticks[0].ledger) {
-    $("coIn").textContent = "The recipe, its checklist, recent actions and what the cook should vs. is doing.";
-    $("dmIn").textContent = "The coach's advice, the checklist, the prediction and the current step.";
-  }
-  if (hasTrig) $("trigHead").style.display = "";
+  $("trigHead").style.display = hasTrig ? "" : "none";
+  $("coIn").textContent = C.ticks[0].recent ? "The recipe, its checklist, the cook's last N actions and earlier ones per step."
+    : C.ticks[0].ledger ? "The recipe, its checklist, recent actions and what the cook should vs. is doing."
+    : "The recipe, the cook's recent actions and the world model's prediction.";
+  $("dmIn").textContent = C.ticks[0].ledger ? "The coach's advice, the checklist, the prediction and the current step."
+    : "The coach's advice, the world model's prediction and the current step.";
   $("calls").innerHTML = C.calls.map((c, i) => `<tr data-i="${i}"><td class="n">${mmss(c.t)}</td><td class="n">${mmss(c.ready)} <span>(${c.sec.toFixed(0)} s)</span></td><td class="n">${c.step + 1}</td>${hasTrig ? `<td class="n">${esc(c.trigger || "")}</td>` : ""}<td>${esc(c.next)}</td></tr>`).join("");
   document.querySelectorAll("#calls tr").forEach((tr) => tr.onclick = () => { $("cvid").currentTime = C.calls[tr.dataset.i].ready + 0.1; $("cvid").scrollIntoView({behavior: "smooth", block: "center"}); });
+  render(t0);
+}
 
-  let lastKey = "";
-  function render(t) {
-    let i = 0;
-    while (i + 1 < C.ticks.length && C.ticks[i + 1].t <= t) i++;
-    const k = C.ticks[i];
-    const ready = C.calls.filter((c) => c.ready <= t), asked = C.calls.filter((c) => c.t <= t && t < c.ready);
-    const ci = ready.length ? C.calls.indexOf(ready[ready.length - 1]) : -1;
-    $("cur").style.left = `${100 * t / end}%`;
-    const key = `${i}|${ci}|${asked.length}`;
-    if (key === lastKey) return;
-    lastKey = key;
-    const ann = C.truth.filter(([s, a, b]) => a <= t && t <= b).map(([s]) => s + 1);
-    $("lvWm").innerHTML = `<div class="note">t = ${mmss(t)} · expects in ~0.8 s:</div>${barList(k.wm.map(([a, p]) => [esc(a), p]), "var(--bar)")}
-      <div class="note" style="margin-top:6px">step tracker: <b>step ${k.tracker + 1}</b> · annotated: ${ann.length ? ann.join(", ") : "none (between steps)"}</div>`;
-    let co = asked.length ? `<div class="pending">thinking… asked at ${mmss(asked[0].t)}</div>` : "";
-    if (ci >= 0) {
-      const c = C.calls[ci];
-      co += `<div class="note">asked ${mmss(c.t)}, answered ${mmss(c.ready)} (${c.sec.toFixed(0)} s)</div><div class="advice">${esc(c.next)}</div>
-        <details><summary>Full answer</summary><pre>${esc(c.text)}</pre></details>
-        <details><summary>Coach's reasoning</summary><pre>${esc(c.thinking)}</pre></details>`;
-    } else if (!asked.length) co = '<span class="note">no advice yet</span>';
-    $("lvCo").innerHTML = co;
-    $("lvDm").innerHTML = `<div class="note">next action (Actions Bank):</div>${barList(k.d1.map(([a, s, p]) => [`${esc(a)} <span class="note">· step ${s}</span>`, p]), "var(--good)")}
-      <div style="margin-top:6px">next step: <b>${k.d1_step}</b>. <span class="note">${esc((C.steps[k.d1_step - 1] || "").slice(0, 70))}…</span></div>
-      <span class="speak ${k.speak > 0.5 ? "yes" : "no"}">remind the cook now? P = ${k.speak.toFixed(2)}</span>`
-      + (k.ledger ? `<div class="check">${k.ledger.map((st, j) => `<span class="${st === "done" ? "done" : st === "in progress" ? "prog" : ""}" title="${esc(C.steps[j])}">${st === "done" ? "✓" : st === "in progress" ? "▶" : "○"} ${j + 1}</span>`).join("")}</div>
-        <div class="align ${k.aligned ? "ok" : "bad"}">should: <b>${esc(k.should)}</b> · doing: <b>${esc(k.wm[0][0])}</b> · ${k.aligned ? "aligned" : `misaligned ${k.streak} s`}</div>` : "");
-    document.querySelectorAll("#calls tr").forEach((tr) => tr.classList.toggle("on", Number(tr.dataset.i) === ci));
-  }
+const labels = Object.keys(RUNS);
+if (!labels.length) {
+  $("lvWm").innerHTML = '<span class="note">No coach data yet: run stage 19b of jepa/pipeline.ipynb.</span>';
+} else {
+  labels.forEach((label) => {
+    const b = document.createElement("button"); b.textContent = label; b.dataset.k = label; b.onclick = () => load(label);
+    $("runSwitch").appendChild(b);
+  });
+  $("runSwitch").style.display = labels.length > 1 ? "" : "none";
+  let start = labels[0];
+  try { const saved = localStorage.getItem("coachRun"); if (saved && RUNS[saved]) start = saved; } catch (e) {}
   $("cvid").addEventListener("timeupdate", () => render($("cvid").currentTime));
   $("cvid").addEventListener("seeked", () => render($("cvid").currentTime));
-  render(0);
-
+  load(start);
 }
 
 </script>
