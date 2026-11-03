@@ -106,6 +106,8 @@ All on HD-EPIC with its annotated step tags, one run per setting. Coach answers 
 | Reminders before the cook starts a step | 3/5 (Eggs) and 4/6 (Bacon & Egg) steps, up from 0–1 and 1–3 |
 | Frame checks (11B) on memory | "Has it begun?" judged right 89% (Eggs). Bacon & Egg steps were recorded 87 s too early before; now 6 s late |
 | Perfect-probe ceiling (annotations as the probe) | Eggs: 6/7 steps remembered, 7 s late |
+| Coach asks for frame checks (stage 39) | Fewer steps marked too early (Eggs 2 → 1, Bacon & Egg 4 → 3), but one step fewer remembered on each dish |
+| Parallel work allowed (stage 40) | Reminders no step needed: 5 → 0 (Eggs), 1 → 0 (Bacon & Egg); Eggs reminders 18 → 8. A skipped step nothing depends on (Eggs plating) was never reminded |
 
 The main limits: the probe reads HD-EPIC kitchens far worse than the EPIC-KITCHENS footage it was trained on, and fetching actions (take pan, take knife) make steps look started before they are. Frame checks address the second problem.
 
