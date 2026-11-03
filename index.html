@@ -231,7 +231,7 @@ function render(t) {
   if (ci >= 0) {
     const c = C.calls[ci];
     const why = c.trigger ? ` · ${esc(c.trigger)}` : "";
-    co += `<div class="note">asked ${mmss(c.t)}, answered ${mmss(c.ready)} (${c.sec.toFixed(0)} s${why})</div><div class="advice">${esc(c.next)}</div>
+    co += `<div class="note">asked ${mmss(c.t)}, answered ${mmss(c.ready)} (${c.sec.toFixed(0)} s${why})</div><div class="advice">${esc(c.next)}</div>${c.remind != null ? `<div class="note">Don't forget: step ${c.remind + 1}</div>` : ""}
       <details><summary>Full answer</summary><pre>${esc(c.text)}</pre></details>
       <details><summary>Coach's reasoning</summary><pre>${esc(c.thinking)}</pre></details>`;
   } else if (!asked.length) co = '<span class="note">no advice yet</span>';
