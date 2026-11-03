@@ -141,7 +141,8 @@ def replays(ns):
     """(label, saved run files in the order the code runs them, function that reruns them) per pinned stage."""
     vid, sfx = ns["VIDEO_ID"], ns["TAGS_SUFFIX"]
     res = BOX / "results"
-    out = [("stage 31 timing+loops", [res / f"coach_adaptive_timing_loops{sfx}_{vid}.json"],
+    out = [("stage 26 every 10 actions", [res / f"coach_events_N10{sfx}_{vid}.json"], lambda: [ns["run_events"](10)]),
+           ("stage 31 timing+loops", [res / f"coach_adaptive_timing_loops{sfx}_{vid}.json"],
             lambda: [ns["run_adaptive"](**ns["ADAPTIVE_VARIANTS"]["timing+loops"])]),
            ("stage 35 reminders", [res / f"coach_adaptive_remind{sfx}_{vid}.json"],
             lambda: [ns["run_adaptive"](**ns["REMIND_RUNS"]["remind"])])]
