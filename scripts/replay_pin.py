@@ -24,9 +24,9 @@ import numpy as np
 
 DISHES = [("P08-20240614-085000", "P08_R03"), ("P02-20240210-113925", "P02_R04")]
 CELLS = ["c13c", "c15c", "c21c", "c22c", "c24c", "c25c", "c26c", "c27c", "c28c", "c29c", "c30c", "c31c", "c33c",
-         "c35c", "c36c", "c40c"]
+         "c35c", "c36c", "c38c", "c39c", "c40c"]
 TICK_KEYS = ("t", "tracker", "hsmm", "wm", "d1", "d1_step", "speak", "should", "aligned", "ledger", "rounds", "recent")
-CALL_KEYS = ("t", "ready", "trigger", "n_actions", "step", "hsmm", "coach_step", "remind", "next", "parsed")
+CALL_KEYS = ("t", "ready", "trigger", "n_actions", "step", "hsmm", "coach_step", "remind", "look", "next", "parsed")
 
 
 def sandbox():
@@ -163,6 +163,16 @@ def replays(ns):
             for f, b in saved.items():
                 f.write_bytes(b)
     out.append(("stage 40 parallel reminders", files, stage40))
+    def stage39():   # c39c's run: frame-checked starts (stage 38, answers from the looks cache) and a LOOK line
+        plain = ns["REMIND_ANSWER"]
+        try:
+            ns["REMIND_ANSWER"] = plain.replace("Never ask the cook to redo a step that is done.",
+                                                "Never ask the cook to redo a step that is done. If you are unsure whether a step has begun, "
+                                                "ask to look at the video.") + ns["LOOK_LINE"]
+            return [ns["run_adaptive"](**ns["LOOK_RUN"])]
+        finally:
+            ns["REMIND_ANSWER"] = plain
+    out.append(("stage 39 coach asks to look", [res / f"coach_adaptive_remind_looks{sfx}_{vid}.json"], stage39))
     return out
 
 
