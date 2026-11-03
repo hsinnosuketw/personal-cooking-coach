@@ -26,6 +26,29 @@ STEP <n> NEEDS: <step numbers, or none>      (one line per step, for every step)
 LOOP: <first step>-<last step> | <how many times, or "until done"> | <what is repeated>      (or LOOP: none)"""
 
 
+def loops_prompt(name: str, texts: list[str]) -> str:
+    """Stage 27's question: only the repeated runs."""
+    recipe = "\n".join(f"{k + 1}. {s}" for k, s in enumerate(texts))
+    return f"""Recipe: {name}
+{recipe}
+
+Some recipes repeat a run of steps: once per item (each disc, each paratha, each slice), or until something is ready (flip until both sides are brown).
+List every run of consecutive steps that a cook repeats. Use only the recipe text.
+Answer with one line per run, and nothing else:
+LOOP: <first step>-<last step> | <how many times, or "until done"> | <what is repeated, in a few words>
+If no steps repeat, answer exactly: LOOP: none"""
+
+
+def parse_loops(text: str, n_steps: int) -> list[dict]:
+    """LOOP lines as [{"first", "last", "times", "what"}], 0-based."""
+    loops = []
+    for m in LOOP_RE.finditer(text or ""):
+        a, b = int(m[1]) - 1, int(m[2] or m[1]) - 1
+        if 0 <= a <= b < n_steps:
+            loops.append({"first": a, "last": b, "times": m[3].strip(), "what": m[4].strip()})
+    return loops
+
+
 def parse_graph(text: str, n_steps: int) -> dict:
     """{"needs": {step: [prerequisite steps]}, "loops": [{"first", "last", "times", "what"}]}; steps are 0-based."""
     needs = {k: [] for k in range(n_steps)}
@@ -33,12 +56,7 @@ def parse_graph(text: str, n_steps: int) -> dict:
         k = int(m[1]) - 1
         if 0 <= k < n_steps:
             needs[k] = sorted({int(x) - 1 for x in re.findall(r"\d+", m[2]) if 0 <= int(x) - 1 < k})  # only earlier steps
-    loops = []
-    for m in LOOP_RE.finditer(text or ""):
-        a, b = int(m[1]) - 1, int(m[2] or m[1]) - 1
-        if 0 <= a <= b < n_steps:
-            loops.append({"first": a, "last": b, "times": m[3].strip(), "what": m[4].strip()})
-    return {"needs": needs, "loops": loops}
+    return {"needs": needs, "loops": parse_loops(text, n_steps)}
 
 
 def needed_by(needs: dict[int, list[int]]) -> dict[int, list[int]]:
