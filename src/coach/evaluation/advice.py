@@ -77,3 +77,52 @@ def timing_scores(run: dict, truth, n_steps: int, window: float = 30.0) -> dict:
         row["calls skipped (nothing new)"] = sum(run["suppressed"].values())
     row["triggers"] = ", ".join(f"{k} {v}" for k, v in pd.Series([c.get("trigger", "?") for c in calls]).value_counts().items())
     return row
+
+
+def actual_next(truth, t: float) -> set[int]:
+    """What this cook did: the step being worked on at t (+1 s), or else the next step to start."""
+    now = {k for k, s0, s1 in truth if s0 <= t + 1 <= s1}
+    if now:
+        return now
+    later = sorted((s0, k) for k, s0, s1 in truth if s0 > t)
+    return {later[0][1]} if later else set()
+
+
+def recipe_next(truth, n_steps: int, t: float) -> set[int]:
+    """What the recipe says: a step in progress, or the lowest-numbered step not started yet."""
+    now = {k for k, s0, s1 in truth if s0 <= t + 1 <= s1}
+    started = {k for k, s0, s1 in truth if s0 <= t}
+    left = [k for k in range(n_steps) if k not in started]
+    return now | ({min(left)} if left else set())
+
+
+def setting_scores(rows: list[dict], truth, n_steps: int) -> dict:
+    """Stage 17: one coach setting's answers at fixed moments (rows: t, step, sec, tokens, text, truncated)."""
+    ok = [r for r in rows if r["step"] is not None]
+    secs = [r["sec"] for r in rows if r["sec"] is not None]
+    hit = lambda f: round(float(np.mean([r["step"] in f(r["t"]) for r in rows])), 2)
+    return {"answered": f"{len(ok)}/{len(rows)}", "cut off by max_tokens": sum(r["truncated"] for r in rows),
+            "acc: what the cook did": hit(lambda t: actual_next(truth, t)), "acc: recipe order": hit(lambda t: recipe_next(truth, n_steps, t)),
+            "acc: either": hit(lambda t: actual_next(truth, t) | recipe_next(truth, n_steps, t)),
+            "median s (10 at once)": round(float(np.median(secs)), 1) if secs else None,
+            "median output tokens": int(np.median([r["tokens"] for r in rows if r["tokens"]])) if secs else None,
+            "median words": int(np.median([len(r["text"].split()) for r in ok])) if ok else None}
+
+
+def run_summary(run: dict, truth, n_steps: int) -> dict:
+    """Stage 26d: how often the coach spoke, repeats, d1's choices and, with checklist lines, DONE precision/recall."""
+    calls, ticks = run["calls"], run["ticks"]
+    minutes = (ticks[-1]["t"] - ticks[0]["t"]) / 60
+    row = {"advice messages": len(calls), "per minute": round(len(calls) / minutes, 1), "repeated advice": repeated(calls),
+           **d1_scores(ticks, truth, n_steps), "median coach s": round(float(np.median([c["sec"] for c in calls])), 1) if calls else None}
+    parsed = [c for c in calls if c.get("parsed")]
+    if parsed:
+        fin = lambda t: finished_by(truth, t)
+        tp = sum(len(set(c["parsed"]["DONE"]) & fin(c["t"])) for c in parsed)
+        said, real = sum(len(c["parsed"]["DONE"]) for c in parsed), sum(len(fin(c["t"])) for c in parsed)
+        row.update({"DONE precision": round(tp / said, 2) if said else None, "DONE recall": round(tp / real, 2) if real else None,
+                    "STEP is a finished step": round(float(np.mean([c["coach_step"] in fin(c["t"]) for c in parsed
+                                                                     if c["coach_step"] is not None])), 2)})
+    if any(c.get("trigger") for c in calls):
+        row["triggers"] = ", ".join(f"{k} {v}" for k, v in pd.Series([c["trigger"] for c in calls]).value_counts().items())
+    return row

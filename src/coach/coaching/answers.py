@@ -79,3 +79,9 @@ def next_part(text: str) -> str:
     """The advice of a stage 18 answer (no checklist lines)."""
     part = text.split("Next:")[-1] if "Next:" in text else text
     return " ".join(part.replace("*", "").replace("STEP:", " STEP:").split())
+
+
+def parse_step_number(text: str) -> int | None:
+    """Stage 17's appended "STEP: <n>" line (0-based), without checking it is a step of the recipe."""
+    found = re.findall(r"^\W*STEP\W*(\d+)", text or "", re.I | re.M)
+    return int(found[-1]) - 1 if found else None

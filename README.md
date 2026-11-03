@@ -42,7 +42,7 @@ src/coach/               the Python package (pip install -e .)
   decision/              d1's choices, questions and state
   timing/                when to ask the coach: events, suppression, back-off, wrap-up
   vision/                frame checks: contact sheets, the vision model, its cache
-  render/                guide/truth videos, demo frames, the demo server
+  render/                guide/truth videos, the combined coach video, demo frames, the demo server
   evaluation/            scores against the annotations: goals, tracking, advice, start rules, skipped steps, upper bounds
 notebooks/pipeline.ipynb the experiment, stage by stage (1–40): why, input, output and the measured result
 data/raw/                downloads (git-ignored): weights, videos, annotation files
@@ -55,8 +55,10 @@ archive/                 earlier prototypes (POMDP benchmark, 3D kitchen, onion 
 .claude/skills/          project skills; project-structure says where new code goes
 ```
 
-Notebook cells call the package. What stays in cells is orchestration: the per-second run loops (`run_events`,
-`run_adaptive`) and the experiments that swap a run's inputs (skipped steps, the perfect probe, parallel reminders).
+Notebook cells call the package. What stays in cells is orchestration: loading models and timing them on the GPU
+(stages 4-16), the experiment runners that call the models (the stage 17 settings sweep, the stage 18 timeline, the
+per-second run loops `run_events` and `run_adaptive`, the stage 26 replays) and the experiments that swap a run's inputs
+(skipped steps, annotated events, the perfect probe, parallel reminders).
 `python3 scripts/replay_pin.py check` replays the saved runs of both dishes through the notebook's code with the saved
 coach and d1 answers, and confirms every tick, prompt and d1 input is unchanged.
 
