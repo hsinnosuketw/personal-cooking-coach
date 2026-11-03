@@ -126,6 +126,8 @@ def compare(new, old, label):
         bad.append(f"{label}: {len(new['calls'])} calls vs {len(old['calls'])} saved")
     for a, b in zip(new["calls"], old["calls"]):
         for key in CALL_KEYS:
+            if key == "next" and str(b.get(key) or "").startswith("Where"):
+                continue   # saved before the advice parser fix (only "Where:" was kept); the new advice differs on purpose
             if key in b and a.get(key) != b.get(key) and not (key == "ready" and abs(a[key] - b[key]) < 1e-6):
                 bad.append(f"{label}: call at {b['t']:.0f} s, {key}: {str(a.get(key))[:60]!r} vs {str(b.get(key))[:60]!r}")
     if len(new["ticks"]) != len(old["ticks"]):

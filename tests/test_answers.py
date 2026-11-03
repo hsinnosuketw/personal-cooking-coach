@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from coach.coaching.answers import advice_text, parse_intent, parse_ledger, parse_look, parse_remind
+from coach.coaching.answers import advice_part, advice_text, parse_intent, parse_ledger, parse_look, parse_remind
 
 HEADED = "Where:\nDone: step 3.\n\nNext:\nKeep plating; heat the pan next.\n\nDONE: 3\nSTEP: 7\nREMIND: none"
 
@@ -26,6 +26,12 @@ def test_checklist_lines_become_0_based_steps():
     full = "Next: x\nDONE: 1, 2\nIN PROGRESS: 3\nLEFT: 4-5\nSTEP: 3\nREMIND: 9\nLOOK: **4**"
     assert parse_ledger(full, 7) == {"DONE": [0, 1], "IN PROGRESS": [2], "LEFT": [3, 4], "STEP": [2]}
     assert parse_remind(full, 7) is None and parse_look(full, 7) == 3   # 9 is not a step of this recipe
+
+
+def test_a_done_line_inside_where_does_not_cut_the_advice():
+    answer = "Where:\nDone: step 3 onions, first sign 0:06.\nNot seen yet: step 1.\n\nNext:\nKeep plating.\n\nDONE: 3\nSTEP: 7"
+    assert advice_part(answer) == "Keep plating."
+    assert advice_part("Next: oil the pan.\ndone: 1\nSTEP: 2") == "oil the pan."   # a lower-case checklist still ends it
 
 
 def test_three_layer_answer():

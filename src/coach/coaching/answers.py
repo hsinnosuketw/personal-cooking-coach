@@ -59,8 +59,13 @@ def parse_intent(text: str, n_steps: int) -> dict:
 
 
 def advice_part(text: str) -> str:
-    """The "Next" paragraph, without the checklist lines."""
-    body = re.split(r"^\W*DONE\W*:", text or "", flags=re.M | re.I)[0]
+    """The "Next" paragraph, without the checklist lines.
+
+    The checklist starts at the last DONE line: a "Done: step 3 …" line inside the Where section used to cut the
+    answer there, leaving only "Where:" as the advice (25 of 862 saved answers)."""
+    text = text or ""
+    starts = [m.start() for m in re.finditer(r"^\W*DONE\W*:", text, re.M | re.I)]
+    body = text[:starts[-1]] if starts else text
     body = body.split("Next:")[-1] if "Next:" in body else body
     return " ".join(body.replace("*", "").split())
 
