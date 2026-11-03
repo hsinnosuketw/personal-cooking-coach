@@ -1,6 +1,6 @@
 """Render the cooking guide as a demo video, and score it against the annotations.
 
-  python3 -m jepa.guide_video VIDEO.mp4 PRED.npz --recipe P08_R03 --out guide.mp4 [--speed 4]
+  python3 -m coach.render.guide_video VIDEO.mp4 PRED.npz --recipe P08_R03 --out guide.mp4 [--speed 4]
   ... --steps-json nim_steps.json   use steps written by the NIM VLM instead of HD-EPIC's
 
 Left: the cooking video, in real time by default (the demo page lets the
@@ -24,11 +24,11 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from .action_bank import ActionBankRepository
-from .domain import Prediction
-from .extractors import HDEpicExtractor, ManualRecipeExtractor
-from .scorer import LatentStateScorer, match_scores
-from .vocab import CACHE, Vocab, class_maps
+from ..perception.action_bank import ActionBankRepository
+from ..domain import Prediction
+from ..data.extractors import HDEpicExtractor, ManualRecipeExtractor
+from ..perception.scorer import LatentStateScorer, match_scores
+from ..data.vocab import CACHE, Vocab, class_maps
 
 W, H, SIDE = 1280, 720, 720
 INK, MUTED, ACCENT, GOOD, PANEL = (235, 235, 240), (150, 150, 165), (255, 176, 59), (90, 200, 120), (24, 24, 32)

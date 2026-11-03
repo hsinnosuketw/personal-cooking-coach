@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from .domain import CandidateAction, StepSpec
-from .extractors import IRecipeExtractor
-from .vocab import Vocab
+from ..domain import CandidateAction, StepSpec
+from ..data.extractors import IRecipeExtractor
+from ..data.vocab import Vocab
 
 SMOOTH = 0.02  # share of each signature spread evenly, so one unseen verb can't zero a step out
 

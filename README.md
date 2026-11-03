@@ -31,16 +31,26 @@ recipe ─► task graph (which steps repeat) ───────────�
 
 ## Where things are
 
-| Path | Contents |
-|---|---|
-| `jepa/pipeline.ipynb` | The whole experiment, stage by stage (1–39). Each stage says why it exists, its input and output, and the measured result. |
-| `jepa/*.py` | World model, probe, step tracker, recipe extractors, data download, video rendering, demo server |
-| `jepa/demo/index.html` | The demo page (data and videos are built into `jepa/demo/`, not tracked) |
-| `test_jepa.py` | Offline tests (no torch, no network) |
-| `archive/` | Earlier prototypes (POMDP benchmark, 3D kitchen, onion game, live-coach); they still run from there |
-| `.claude/skills/project-structure/` | The layout this repo is moving to (`coach/` package, thin notebooks, `data/`, `results/`, `site/`, `tests/`) |
+```
+src/coach/               the Python package (pip install -e .)
+  config.py              where data, results and the site live
+  domain.py              shared types (steps, predictions)
+  data/                  downloads, EPIC-KITCHENS/HD-EPIC annotations, class vocabulary, recipe extractors
+  perception/            V-JEPA 2 + probe, per-second predictions, action bank, step tracker
+  render/                guide/truth videos, demo frames, the demo server
+  evaluation/            VLM tagging and tracking comparisons
+notebooks/pipeline.ipynb the experiment, stage by stage (1–39): why, input, output and the measured result
+data/raw/                downloads (git-ignored): weights, videos, annotation files
+data/processed/          derived inputs (git-ignored): per-second predictions, step tags, task graphs
+results/                 run outputs and rendered videos (git-ignored)
+site/                    the demo page; coach.js and the videos are built into it from results/
+tests/                   offline tests (no torch, no network)
+scripts/                 build_bundle.py packs src/coach into the notebook for Colab
+archive/                 earlier prototypes (POMDP benchmark, 3D kitchen, onion game, live-coach)
+.claude/skills/          project skills; project-structure says where new code goes
+```
 
-Most of the logic from stage 13 on still lives in notebook cells. It is being moved into a package following the project-structure skill.
+Most of the logic from stage 13 on (coach, memory, timing, frame checks, scoring) still lives in notebook cells and is being moved into `src/coach/` subpackages, following the project-structure skill.
 
 ### Notebook stages
 
@@ -59,10 +69,10 @@ Most of the logic from stage 13 on still lives in notebook cells. It is being mo
 On a laptop (no GPU):
 
 ```bash
-pip install -r requirements.txt
-python3 test_jepa.py                          # offline tests
-python3 -m jepa.fetch --annotations-only      # EPIC-KITCHENS + HD-EPIC labels and recipes
-python3 -m jepa.serve_demo --port 8080        # the demo page on http://127.0.0.1:8080 (videos seekable)
+pip install -e .                                   # the coach package (src/coach)
+python3 tests/test_coach.py                        # offline tests
+python3 -m coach.data.fetch --annotations-only     # EPIC-KITCHENS + HD-EPIC labels and recipes into data/raw/
+python3 -m coach.render.serve --port 8080          # the demo page on http://127.0.0.1:8080 (videos seekable)
 ```
 
 The models run on a Colab GPU from VS Code (Google Colab extension → Select Kernel → Colab):
@@ -71,7 +81,7 @@ The models run on a Colab GPU from VS Code (Google Colab extension → Select Ke
 - **A100 40 GB**: self-hosted Glimmer (vLLM, FP8, text only) next to d1.
 - **A100 80 GB (High-RAM)**: Glimmer, d1 and the 11B vision model together (stages 38–39).
 
-Open `jepa/pipeline.ipynb` and run it top to bottom. Stage 2 picks the video and recipe. Each stage reuses saved results in `jepa/results/` unless its `RERUN_*` flag is set. The NIM key is read from `.env` (`NVIDIA_API_KEY=...`).
+Open `notebooks/pipeline.ipynb` and run it top to bottom. Stage 1 unpacks the package on Colab (after changing `src/coach/`, run `python3 scripts/build_bundle.py`). Stage 2 picks the video and recipe. Each stage reuses saved results in `results/` unless its `RERUN_*` flag is set. The NIM key is read from `.env` (`NVIDIA_API_KEY=...`).
 
 ## Results so far (measured, small samples)
 

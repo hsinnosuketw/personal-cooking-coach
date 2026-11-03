@@ -1,6 +1,6 @@
 """Let the VLM read the world model's predictions and decide the recipe step, offline.
 
-  NVIDIA_API_KEY=... python3 -m jepa.vlm_tracker [--runs 2] [--window 60]
+  NVIDIA_API_KEY=... python3 -m coach.evaluation.vlm_tracker [--runs 2] [--window 60]
 
 The scorer matches probe words to step tags with fixed rules. Here the VLM
 gets the recipe's own step texts plus, for each second, the probe's top
@@ -24,11 +24,11 @@ from pathlib import Path
 
 import numpy as np
 
-from .extractors import HDEpicExtractor, NIMRecipeExtractor
-from .guide_video import action_names, active, truth_steps
-from .vocab import Vocab
+from ..data.extractors import HDEpicExtractor, NIMRecipeExtractor
+from ..render.guide_video import action_names, active, truth_steps
+from ..data.vocab import Vocab
 
-HERE = Path(__file__).parent
+from ..config import RESULTS
 RECIPE, VIDEO = "P08_R03", "P08-20240614-085000"
 
 
@@ -84,7 +84,7 @@ def main() -> None:
     args = ap.parse_args()
     vocab = Vocab.load()
     hd = HDEpicExtractor(vocab)
-    pred = dict(np.load(HERE / "results/demo/P08.npz"))
+    pred = dict(np.load(RESULTS / "demo/P08.npz"))
     ticks = pred["t"]
     truth = truth_steps(hd, RECIPE, VIDEO)
     texts = [s.text for s in hd.extract_steps(RECIPE)]
@@ -132,7 +132,7 @@ def main() -> None:
             out["runs"].append(row)
             print(f"{label:32} run {run + 1}: accuracy {row['accuracy']}  coverage {row['coverage']}  "
                   f"{row['calls']} calls {row['seconds']} s tokens {row['tokens']}", flush=True)
-            (HERE / "results/vlm_tracker.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
+            (RESULTS / "vlm_tracker.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":

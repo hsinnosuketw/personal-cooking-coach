@@ -1,4 +1,4 @@
-"""Checks for the V-JEPA 2 recipe guide's offline layer. Run: python3 test_jepa.py
+"""Checks for the V-JEPA 2 recipe guide's offline layer. Run: python3 tests/test_coach.py
 
 No torch, no network: the NIM extractor runs against a fake transport.
 Tests that need the downloaded EK100/HD-EPIC files skip when they're absent.
@@ -9,13 +9,18 @@ import os
 import pickle
 import tempfile
 
+import sys
+from pathlib import Path
+
 import numpy as np
 
-from jepa import extractors
-from jepa.action_bank import ActionBankRepository
-from jepa.domain import Prediction, StepSpec
-from jepa.scorer import LatentStateScorer, match_scores
-from jepa.vocab import CACHE, Vocab
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))  # runs without pip install -e .
+
+from coach.data import extractors
+from coach.data.vocab import CACHE, Vocab
+from coach.domain import Prediction, StepSpec
+from coach.perception.action_bank import ActionBankRepository
+from coach.perception.scorer import LatentStateScorer, match_scores
 
 TINY = Vocab(verb_row={"take": 0, "cut": 1, "pour": 2, "stir": 3},
              noun_row={"egg": 0, "onion": 1, "pan": 2, "knife": 3, "bowl": 4})
@@ -135,7 +140,7 @@ def test_narrations_loader_refuses_pickles_that_would_run_code():
 
 def test_real_vocab_and_hd_epic_recipe():
     if not HAVE_DATA:
-        print("  (skipped: run python3 -m jepa.fetch for the EK100 and HD-EPIC files)")
+        print("  (skipped: run python3 -m coach.data.fetch --annotations-only for the EK100 and HD-EPIC files)")
         return
     vocab = Vocab.load()
     assert (vocab.n_verbs, vocab.n_nouns) == (97, 289)

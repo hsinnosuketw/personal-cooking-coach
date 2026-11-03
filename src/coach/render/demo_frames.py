@@ -1,6 +1,6 @@
 """Pick moments from a precomputed video and save what the world model predicted at each.
 
-  python3 -m jepa.demo_frames VIDEO.mp4 PRED.npz --recipe P08_R03 --out DIR [--extra 12]
+  python3 -m coach.render.demo_frames VIDEO.mp4 PRED.npz --recipe P08_R03 --out DIR [--extra 12]
 
 For every annotated step start (taken 1 s early, as the model sees it) plus
 `extra` evenly spaced moments that have a narration 1 s later: the last
@@ -17,10 +17,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .action_bank import ActionBankRepository
-from .extractors import HDEpicExtractor
+from ..perception.action_bank import ActionBankRepository
+from ..data.extractors import HDEpicExtractor
 from .guide_video import action_names, replay, truth_steps
-from .vocab import Vocab
+from ..data.vocab import Vocab
 
 
 def top(probs: np.ndarray, names, k: int = 5) -> list[dict]:

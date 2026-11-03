@@ -1,6 +1,6 @@
 """Render the video with HD-EPIC's ground truth next to what the model predicted.
 
-  python3 -m jepa.truth_video VIDEO.mp4 PRED.npz --recipe P08_R03 --out truth.mp4 [--steps-json S.json]
+  python3 -m coach.render.truth_video VIDEO.mp4 PRED.npz --recipe P08_R03 --out truth.mp4 [--steps-json S.json]
 
 Right panel, top to bottom: the action HD-EPIC's narrators recorded at this
 moment (text, main action, hands); what V-JEPA 2 + probe predicted one
@@ -20,10 +20,10 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 
-from .action_bank import ActionBankRepository
-from .extractors import HDEpicExtractor, ManualRecipeExtractor
+from ..perception.action_bank import ActionBankRepository
+from ..data.extractors import HDEpicExtractor, ManualRecipeExtractor
 from .guide_video import ACCENT, GOOD, H, INK, MUTED, PANEL, SIDE, W, action_names, active, font, replay, truth_steps
-from .vocab import Vocab
+from ..data.vocab import Vocab
 
 STEP_COLOURS = [(230, 159, 0), (86, 180, 233), (0, 158, 115), (240, 228, 66), (0, 114, 178), (213, 94, 0),
                 (204, 121, 167), (150, 150, 150)]

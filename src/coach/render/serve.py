@@ -1,10 +1,10 @@
-"""Serve the demo page (jepa/demo/) over http, read-only, with video seeking.
+"""Serve the demo page (site/) over http, read-only, with video seeking.
 
-  python3 -m jepa.serve_demo [--port 8080] [--host 127.0.0.1]
+  python3 -m coach.render.serve [--port 8080] [--host 127.0.0.1]
 
 Python's built-in server ignores Range requests, so browsers can't seek the
 MP4s (Safari won't play them at all). This one answers single byte ranges.
-Only files inside jepa/demo/ are served, without directory listings. For a
+Only files inside site/ are served, without directory listings. For a
 public link, keep the host at 127.0.0.1 and put a tunnel in front:
 
   cloudflared tunnel --url http://127.0.0.1:8080
@@ -18,7 +18,7 @@ import re
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-DEMO = Path(__file__).parent / "demo"
+from ..config import SITE as DEMO
 CHUNK = 1 << 20
 
 

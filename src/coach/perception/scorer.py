@@ -17,7 +17,7 @@ from __future__ import annotations
 import numpy as np
 
 from .action_bank import ActionBankRepository
-from .domain import Prediction, PredictionResult
+from ..domain import Prediction, PredictionResult
 
 STAY, NEXT = 0.45, 0.35  # prior mass for the current and next step; the rest is shared
 PRIOR_WEIGHT = 0.3       # 1 = trust recipe order fully; 0 = ignore it

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "world-model-coach"
+version = "0.1.0"
+description = "A cooking coach on a V-JEPA 2 world model, an LLM coach and a decision model"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "opencv-python", "pillow", "pyyaml"]
+
+[project.optional-dependencies]
+coach = ["openai", "requests"]                                    # NIM / self-hosted Glimmer, vision checks over HTTP
+gpu = ["torch", "torchvision", "einops", "transformers>=5.19"]    # world model, d1, the 11B vision model (Colab)
+
+[tool.setuptools.packages.find]
+where = ["src"]

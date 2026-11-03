@@ -20,9 +20,13 @@ archive/livecoach/runs/
 # Synthetic test rounds (regenerate with: python3 -m chef bots)
 archive/gameplay/synthetic/
 
-# V-JEPA 2 / EPIC-KITCHENS cache: weights, videos, vendored repos (python3 -m jepa.fetch)
-jepa/_cache/
+# Downloads and derived inputs (python3 -m coach.data.fetch): weights, videos, vendored repos, predictions
+data/
 
-# Demo page media and data (python3 -m jepa.build_demo); only the page itself is tracked
-jepa/demo/*
-!jepa/demo/index.html
+# Run outputs and rendered videos (written by the notebook)
+results/
+
+# Demo site: the page and its icons are tracked; its data and media are built from results/
+site/*
+!site/index.html
+!site/icons/

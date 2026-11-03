@@ -11,9 +11,10 @@ This repo follows the [Cookiecutter Data Science](https://cookiecutter-data-scie
 
 ```
 README.md                    what it is, how to run it (keep the "Run it" commands working)
-pyproject.toml               package metadata; requirements.txt stays for Colab/pip -r
-coach/                       the Python package: ALL reusable logic lives here
-  config.py                  paths (ROOT, DATA, RESULTS), model names, tunable constants
+pyproject.toml               package metadata (pip install -e .); requirements.txt stays for Colab/pip -r
+src/coach/                   the Python package ("src layout"): ALL reusable logic lives here; imports read `from coach...`
+  config.py                  paths (ROOT, DATA_RAW, DATA_PROCESSED, RESULTS, SITE); later model names and tunable constants
+  domain.py                  shared types (StepSpec, Prediction…)
   data/                      getting and reading inputs: fetch, HD-EPIC/EPIC annotations, vocab, recipes
   perception/                world model + probe, step tracker, HSMM, action segments
   memory/                    the checklist (ledger, camera rule, order rule, loops), event memory
@@ -21,8 +22,8 @@ coach/                       the Python package: ALL reusable logic lives here
   decision/                  d1 decision model: state, questions, decide
   timing/                    when to call the coach: triggers, suppression, back-off, the run loop
   vision/                    frame checks: frame reader, contact sheets, vision-model backends
-  evaluation/                metrics against annotations (tracker, memory, reminders, omissions)
-  render/                    video rendering and the demo-site export
+  render/                    video rendering, the demo-site export and the demo server
+  evaluation/                metrics against annotations (tracker, memory, reminders, omissions), VLM comparisons
 notebooks/
   pipeline.ipynb             the experiment log: each stage = markdown (why, input, output, result) + a short code cell
 data/                        gitignored
@@ -31,8 +32,8 @@ data/                        gitignored
 results/                     gitignored: run outputs (coach_*.json, looks_*.json), rendered videos
 site/                        the demo page (index.html is tracked; coach.js and videos are built)
 tests/                       pytest; no network, no GPU, no downloaded data unless marked
-scripts/                     one-off command-line entry points (serve the site, build the bundle)
-archive/                     earlier prototypes; read-only, not imported by coach/
+scripts/                     command-line helpers (build_bundle.py packs src/coach into the notebook)
+archive/                     earlier prototypes; read-only, not imported by src/coach/
 .claude/skills/              project skills like this one
 ```
 
@@ -40,17 +41,17 @@ archive/                     earlier prototypes; read-only, not imported by coac
 
 | You are writing… | Put it in | Not in |
 |---|---|---|
-| A function used by more than one stage, or longer than ~10 lines | `coach/<area>/` | a notebook cell |
-| A tunable number (threshold, window, model name) | `coach/config.py` or a dataclass default in its module | scattered literals |
-| A prompt template | `coach/coaching/prompts.py` | inline f-strings in cells |
+| A function used by more than one stage, or longer than ~10 lines | `src/coach/<area>/` | a notebook cell |
+| A tunable number (threshold, window, model name) | `src/coach/config.py` or a dataclass default in its module | scattered literals |
+| A prompt template | `src/coach/coaching/prompts.py` | inline f-strings in cells |
 | Something that reads a file path | take the path as an argument; defaults come from `config.py` | `ROOT / "jepa/results/..."` inside logic |
-| A metric that compares to annotations | `coach/evaluation/` | the run loop |
+| A metric that compares to annotations | `src/coach/evaluation/` | the run loop |
 | A new experiment | a new notebook stage that calls package functions | a new copy of an existing function with one change |
-| A downloaded file | `data/raw/` via `coach.data.fetch` | git |
+| A downloaded file | `data/raw/` via `python3 -m coach.data.fetch` | git |
 | A run's output | `results/` with the run's settings saved inside the JSON | git, `data/` |
 | A demo asset | built into `site/` by `coach.render.site` | hand-copied files |
 
-## Rules for code in `coach/`
+## Rules for code in `src/coach/`
 
 - **No hidden globals.** Notebook code relied on globals (`pred`, `texts`, `truth`, `SEGMENTS`, `STEPS_OF`…). In the package, pass them in. Group the per-video inputs in one object (e.g. `Episode`: video id, recipe, step texts, predictions, annotations, action bank) and the per-run settings in a dataclass, so a function's inputs are visible in its signature.
 - **Causality is part of the interface.** Anything used live (`perception`, `memory`, `timing`, `vision`) must only read data up to time t. Name such functions after what they see (`step_posterior_until(t)`), and keep annotation-reading code in `evaluation/` only.
@@ -60,10 +61,10 @@ archive/                     earlier prototypes; read-only, not imported by coac
 
 ## Rules for notebooks
 
-- A code cell **calls** the package and **shows** results: set parameters, call one or two functions, `display()` the table. If a cell grows a `def`, move it into `coach/`.
+- A code cell **calls** the package and **shows** results: set parameters, call one or two functions, `display()` the table. If a cell grows a `def`, move it into `src/coach/`.
 - Each stage's markdown keeps the experiment record: why it exists, input → output, and the result numbers with the date. That record is the notebook's job; the code is the package's.
 - Stage numbers stay stable once results cite them; add new stages at the end.
-- Colab gets the package by installing the repo (`pip install git+…` or the zipped bundle built by `scripts/build_bundle.py`), never by pasting code into cells.
+- Colab gets the package from the notebook's `BUNDLE` (rebuilt by `python3 scripts/build_bundle.py` after any change under `src/coach/`) or by `pip install git+…`, never by pasting code into cells.
 
 ## Data and results
 
@@ -74,13 +75,13 @@ archive/                     earlier prototypes; read-only, not imported by coac
 
 ## Tests
 
-- `tests/` mirrors `coach/` (`tests/memory/test_checklist.py`…). Fast tests use fakes for models and tiny synthetic episodes; tests that need downloaded data skip when it's absent.
+- `tests/` mirrors `src/coach/` (`tests/memory/test_checklist.py`…). Tests put `src/` on `sys.path` so they run without installing. Fast tests use fakes for models and tiny synthetic episodes; tests that need downloaded data skip when it's absent.
 - When moving notebook code into the package, first pin its behaviour: run the old cell and the new function on the same input and compare outputs (a saved results JSON is a good fixture).
 
-## Refactoring checklist (moving notebook code into `coach/`)
+## Refactoring checklist (moving notebook code into `src/coach/`)
 
 1. Pick one area (e.g. memory). List the notebook cells and globals it uses.
 2. Write the module with explicit inputs; keep names and behaviour identical first, improve second.
 3. Add a test that reproduces a saved result (same input → same output).
-4. Replace the cell's body with an import and a call; rerun that stage locally.
+4. Replace the cell's body with an import and a call; run `python3 scripts/build_bundle.py`; rerun that stage locally.
 5. Commit that area alone, then move to the next.

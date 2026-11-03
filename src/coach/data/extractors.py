@@ -26,7 +26,7 @@ from typing import Protocol
 
 import pandas as pd
 
-from .domain import StepSpec
+from ..domain import StepSpec
 from .vocab import CACHE, Vocab
 
 HD_DIR = CACHE / "hd-epic"

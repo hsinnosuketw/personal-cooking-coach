@@ -1,13 +1,13 @@
 """V-JEPA 2 ViT-L looks at 4 s of kitchen video and predicts the action 1 s ahead.
 
-  python3 -m jepa.anticipate --spike                time one clip, print memory
-  python3 -m jepa.anticipate                        all downloaded validation videos
-  python3 -m jepa.anticipate --protocol repo --limit 20
+  python3 -m coach.perception.anticipate --spike                time one clip, print memory
+  python3 -m coach.perception.anticipate                        all downloaded validation videos
+  python3 -m coach.perception.anticipate --protocol repo --limit 20
 
 The encoder turns the clip into latent tokens, the JEPA predictor imagines
 the tokens of the next frames, and Meta's frozen EK100 probe reads both and
-names the coming verb, noun and action. Results go to jepa/results/.
-Run python3 -m jepa.fetch first.
+names the coming verb, noun and action. Results go to results/.
+Run python3 -m coach.data.fetch first.
 """
 from __future__ import annotations
 
@@ -28,11 +28,9 @@ import torch
 import yaml
 
 from . import clips
-from .vocab import class_maps
+from ..data.vocab import class_maps
 
-HERE = Path(__file__).parent
-CACHE = HERE / "_cache"
-RESULTS = HERE / "results"
+from ..config import DATA_RAW as CACHE, RESULTS
 REPO = CACHE / "vjepa2"
 
 
@@ -119,7 +117,7 @@ def main() -> None:
     if args.limit or args.spike:
         segs = segs.head(1 if args.spike else args.limit)
     if segs.empty:
-        sys.exit("no segments: run python3 -m jepa.fetch first")
+        sys.exit("no segments: run python3 -m coach.data.fetch first")
     thumbs = RESULTS / "thumbs"
     thumbs.mkdir(parents=True, exist_ok=True)
 

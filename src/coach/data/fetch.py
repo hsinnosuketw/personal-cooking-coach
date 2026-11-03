@@ -1,9 +1,9 @@
-"""Download what the EPIC-KITCHENS anticipation demo needs into jepa/_cache/.
+"""Download what the EPIC-KITCHENS anticipation demo needs into data/raw/.
 
-  python3 -m jepa.fetch            code, labels, probe, slimmed ViT-L weights, 4 videos
-  python3 -m jepa.fetch --videos P28_15,P04_28   pick other validation videos
-  python3 -m jepa.fetch --annotations-only        EK100 labels + HD-EPIC recipes only
-  python3 -m jepa.fetch --videos "" --hd-video P08-20240614-085000   weights + one HD-EPIC video
+  python3 -m coach.data.fetch            code, labels, probe, slimmed ViT-L weights, 4 videos
+  python3 -m coach.data.fetch --videos P28_15,P04_28   pick other validation videos
+  python3 -m coach.data.fetch --annotations-only        EK100 labels + HD-EPIC recipes only
+  python3 -m coach.data.fetch --videos "" --hd-video P08-20240614-085000   weights + one HD-EPIC video
 
 Every step skips work already done and refuses to start a download that
 would leave less than 4 GB free on the disk.
@@ -18,7 +18,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-CACHE = Path(__file__).parent / "_cache"
+from ..config import DATA_RAW as CACHE
 VJEPA_REPO = "https://github.com/facebookresearch/vjepa2.git"
 EPIC_DL_REPO = "https://github.com/epic-kitchens/epic-kitchens-download-scripts.git"
 ANNOT = "https://raw.githubusercontent.com/epic-kitchens/epic-kitchens-100-annotations/master/"
@@ -26,7 +26,7 @@ ANNOT_FILES = ("EPIC_100_train.csv", "EPIC_100_validation.csv", "EPIC_100_verb_c
                "EPIC_100_noun_classes.csv", "EPIC_100_video_info.csv")
 PROBE_URL = "https://dl.fbaipublicfiles.com/vjepa2/evals/ek100-vitl-256.pt"
 VITL_URL = "https://dl.fbaipublicfiles.com/vjepa2/vitl.pt"
-# Shortest validation videos with onion actions (see jepa/README.md).
+# Shortest validation videos with onion actions (see README.md).
 VIDEOS = ("P28_15", "P04_28", "P26_35", "P28_16")
 MIN_FREE_GB = 4
 HD_ANNOT = "https://raw.githubusercontent.com/hd-epic/hd-epic-annotations/main/"

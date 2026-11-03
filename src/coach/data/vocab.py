@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pandas as pd
 
-CACHE = Path(__file__).parent / "_cache"
+from ..config import DATA_RAW as CACHE  # downloads (python3 -m coach.data.fetch)
 
 
 def class_maps(train_csv: Path) -> dict:

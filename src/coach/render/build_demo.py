@@ -1,10 +1,10 @@
-"""Collect the demo's videos, frames and data next to jepa/demo/index.html.
+"""Collect the demo's videos, frames and data next to site/index.html.
 
-  python3 -m jepa.build_demo        then open jepa/demo/index.html (double-click works)
+  python3 -m coach.render.build_demo        then open site/index.html (double-click works)
 
-Reads jepa/results/demo/ (rendered videos + scores from Colab, frames/,
-extraction.json) and jepa/results/ek100_strict.json, and writes
-jepa/demo/data.js plus copies of the media. The page needs no server.
+Reads results/demo/ (rendered videos + scores from Colab, frames/,
+extraction.json) and results/ek100_strict.json, and writes
+site/data.js plus copies of the media. The page needs no server.
 """
 from __future__ import annotations
 
@@ -12,10 +12,8 @@ import json
 import shutil
 from pathlib import Path
 
-HERE = Path(__file__).parent
-RES = HERE / "results"
+from ..config import RESULTS as RES, SITE as OUT
 SRC = RES / "demo"
-OUT = HERE / "demo"
 
 VIDEOS = [
     ("nimhand", "VLM tags in the probe's words", "guide_P08_nim_hand",
@@ -62,7 +60,7 @@ def main() -> None:
         shutil.copy2(RES / r["thumb"], OUT / "ek" / name)
         rows.append(dict(r, thumb=f"ek/{name}"))
 
-    from .vocab import Vocab
+    from ..data.vocab import Vocab
     v = Vocab.load()
     vocab = {"verbs": sorted(v.verb_row), "nouns": sorted(v.noun_row), "verb_alias": v.verb_alias,
              "noun_alias": v.noun_alias}

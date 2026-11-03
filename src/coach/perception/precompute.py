@@ -1,6 +1,6 @@
 """Offline pass: run the world model over a whole cooking video, once per tick.
 
-  python3 -m jepa.precompute VIDEO.mp4 --out results/P08-20240614-085000.npz [--stride 1] [--device cuda]
+  python3 -m coach.perception.precompute VIDEO.mp4 --out results/P08-20240614-085000.npz [--stride 1] [--device cuda]
 
 At each tick t the model sees the last 32 sampled frames (one every
 int(fps / 8) frames, as in the EK100 eval) and predicts the verb, noun and
