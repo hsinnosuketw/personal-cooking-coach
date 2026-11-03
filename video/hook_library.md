@@ -85,3 +85,28 @@ Runners-up checked:
 4. **One cook's story carries the demo (A),** with a new shot per line (C).
 5. **"Here's the secret: memory" turn (A),** then the three models, each named by the question it answers (B).
 6. **One honest limit, one measured number, then thanks to the sponsors (B).**
+
+## Design and motion references (your picks for steps 2–3)
+Not demo videos, so they aren't scored for hooks. We use them only for how they look and move.
+
+| Video | Length | Views | Cuts/min |
+|---|---|---|---|
+| [I Tried Fully Automating My Video Editing With AI](https://www.youtube.com/watch?v=C0jOKDJtK9s), Ali Abdaal | 46:33 | 360,949 | 5.6 |
+| [I taught Claude how to edit videos and it's INSANE](https://www.youtube.com/watch?v=REAOFI534lk), Duncan Rogoff | 9:05 | 68,702 | 4.6 |
+
+**Ali Abdaal (motion graphics made with HeyGen HyperFrames)**
+- A warm paper canvas with soft shapes, and the speaker in a rounded picture-in-picture on the right while diagrams build on the left.
+- Serif headings with one coral word ("How **far** can I go?", "The **challenge**").
+- Diagrams are small white cards (a coloured label chip, an avatar or thumbnail, a ✓ / ✗ status line) joined by dashed arrows, added one card at a time.
+- Comparisons sit in two tinted panels ("Human" vs "AI") or a two-column table with big numbers (100% vs 80%).
+- Model names appear as stacked pills over the footage (GPT-5.5, Grok, Claude Opus).
+- Chapters open with a small numbered square above the title.
+
+**Duncan Rogoff**
+- Kinetic type: a bold sans headline with **one italic serif word in red** ("a *cheap* AI edit", "give *notes*", "perfect? No.").
+- Full-bleed big numerals ("09", "15 years", "2,000").
+- Small white label cards with a tiny mono eyebrow beside the subject.
+- A numbered tile grid for the six jobs.
+- A node loop drawn on black, one node at a time.
+- Full-bleed red cards as transitions.
+- A round speaker bubble stays in the corner over every full-screen graphic.
