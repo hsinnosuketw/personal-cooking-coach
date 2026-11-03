@@ -267,7 +267,9 @@ function load(label) {
     const first = text.match(/^[^.]*\.?/)[0], rest = text.slice(first.length).trim();
     return `<li data-k="${j + 1}"><span class="n">${j + 1}.</span>${esc(first)}${rest ? ` <span class="more">${esc(rest)}</span>` : ""}<span class="tags"></span></li>`;
   }).join("");
-  $("coachWhen").textContent = C.ticks[0].recent
+  $("coachWhen").textContent = C.when && C.when.length > 3
+    ? "When the recipe step changes, the cook drifts from the advice, or a step looks skipped"
+    : C.ticks[0].recent
     ? `${C.when[0].replace(" (action segments)", "")} (or sooner for a skipped step or a minute off the recipe)`
     : "When the step changes, or after 60 s without advice";
   $("whenList").innerHTML = (C.when || ["Step changes", "1 minute without advice"]).map((w) => `<li>${esc(w)}</li>`).join("");
