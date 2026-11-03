@@ -1,75 +1,93 @@
-# Cooking guide on a V-JEPA 2 world model
+# Cooking coach on a V-JEPA 2 world model
 
-A coach that watches someone cook, predicts their next action about 1 s
-ahead with Meta's V-JEPA 2 world model, and tells them which recipe step
-comes next. Built for the Meta Global AI Developer Hackathon.
+A coach that watches someone cook through a head-mounted camera, remembers which recipe steps they have started, and reminds them of steps they haven't. A world model reads the video, an LLM coach decides what to say and when, and a small decision model turns the advice into the next move every second. Built for the Meta Global AI Developer Hackathon.
 
-Everything lives in `jepa/`. The earlier work (the POMDP benchmark, the 3D
-kitchen duel, the onion game, the live-coach prototype) is in `archive/`
-and still runs from there (`cd archive && python3 test_chef.py`).
+**Demo:** https://hsinnosuketw.github.io/world-model-coach/ — two HD-EPIC recordings (Scrambled Eggs, Bacon & Egg Sandwich), each with several coach versions side by side.
 
 ## How it works
 
 ```
-recipe text ─► VLM on NVIDIA NIM ─► action tags per step ─┐
-                                                          ├─► step tracker ─► current step / NEXT STEP
-cooking video ─► V-JEPA 2 ViT-L ─► EK100 probe ───────────┘
-                 (latent, ~1 s ahead)  (verb/noun/action probabilities)
+cooking video ─► V-JEPA 2 ViT-L ─► EK100 probe ─► verb / noun / action probabilities, every second
+                  (world model)       │
+                                      ├─► action segments ─┐
+                                      ├─► HSMM step tracker ├─► timing: should the coach speak now?
+                                      └─► checklist memory ─┘        │
+              frames ─► Llama 3.2 11B Vision ─► "has this step begun?" (when the evidence is unclear)
+                                                                      ▼
+recipe ─► task graph (which steps repeat) ─────────────► coach: Muse Glimmer 30B
+                                                         (what's done, what's left, one reminder)
+                                                                      ▼
+                                                         decision model: Liquid AI d1-2B, every second
 ```
 
-| Layer | Code | Source |
+| Part | What it does | Model |
 |---|---|---|
-| World model: encoder + predictor, imagines the next ~1 s in latent space | `anticipate.py`, `precompute.py`, `clips.py` | Meta V-JEPA 2 ViT-L weights (MIT) |
-| Probe: latent -> 97 verbs, 289 nouns, 3568 actions | vendored from `facebookresearch/vjepa2` | Meta, trained on EPIC-KITCHENS-100 |
-| Recipe -> steps + action tags | `extractors.py` (HD-EPIC, hand-written JSON, NIM VLM) | Llama 3.2 90B Vision on NVIDIA NIM |
-| VLM words -> probe classes | `vocab.py` (class names, EPIC synonym lists, plurals, head noun) | EPIC-KITCHENS class tables |
-| Step tracker: scores every step against the prediction, pauses on a change | `action_bank.py`, `scorer.py` | ours, hand-set parameters |
-| Demo video and page | `guide_video.py`, `demo_frames.py`, `build_demo.py`, `demo/index.html` | ours |
+| World model + probe | Predicts the next action about 0.8 s ahead from the last 3.2 s of video | Meta V-JEPA 2 ViT-L with the EPIC-KITCHENS-100 attentive probe |
+| Memory | A checklist: each step not started / in progress / done, with rounds for repeated steps and the times each was first and last seen | rules over the probe, plus the coach's answers |
+| Frame checks | When a step's evidence is unclear (first sign, stops early, restarts, long silence), looks at 4 frames from the last 20 s and asks whether the step has begun | Llama 3.2 11B Vision, ~1 s per check |
+| Timing | Calls the coach on a step change, on drifting from the advice, on a skipped step or long off-task time, with a back-off when nothing changes | HSMM step tracker + rules |
+| Coach | Writes where the cook is, the one most useful next thing, and a `REMIND` line for a step not started yet | Muse Glimmer 30B (self-hosted with vLLM, or NVIDIA NIM) |
+| Decision model | Every second, picks the next action from the recipe's action bank, following the coach and the checklist | Liquid AI d1-2B |
+
+## Where things are
+
+| Path | Contents |
+|---|---|
+| `jepa/pipeline.ipynb` | The whole experiment, stage by stage (1–39). Each stage says why it exists, its input and output, and the measured result. |
+| `jepa/*.py` | World model, probe, step tracker, recipe extractors, data download, video rendering, demo server |
+| `jepa/demo/index.html` | The demo page (data and videos are built into `jepa/demo/`, not tracked) |
+| `test_jepa.py` | Offline tests (no torch, no network) |
+| `archive/` | Earlier prototypes (POMDP benchmark, 3D kitchen, onion game, live-coach); they still run from there |
+| `.claude/skills/project-structure/` | The layout this repo is moving to (`coach/` package, thin notebooks, `data/`, `results/`, `site/`, `tests/`) |
+
+Most of the logic from stage 13 on still lives in notebook cells. It is being moved into a package following the project-structure skill.
+
+### Notebook stages
+
+| Stages | What |
+|---|---|
+| 1–11 | Setup, download, world model, per-second predictions, recipe steps, action bank, step tracker |
+| 12–19 | Latency, the Glimmer coach, d1, coach settings, the timeline, the combined video, demo export |
+| 21–26 | Checklist memory, action segments, event memory, coaching every N actions (3 / 5 / 10) |
+| 27–31 | Recipe loops, HSMM step tracking, a checklist that counts rounds, three-layer intent, adaptive timing |
+| 32, 37 | Upper bounds: annotated events (32) and annotations as a perfect probe (37) |
+| 33–36 | Scoring by the goals (remember started steps, remind unstarted ones), memory rules, the reminder coach, skipped-step tests |
+| 38–39 | Frame checks with a vision model, and a coach that can ask for one |
 
 ## Run it
 
+On a laptop (no GPU):
+
 ```bash
 pip install -r requirements.txt
-python3 test_jepa.py                         # 9 tests, no torch or network
-python3 -m jepa.fetch --annotations-only     # EPIC-KITCHENS + HD-EPIC labels and recipes
-python3 -m jepa.build_demo && open jepa/demo/index.html   # needs the rendered media in jepa/results/demo/
-python3 -m jepa.serve_demo                    # same page on http://127.0.0.1:8080, videos seekable
-cloudflared tunnel --url http://127.0.0.1:8080   # optional public https link while it runs
+python3 test_jepa.py                          # offline tests
+python3 -m jepa.fetch --annotations-only      # EPIC-KITCHENS + HD-EPIC labels and recipes
+python3 -m jepa.serve_demo --port 8080        # the demo page on http://127.0.0.1:8080 (videos seekable)
 ```
 
-Step by step, one stage per cell: `jepa/pipeline.ipynb` (rebuild it with
-`python3 -m jepa.make_notebook` after changing any `jepa/*.py`, since it
-carries a copy of the code). In VS Code, pick the Colab kernel (Google
-Colab extension) with a T4 GPU and run it top to bottom.
+The models run on a Colab GPU from VS Code (Google Colab extension → Select Kernel → Colab):
 
-The model itself runs on a GPU (Colab T4: ~2 s per prediction; an M1 Mac
-took 45-178 s and ran out of memory):
+- **T4**: world model predictions, d1, the coach through NVIDIA NIM.
+- **A100 40 GB**: self-hosted Glimmer (vLLM, FP8, text only) next to d1.
+- **A100 80 GB (High-RAM)**: Glimmer, d1 and the 11B vision model together (stages 38–39).
 
-```bash
-python3 -m jepa.fetch --videos "" --hd-video P08-20240614-085000     # weights + one HD-EPIC video
-python3 -m jepa.precompute jepa/_cache/hd-epic/P08-20240614-085000.mp4 --out jepa/results/P08.npz
-python3 -m jepa.guide_video jepa/_cache/hd-epic/P08-20240614-085000.mp4 jepa/results/P08.npz \
-        --recipe P08_R03 --out guide.mp4
-NVIDIA_API_KEY=... python3 -m jepa.compare_vlm          # VLM tagging variants, scored
-```
+Open `jepa/pipeline.ipynb` and run it top to bottom. Stage 2 picks the video and recipe. Each stage reuses saved results in `jepa/results/` unless its `RERUN_*` flag is set. The NIM key is read from `.env` (`NVIDIA_API_KEY=...`).
 
 ## Results so far (measured, small samples)
 
-| What | Result | Chance |
-|---|---|---|
-| Probe on EPIC-KITCHENS, 145 actions, verb / noun / action top-5 recall | 47.9 / 53.8 / 36.4% | 5.2 / 1.7 / 0.14% |
-| Same probe on the HD-EPIC scrambled-egg video, verb / noun | 22.5 / 18.5% | |
-| Step tracker with HD-EPIC's annotated tags (in-sample, optimistic) | 57.5% | 15.6% |
-| Step tracker with VLM tags for the recipe's own steps | 28-30% | 15.6% |
+All on HD-EPIC with its annotated step tags, one run per setting. Coach answers vary from run to run, so differences of a few points are noise.
 
-The probe was trained on GoPro footage (EPIC-KITCHENS); HD-EPIC is filmed
-with Aria glasses in other kitchens, and the probe reads it about half as
-well. That, not the VLM prompt, is the main limit: asking the VLM for more
-specific tags made the tracker worse (13-27%). The next step is a step
-probe trained on HD-EPIC's own latents.
+| What | Result |
+|---|---|
+| Probe, action in the top 5, 1 s before it starts | 48% on EPIC-KITCHENS (the probe's own domain) vs 10–14% on HD-EPIC; objects suffer most |
+| Coach latency | ~14 s self-hosted (A100), ~32 s on NIM; d1 57 ms per decision; a frame check ~1.1 s |
+| Skipped-step test (a step's evidence removed) | Reminded 2 and 18 s after it was due (Bacon & Egg), 114 and 279 s (Eggs) |
+| Reminders before the cook starts a step | 3/5 (Eggs) and 4/6 (Bacon & Egg) steps, up from 0–1 and 1–3 |
+| Frame checks (11B) on memory | "Has it begun?" judged right 89% (Eggs). Bacon & Egg steps were recorded 87 s too early before; now 6 s late |
+| Perfect-probe ceiling (annotations as the probe) | Eggs: 6/7 steps remembered, 7 s late |
+
+The main limits: the probe reads HD-EPIC kitchens far worse than the EPIC-KITCHENS footage it was trained on, and fetching actions (take pan, take knife) make steps look started before they are. Frame checks address the second problem.
 
 ## Data and licences
 
-EPIC-KITCHENS-100 and HD-EPIC are CC BY-NC 4.0 (non-commercial); their
-videos and the rendered demo media are kept out of git. V-JEPA 2 code and
-weights are MIT. The NIM key is read from `.env` (git-ignored).
+EPIC-KITCHENS-100 and HD-EPIC are CC BY-NC 4.0 (non-commercial). The raw videos are kept out of git. The demo site shows re-encoded recordings from HD-EPIC (Damen et al., University of Bristol) for non-commercial research demonstration. V-JEPA 2 code and weights are MIT. Muse Glimmer, Llama 3.2 Vision and d1 are used under their own licences. Keys live in `.env` (git-ignored).
