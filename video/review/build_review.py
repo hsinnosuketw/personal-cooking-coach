@@ -35,25 +35,10 @@ MOTION_REFS = [
      "One italic serif accent word per card, big numerals (×14, 5:13, 5 → 1), an eyebrow on each coach card, one full-bleed colour card for the turn."),
 ]
 
-# (time, beat, narration, on screen, clip ids)
-BEATS = [
-    ("0:00", "Hook", "This cooking coach has told our cook to crack the eggs fourteen times. The eggs are already in the pan. … This one remembers.", "No memory / Memory · “Crack the eggs.” ×14 · “Keep going.”", ["N6", "M2"]),
-    ("0:10", "The gap", "Real cooks don't follow a recipe line by line. We prep, we wander, we come back. A coach that forgets can't keep up.", "nothing", ["M1", "N2", "M2"]),
-    ("0:21", "Repeats", "Without memory, a coach repeats itself. — Crack the eggs. Crack the eggs. Crack the eggs.", "“Crack the eggs.” ×1 ×2 ×3", ["N1", "N2", "N3"]),
-    ("0:32", "Forgets", "It forgets what you did. The eggs were cracked at five minutes. At nine, it asks again.", "step 1 ✓ 5:13 → “Crack the eggs.” 8:54", ["N4", "N5"]),
-    ("0:43", "Can't tell done", "And it can't tell what's finished. The eggs are on the plate, and it says: heat the pan and add the onions.", "“Add the onions.”", ["N6", "N7"]),
-    ("0:54", "Turn", "So we built a coach that remembers.", "card: What if it remembered?", []),
-    ("0:59", "Cook freely", "Start wherever you like. Our cook gets the plate ready first, then chops the onion, and the coach goes along: fine, do it in parallel.", "“Plate first? Fine.” · “Keep going.”", ["M1", "M2"]),
-    ("1:12", "Remembers", "Every action it sees is written down against a recipe step, so it always knows what has started and what is left.", "step row fills: 0:13 · 1:50 · 4:36 · 5:13", []),
-    ("1:23", "Only when needed", "It only speaks up when something is needed. The onions will need a hot pan, so it reminds you to oil the skillet. A couple of minutes later, you do.", "“Oil the pan first.” → step 2 ✓ 4:36", ["M4", "M5"]),
-    ("1:36", "Another dish", "On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich.", "“Shred cheese meanwhile.” · “Season the eggs first.” · step 5 ✓", ["B1", "B2", "B3"]),
-    ("1:50", "How it works", "Meta's V-JEPA 2 world model watches the video and answers: what is the cook about to do? Muse Glimmer, the coach, reads the memory and answers: what matters now? And Liquid AI's d1 turns that into one next move, every second.", "V-JEPA 2 · Muse Glimmer · d1 — What's next? / What matters? / One move.", []),
-    ("2:12", "The memory", "The secret is the memory. Each action — take egg, cut onion, spray oil — is mapped back to its recipe step, with the moment it was first seen.", "action chips fly into step slots", []),
-    ("2:24", "Result", "After the eggs were whisked, the coach without memory asked to crack them five more times. With memory: once. It still misses what the camera can't see, and that's what we're working on next.", "5 → 1", []),
-    ("2:37", "Close", "Cook your way. Your coach remembers.", "Cook your way. · name card · credits", []),
-]
+import json
+BEATS = json.loads((ROOT / "video/beats.json").read_text())
 
-# id, video, in–out, what the cook does, coach said (time), line on screen
+# id, video, in–out, what the learner does, coach said (time), line on screen
 CLIPS = {
     "No memory · Scrambled Eggs": [
         ("N1", "1:04–1:12", "Puts the onion on the board, takes the knife", "“Put the onion down and start Step 1: … crack the eggs into it” (1:08)", "Crack the eggs."),
@@ -107,9 +92,28 @@ motion_refs = "\n".join(f"""<article class="ref">
   <p class="take"><span>We take</span> {e(take)}</p>
 </article>""" for name, sub, url, length, views, works, take in MOTION_REFS)
 
-beats = "\n".join(f"""<tr><td class="t">{t}</td><td class="b">{e(b)}</td><td class="n">{e(n)}</td><td class="o">{e(o)}</td>
-<td class="c">{''.join(f'<a href="#clip-{c}" class="chip {"nomem" if c.startswith("N") else "mem"}">{c}</a>' for c in cs) or '<span class="none">graphic</span>'}</td></tr>"""
-                  for t, b, n, o, cs in BEATS)
+def beat_card(bt):
+    chips = "".join(f'<a href="#clip-{c}" class="chip {"nomem" if c.startswith("N") else "mem"}">{c}</a>' for c in bt["clips"])
+    say = e(bt["say"]).replace("Coach:", '<span class="cv">Coach voice</span>')
+    return f"""<article class="beat {bt['tone']}">
+  <div class="beat-card">
+    <p class="kicker">What we say</p><p class="say">{say}</p>
+    <hr>
+    <p class="kicker">What's on screen</p><p class="screen">{e(bt['screen'])}</p>
+    <p class="beat-meta"><span>{e(bt['sound'])}</span>{('<span class="chips">' + chips + '</span>') if chips else ''}</p>
+  </div>
+  <p class="beat-label"><span>{bt['time']}</span> {e(bt['label'])}</p>
+</article>"""
+
+
+beats = "\n".join(beat_card(bt) for bt in BEATS["beats"])
+
+# the same beats as markdown, so the repo has a readable copy
+md = [f"# Beat map ({BEATS['version']})", "", BEATS["note"], ""]
+for bt in BEATS["beats"]:
+    md += [f"## {bt['time']} · {bt['label']}", "", f"**What we say**: {bt['say']}", "", f"**What's on screen**: {bt['screen']}", "",
+           f"**Clips**: {', '.join(bt['clips']) or 'graphic only'} · **Sound**: {bt['sound']}", ""]
+(ROOT / "video/beat_map.md").write_text("\n".join(md), encoding="utf-8")
 
 clips = "\n".join(f"""<section class="clip-group"><h3>{e(group)}</h3><div class="clip-grid">{''.join(clip_card(*c) for c in items)}</div></section>"""
                   for group, items in CLIPS.items())
@@ -161,16 +165,21 @@ blockquote {{ margin: 0; padding-left: 12px; border-left: 3px solid var(--line);
 .pattern {{ margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }}
 .pattern div {{ background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: .92rem; min-width: 0; }}
 .pattern b {{ display: block; font-family: var(--mono); font-size: .75rem; color: var(--muted); font-weight: 500; }}
-.table-scroll {{ overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }}
-table {{ border-collapse: collapse; width: 100%; min-width: 860px; font-size: .94rem; }}
-th, td {{ text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }}
-th {{ font-family: var(--mono); font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }}
-tr:last-child td {{ border-bottom: 0; }}
-td.t {{ font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }}
-td.b {{ font-weight: 600; white-space: nowrap; }}
-td.n {{ max-width: 46ch; }}
-td.o {{ color: var(--muted); max-width: 30ch; }}
-td.c {{ white-space: nowrap; }}
+.beat-head {{ display: flex; align-items: baseline; gap: .3em; font-family: var(--display); font-weight: 800; font-size: clamp(2.2rem, 6vw, 3.4rem); letter-spacing: -0.03em; line-height: 1; margin: 0 0 6px; }}
+.beat-head .accent {{ font-weight: 400; letter-spacing: 0; }}
+.beats {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 22px 20px; }}
+.beat {{ display: grid; gap: 10px; align-content: start; min-width: 0; }}
+.beat-card {{ background: var(--surface); border-radius: 12px; border-left: 4px solid var(--muted); box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.07); padding: 18px 22px 16px; display: grid; gap: 4px; }}
+.beat.nomem .beat-card {{ border-left-color: var(--nomem); }}
+.beat.mem .beat-card {{ border-left-color: var(--mem); }}
+.kicker {{ font-family: var(--mono); font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }}
+.say, .screen {{ font-weight: 700; font-size: 1.08rem; line-height: 1.3; letter-spacing: -0.005em; }}
+.screen {{ font-weight: 600; }}
+.cv {{ font-family: var(--mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--nomem); font-weight: 500; }}
+.beat-card hr {{ border: 0; border-top: 1px solid var(--line); margin: 12px 0 10px; }}
+.beat-meta {{ margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .85rem; }}
+.beat-label {{ font-family: var(--mono); font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); padding-left: 2px; }}
+.beat-label span {{ color: var(--fg); }}
 .chip {{ display: inline-block; font-family: var(--mono); font-size: .78rem; padding: 2px 8px; border-radius: 999px; margin: 0 4px 4px 0; text-decoration: none; }}
 .chip.nomem {{ background: var(--nomem-soft); color: var(--nomem); }}
 .chip.mem {{ background: var(--mem-soft); color: var(--mem); }}
@@ -241,7 +250,7 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
 <header>
   <p class="eyebrow">Meta hackathon · demo video · checkpoint A</p>
   <h1>Coach demo: script and clips</h1>
-  <p class="lede">A 2:45 video that contrasts a cooking coach without memory against ours, using real HD-EPIC footage, a TTS narrator and very little text on screen. Before any graphics are built, please check:</p>
+  <p class="lede">A 2:50 video for cooking learners: it contrasts an AI cooking coach without memory against ours, using real HD-EPIC footage, a TTS narrator and very little text on screen. Before any graphics are built, please check:</p>
   <ul class="todo">
     <li>The clips: is each one the moment you want, and does the short line on screen say what that coach really said?</li>
     <li>The script, beat by beat: tone, claims, length.</li>
@@ -257,21 +266,19 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
   <div class="head" style="margin-top:28px"><p class="eyebrow">Your motion references</p><h3>How the graphics will look and move</h3></div>
   <div class="refs">{motion_refs}</div>
   <div class="pattern">
-    <div><b>0:00</b>Contrast hook from real footage, before any title</div>
-    <div><b>0:10</b>Gap sentence, echoed by the closing line</div>
-    <div><b>0:54</b>“So we built…”, said once</div>
-    <div><b>0:59</b>One cook's story, a new shot per line</div>
-    <div><b>1:50</b>The secret sauce: three models, each named by its question</div>
-    <div><b>2:24</b>One number, one honest limit, thanks</div>
+    <div><b>0:00</b>The learner's juggle, then the failure, before any title</div>
+    <div><b>0:08</b>A good teacher keeps track; echoed by the closing line</div>
+    <div><b>0:59</b>“So we built…”, said once</div>
+    <div><b>1:04</b>One learner's story, a new shot per line</div>
+    <div><b>1:55</b>The secret sauce: three models, each named by its question</div>
+    <div><b>2:29</b>One number, one honest limit, thanks</div>
   </div>
 </section>
 
 <section>
-  <div class="head"><p class="eyebrow">Step 2 · script and beat map</p><h2>Fourteen beats, about 2:45</h2>
-    <p>The narration explains; the screen shows at most five words. Times are estimates until the TTS files exist. Chips link to the clips below.</p></div>
-  <div class="table-scroll"><table>
-    <thead><tr><th>Time</th><th>Beat</th><th>Narration</th><th>On screen</th><th>Clips</th></tr></thead>
-    <tbody>{beats}</tbody></table></div>
+  <div class="head"><p class="eyebrow">Step 2 · script and beat map</p><h2 class="beat-head">beat <span class="accent">map</span></h2>
+    <p>Fifteen beats, about 2:50. Each card says what the narrator says and exactly what is on screen. Red edge: the coach without memory; green: with memory. Chips link to the clips below.</p></div>
+  <div class="beats">{beats}</div>
   <p class="facts">Every claim is checked against the runs and the HD-EPIC narrations. Without memory, 14 of 31 answers ask to crack the eggs; 5 of those come after the eggs were whisked at 7:41. With memory, 1 does. The eggs are cracked at 5:13, whisked by 7:41, poured at 11:47 and plated at 13:41.</p>
 </section>
 
@@ -289,17 +296,17 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
     <div><div class="frame">
       <div class="split">
         <figure><img src="clips/N6.jpg" alt="Eggs cooking in the pan"><span class="coach nomem"><small>NO MEMORY · 13:28</small>Crack the eggs.</span><figcaption>No memory</figcaption></figure>
-        <figure><img src="clips/M2.jpg" alt="Cook cutting a red onion"><span class="coach"><small>MEMORY · 1:45</small>Keep going.</span><figcaption>Memory</figcaption></figure>
+        <figure><img src="clips/M2.jpg" alt="Learner cutting a red onion"><span class="coach"><small>MEMORY · 1:45</small>Keep going.</span><figcaption>Memory</figcaption></figure>
       </div>
       <span class="count" style="left:36%;top:30%">×14</span>
-    </div><p class="frame-cap">Beat 0, the hook. Same kitchen, two coaches. The eyebrow says which coach and when.</p></div>
+    </div><p class="frame-cap">Beat 2, the promise. Same kitchen, two coaches. The eyebrow says which coach and when.</p></div>
     <div><div class="frame">
-      <img class="full" src="clips/M4.jpg" alt="Cook cutting the onion">
+      <img class="full" src="clips/M4.jpg" alt="Learner cutting the onion">
       <span class="coach"><small>MEMORY · 2:07</small>Oil the pan first.</span>
       <div class="steps"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span><span>6</span><span class="on">7</span></div>
-    </div><p class="frame-cap">Beat 8. One coach card; the step row shows what the memory has seen (plate and onion so far).</p></div>
+    </div><p class="frame-cap">Beat 9. One coach card; the step row shows what the memory has seen (plate and onion so far).</p></div>
     <div><div class="frame"><div class="turn"><span>What if it <span class="accent">remembered</span>?</span></div></div>
-      <p class="frame-cap">Beat 5, the turn. Duncan's full-colour card, one italic serif word.</p></div>
+      <p class="frame-cap">Beat 6, the turn. Duncan's full-colour card, one italic serif word.</p></div>
     <div><div class="frame"><div class="arch">
       <div class="chapter"><b>3</b><span>How it <span class="accent">works</span></span></div>
       <div class="flow">
@@ -310,7 +317,7 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
         <div class="node dim"><em>D1</em><span>One move.</span></div>
       </div>
       <div class="pip"><img src="clips/M2.jpg" alt=""></div>
-    </div></div><p class="frame-cap">Beat 10. Ali's cards and dashed arrows, built one card at a time while each is named; the kitchen stays in the corner.</p></div>
+    </div></div><p class="frame-cap">Beat 11. Ali's cards and dashed arrows, built one card at a time while each is named; the kitchen stays in the corner.</p></div>
   </div>
   <div class="swatches">
     <span class="sw"><i style="background:var(--v-nomem)"></i>no memory #E5484D</span>

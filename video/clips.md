@@ -8,16 +8,16 @@ Coach runs:
 - **No memory:** stage 18, `results/coach_timeline_P08-…json`. A coach that sees only recent actions, called on step changes or every 60 s.
 - **Memory:** stage 40, `results/coach_adaptive_remind_parallel_hdtags_<video>.json`. Checklist memory with parallel-aware reminders.
 
-Times are video times. "Said at" is when the answer reached the screen (`ready`). What the cook is doing comes from the HD-EPIC narrations.
+Times are video times. "Said at" is when the answer reached the screen (`ready`). What the learner is doing comes from the HD-EPIC narrations.
 
 **Facts the script uses (checked against the narrations)**
-- The cook cuts the onion 1:09–2:35, sprays the pan 4:36, cracks two eggs 5:13–5:29, whisks them 7:25–7:41, pours them in 11:47, plates 13:41 and seasons 14:12.
+- The learner cuts the onion 1:09–2:35, sprays the pan 4:36, cracks two eggs 5:13–5:29, whisks them 7:25–7:41, pours them in 11:47, plates 13:41 and seasons 14:12.
 - **No-memory coach:** 31 answers, 14 of them ask to crack the eggs. Five of those come after the eggs were already whisked (7:41): 8:54, 9:56, 10:45, 13:28, 13:43.
 - **Memory coach:** 17 answers, 5 ask to crack the eggs. One comes after 7:41 (at 7:46).
 
 ## No memory (Scrambled Eggs)
 
-| ID | Beat | Clip in–out | What the cook does | Coach says (said at) | Short line on screen |
+| ID | Beat | Clip in–out | What the learner does | Coach says (said at) | Short line on screen |
 |---|---|---|---|---|---|
 | N1 | Repeats | 1:04–1:12 | puts the onion on the board and takes the knife | "Put the onion down and start Step 1: … crack the eggs into it" (1:08) | "Crack the eggs." |
 | N2 | Repeats | 3:01–3:08 | logs the onion on the phone | "Put the phone away … crack the eggs into a medium bowl" (3:05) | "Crack the eggs." |
@@ -29,10 +29,10 @@ Times are video times. "Said at" is when the answer reached the screen (`ready`)
 
 ## Memory (Scrambled Eggs, then Bacon & Egg)
 
-| ID | Beat | Clip in–out | What the cook does | Coach says (said at) | Short line on screen |
+| ID | Beat | Clip in–out | What the learner does | Coach says (said at) | Short line on screen |
 |---|---|---|---|---|---|
-| M1 | Cook freely | 0:24–0:32 | takes the ingredients out of the fridge, the cottage cheese for the plate among them (step 7) | "Shifted attention to the cottage cheese plate, which is fine to do in parallel. Keep supporting that plate prep" (0:39) | "Plate first? Fine." |
-| M2 | Cook freely | 1:52–2:00 | cuts the onion (step 3) | "Keep supporting the parallel work … step 7 plate prep and step 3 onion prep, without forcing" (1:45) | "Keep going." |
+| M1 | Learn your way | 0:24–0:32 | takes the ingredients out of the fridge, the cottage cheese for the plate among them (step 7) | "Shifted attention to the cottage cheese plate, which is fine to do in parallel. Keep supporting that plate prep" (0:39) | "Plate first? Fine." |
+| M2 | Learn your way | 1:52–2:00 | cuts the onion (step 3) | "Keep supporting the parallel work … step 7 plate prep and step 3 onion prep, without forcing" (1:45) | "Keep going." |
 | M3 | Remembers | 0:11 → 5:29 | step row fills: plate 0:13, onion 1:50, pan 4:36, eggs 5:13 | (memory overlay, not advice) | row of step icons |
 | M4 | Reminds only when needed | 2:03–2:11 | still on the onion | "Step 2 (spray olive oil … medium heat) is still not seen yet and is a prerequisite for proper sautéing … confirm the skillet is oiled" (2:07) | "Oil the pan first." |
 | M5 | Reminds only when needed | 4:32–4:40 | **sprays the pan** (the reminder worked) | — | ✓ step 2 |
@@ -42,4 +42,4 @@ Times are video times. "Said at" is when the answer reached the screen (`ready`)
 
 ## Not used, on purpose
 - **Memory coach 3:39–7:46.** It kept saying "step 1 not seen yet" after the eggs were cracked at 5:13; the camera missed the cracking. That is the honest limit, said once in the script, not shown as a win.
-- **Bacon & Egg 12:04 and 13:36.** "steps 1–4 are already done, so do not redo them" is right, but the same answer says step 5 is still open, although the cook seasoned at 9:19–10:11.
+- **Bacon & Egg 12:04 and 13:36.** "steps 1–4 are already done, so do not redo them" is right, but the same answer says step 5 is still open, although the learner seasoned at 9:19–10:11.
