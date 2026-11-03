@@ -32,6 +32,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Accept-Ranges", "bytes")
+        if self.path.split("?")[0].endswith((".js", ".html", "/")):  # coach.js is rebuilt often; stop browsers reusing an old copy
+            self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 
     def do_GET(self):
