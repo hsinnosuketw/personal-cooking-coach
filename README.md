@@ -2,7 +2,7 @@
 
 A coach that watches someone cook through a head-mounted camera, remembers which recipe steps they have started, and reminds them of steps they haven't. A world model reads the video, an LLM coach decides what to say and when, and a small decision model turns the advice into the next move every second. Built for the Meta Global AI Developer Hackathon.
 
-**Demo:** https://hsinnosuketw.github.io/world-model-coach/ — two HD-EPIC recordings (Scrambled Eggs, Bacon & Egg Sandwich), each with several coach versions side by side.
+**Demo:** https://hsinnosuketw.github.io/personal-cooking-coach/ — two HD-EPIC recordings (Scrambled Eggs, Bacon & Egg Sandwich), each with several coach versions side by side.
 
 ## How it works
 
@@ -70,7 +70,7 @@ On a laptop (no GPU):
 
 ```bash
 pip install -e .                                   # the coach package (src/coach)
-python3 tests/test_coach.py                        # offline tests
+python3 tests/test_coach.py && python3 tests/test_goals.py   # offline tests
 python3 -m coach.data.fetch --annotations-only     # EPIC-KITCHENS + HD-EPIC labels and recipes into data/raw/
 python3 -m coach.render.serve --port 8080          # the demo page on http://127.0.0.1:8080 (videos seekable)
 ```

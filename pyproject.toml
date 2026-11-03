@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "world-model-coach"
+name = "personal-cooking-coach"
 version = "0.1.0"
 description = "A cooking coach on a V-JEPA 2 world model, an LLM coach and a decision model"
 readme = "README.md"
