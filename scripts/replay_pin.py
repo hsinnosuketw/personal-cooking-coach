@@ -7,10 +7,11 @@ Use it when moving notebook code into src/coach: record before the move, check a
 (git-ignored), so it lives here rather than in tests/.
 
 The coach and d1 are replaced by replayers that hand back each saved answer in order, so any change in the run
-loop, the memory or the prompts shows up as a different call time, ledger, d1 state or prompt text.
+loop, the memory or the prompts shows up as a different call time, ledger, prompt text, or state and questions
+given to d1 (recorded as hashes).
 Everything runs in a sandbox ROOT (copies of results/ and data/processed/), so nothing in the repo is written.
 """
-import contextlib, json, os, shutil, sys, types, traceback
+import contextlib, hashlib, json, os, shutil, sys, types, traceback
 from pathlib import Path
 
 import tempfile
@@ -54,7 +55,8 @@ class NoD1:
 
 
 def cell_sources():
-    nb = {c.get("id"): "".join(c["source"]) for c in json.load(open(REPO / "notebooks/pipeline.ipynb"))["cells"]}
+    notebook = Path(os.environ.get("PIN_NOTEBOOK", REPO / "notebooks/pipeline.ipynb"))   # record from an older copy
+    nb = {c.get("id"): "".join(c["source"]) for c in json.load(open(notebook))["cells"]}
     def must(src, old, new):
         assert old in src, f"runner patch no longer matches: {old!r}"
         return src.replace(old, new)
@@ -79,7 +81,7 @@ def setup(video, recipe):
     for cid in CELLS:
         s = nb[cid]
         if cid == "c15c":  # the part after loading d1
-            s = "D1_INCLUDE_THINKING = True\n" + s[s.index("ACTIONS = {}"):s.index("state = d1_state(T_COACH")]
+            s = "D1_INCLUDE_THINKING = True\n" + s[s.index("ACTIONS") if "dm.d1_choices" not in s else s.index("from coach.decision"):s.index("state = d1_state(T_COACH")]
         run.append((cid, s))
     errors = {}
     with open(os.devnull, "w") as quiet, contextlib.redirect_stdout(quiet):
@@ -111,6 +113,7 @@ class Replay:
         return c["text"], c.get("thinking", ""), c["ready"] - c["t"], {}
 
     def system_one(self, state, qs):
+        self.prompts.append("d1 " + hashlib.sha1(json.dumps([state, qs], sort_keys=True).encode()).hexdigest())
         k = self.ticks.pop(0)
         probs = {self.key[(a, s)]: p for a, s, p in k["d1"]}
         return {"answers": {"next_action": {"probabilities": probs}, "next_step": {"choice": f"step{k['d1_step']}"},
@@ -197,7 +200,7 @@ def main(mode):
                   f"{sum(len(r['ticks']) for r in new)} ticks", flush=True)
     if mode == "record":
         record.write_text(json.dumps(prompts))
-        print(f"recorded {sum(map(len, prompts.values()))} prompts")
+        print(f"recorded {sum(map(len, prompts.values()))} prompts and d1 inputs")
     print("\n".join(problems) if problems else "PIN OK: every replayed run matches its saved results" +
           (" and the recorded prompts" if mode == "check" else ""))
     return not problems
