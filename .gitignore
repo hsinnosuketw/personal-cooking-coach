@@ -38,3 +38,8 @@ video/audio/
 video/out/
 video/.venv/
 node_modules/
+video/hyperframes/.hyperframes/
+video/hyperframes/assets/hd
+video/hyperframes/assets/narration.wav
+video/hyperframes/.thumbnails/
+video/hyperframes/.waveform-cache/

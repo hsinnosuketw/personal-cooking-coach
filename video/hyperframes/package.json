@@ -1,0 +1,10 @@
+{
+  "name": "coach-demo-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.9.8 preview",
+    "check": "npx --yes hyperframes@0.9.8 check",
+    "render": "npx --yes hyperframes@0.9.8 render"
+  }
+}
