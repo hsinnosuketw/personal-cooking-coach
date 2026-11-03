@@ -30,3 +30,11 @@ results/
 site/*
 !site/index.html
 !site/icons/
+
+# demo video: local media, research downloads, renders
+video/research/
+video/media/
+video/audio/
+video/out/
+video/.venv/
+node_modules/
