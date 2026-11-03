@@ -232,6 +232,8 @@ blockquote {{ margin: 0; padding-left: 12px; border-left: 3px solid var(--line);
 .split img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
 .split figcaption {{ position: absolute; left: 0; right: 0; bottom: -9cqw; text-align: center; color: #fff; font-family: var(--display); font-weight: 600; font-size: 2.2cqw; }}
 .split .coach {{ font-size: 2cqw; top: 6%; }}
+.hookline {{ position: absolute; inset: 0; display: grid; place-items: center; background: rgba(17,18,20,.28); color: #fff; font-family: var(--display); font-weight: 700; font-size: 5.4cqw; letter-spacing: -0.02em; text-shadow: 0 .3cqw 2cqw rgba(0,0,0,.45); }}
+.hookline .accent {{ font-size: 1.12em; letter-spacing: 0; }}
 .frame-cap {{ margin-top: 8px; color: var(--muted); font-size: .9rem; }}
 .swatches {{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }}
 .sw {{ display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: .8rem; color: var(--muted); }}
@@ -250,7 +252,7 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
 <header>
   <p class="eyebrow">Meta hackathon · demo video · checkpoint A</p>
   <h1>Coach demo: script and clips</h1>
-  <p class="lede">A 2:50 video for cooking learners: it contrasts an AI cooking coach without memory against ours, using real HD-EPIC footage, a TTS narrator and very little text on screen. Before any graphics are built, please check:</p>
+  <p class="lede">A 2:40 video for cooking learners: it contrasts an AI cooking coach without memory against ours, using real HD-EPIC footage, a TTS narrator and very little text on screen. Before any graphics are built, please check:</p>
   <ul class="todo">
     <li>The clips: is each one the moment you want, and does the short line on screen say what that coach really said?</li>
     <li>The script, beat by beat: tone, claims, length.</li>
@@ -266,18 +268,18 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
   <div class="head" style="margin-top:28px"><p class="eyebrow">Your motion references</p><h3>How the graphics will look and move</h3></div>
   <div class="refs">{motion_refs}</div>
   <div class="pattern">
-    <div><b>0:00</b>The learner's juggle, then the failure, before any title</div>
-    <div><b>0:08</b>A good teacher keeps track; echoed by the closing line</div>
-    <div><b>0:59</b>“So we built…”, said once</div>
-    <div><b>1:04</b>One learner's story, a new shot per line</div>
-    <div><b>1:55</b>The secret sauce: three models, each named by its question</div>
-    <div><b>2:29</b>One number, one honest limit, thanks</div>
+    <div><b>0:00</b>A question anyone can picture: your own coaching chef</div>
+    <div><b>0:07</b>The catch, shown: fourteen eggs; the close echoes the question</div>
+    <div><b>0:51</b>“So we gave our coach a memory”, said once</div>
+    <div><b>0:56</b>One learner's story, a new shot per line</div>
+    <div><b>1:47</b>The secret sauce: three models, each named by its question</div>
+    <div><b>2:21</b>One number, one honest limit, thanks</div>
   </div>
 </section>
 
 <section>
   <div class="head"><p class="eyebrow">Step 2 · script and beat map</p><h2 class="beat-head">beat <span class="accent">map</span></h2>
-    <p>Fifteen beats, about 2:50. Each card says what the narrator says and exactly what is on screen. Red edge: the coach without memory; green: with memory. Chips link to the clips below.</p></div>
+    <p>Fourteen beats, about 2:40. Each card says what the narrator says and exactly what is on screen. Red edge: the coach without memory; green: with memory. Chips link to the clips below.</p></div>
   <div class="beats">{beats}</div>
   <p class="facts">Every claim is checked against the runs and the HD-EPIC narrations. Without memory, 14 of 31 answers ask to crack the eggs; 5 of those come after the eggs were whisked at 7:41. With memory, 1 does. The eggs are cracked at 5:13, whisked by 7:41, poured at 11:47 and plated at 13:41.</p>
 </section>
@@ -294,19 +296,16 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
     <p>Mock-ups from real frames. Final frames are built in step 3; these show the treatment only.</p></div>
   <div class="looks">
     <div><div class="frame">
-      <div class="split">
-        <figure><img src="clips/N6.jpg" alt="Eggs cooking in the pan"><span class="coach nomem"><small>NO MEMORY · 13:28</small>Crack the eggs.</span><figcaption>No memory</figcaption></figure>
-        <figure><img src="clips/M2.jpg" alt="Learner cutting a red onion"><span class="coach"><small>MEMORY · 1:45</small>Keep going.</span><figcaption>Memory</figcaption></figure>
-      </div>
-      <span class="count" style="left:36%;top:30%">×14</span>
-    </div><p class="frame-cap">Beat 2, the promise. Same kitchen, two coaches. The eyebrow says which coach and when.</p></div>
+      <img class="full" src="clips/M2.jpg" alt="Learner cutting a red onion">
+      <div class="hookline">Your own <span class="accent">coaching chef</span>?</div>
+    </div><p class="frame-cap">Beat 0, the hook. The question over the learner's own view; nothing else on screen.</p></div>
     <div><div class="frame">
       <img class="full" src="clips/M4.jpg" alt="Learner cutting the onion">
       <span class="coach"><small>MEMORY · 2:07</small>Oil the pan first.</span>
       <div class="steps"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span><span>6</span><span class="on">7</span></div>
-    </div><p class="frame-cap">Beat 9. One coach card; the step row shows what the memory has seen (plate and onion so far).</p></div>
+    </div><p class="frame-cap">Beat 8. One coach card; the step row shows what the memory has seen (plate and onion so far).</p></div>
     <div><div class="frame"><div class="turn"><span>What if it <span class="accent">remembered</span>?</span></div></div>
-      <p class="frame-cap">Beat 6, the turn. Duncan's full-colour card, one italic serif word.</p></div>
+      <p class="frame-cap">Beat 5, the turn. Duncan's full-colour card, one italic serif word.</p></div>
     <div><div class="frame"><div class="arch">
       <div class="chapter"><b>3</b><span>How it <span class="accent">works</span></span></div>
       <div class="flow">
@@ -317,7 +316,7 @@ footer {{ color: var(--muted); font-size: .85rem; max-width: 760px; }}
         <div class="node dim"><em>D1</em><span>One move.</span></div>
       </div>
       <div class="pip"><img src="clips/M2.jpg" alt=""></div>
-    </div></div><p class="frame-cap">Beat 11. Ali's cards and dashed arrows, built one card at a time while each is named; the kitchen stays in the corner.</p></div>
+    </div></div><p class="frame-cap">Beat 10. Ali's cards and dashed arrows, built one card at a time while each is named; the kitchen stays in the corner.</p></div>
   </div>
   <div class="swatches">
     <span class="sw"><i style="background:var(--v-nomem)"></i>no memory #E5484D</span>
