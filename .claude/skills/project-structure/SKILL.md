@@ -32,7 +32,7 @@ data/                        gitignored
 results/                     gitignored: run outputs (coach_*.json, looks_*.json), rendered videos
 site/                        the demo page (index.html is tracked; coach.js and videos are built)
 tests/                       pytest; no network, no GPU, no downloaded data unless marked
-scripts/                     command-line helpers (build_bundle.py packs src/coach into the notebook)
+scripts/                     command-line helpers (build_bundle.py packs src/coach into the notebook; replay_pin.py pins behaviour)
 archive/                     earlier prototypes; read-only, not imported by src/coach/
 .claude/skills/              project skills like this one
 ```
@@ -82,6 +82,6 @@ archive/                     earlier prototypes; read-only, not imported by src/
 
 1. Pick one area (e.g. memory). List the notebook cells and globals it uses.
 2. Write the module with explicit inputs; keep names and behaviour identical first, improve second.
-3. Add a test that reproduces a saved result (same input → same output).
+3. Add a test that reproduces a saved result (same input → same output). For anything the run loops touch, run `python3 scripts/replay_pin.py record` before the move (or with `PIN_NOTEBOOK=<copy of the old notebook>`) and `check` after: it replays the saved runs with the saved coach and d1 answers and compares every tick, prompt and d1 input.
 4. Replace the cell's body with an import and a call; run `python3 scripts/build_bundle.py`; rerun that stage locally.
 5. Commit that area alone, then move to the next.

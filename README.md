@@ -36,21 +36,29 @@ src/coach/               the Python package (pip install -e .)
   config.py              where data, results and the site live
   domain.py              shared types (steps, predictions)
   data/                  downloads, EPIC-KITCHENS/HD-EPIC annotations, class vocabulary, recipe extractors
-  perception/            V-JEPA 2 + probe, per-second predictions, action bank, step tracker
+  perception/            V-JEPA 2 + probe, per-second predictions, action bank, step tracker, action segments, HSMM
+  memory/                the checklist: camera rule, order rule, the coach's answers, rounds of repeated steps
+  coaching/              Glimmer client, prompts, answer parsing, task graph, parallel-aware reminders
+  decision/              d1's choices, questions and state
+  timing/                when to ask the coach: events, suppression, back-off, wrap-up
+  vision/                frame checks: contact sheets, the vision model, its cache
   render/                guide/truth videos, demo frames, the demo server
-  evaluation/            VLM tagging and tracking comparisons
-notebooks/pipeline.ipynb the experiment, stage by stage (1–39): why, input, output and the measured result
+  evaluation/            scores against the annotations: goals, tracking, advice, start rules, skipped steps, upper bounds
+notebooks/pipeline.ipynb the experiment, stage by stage (1–40): why, input, output and the measured result
 data/raw/                downloads (git-ignored): weights, videos, annotation files
 data/processed/          derived inputs (git-ignored): per-second predictions, step tags, task graphs
 results/                 run outputs and rendered videos (git-ignored)
 site/                    the demo page; coach.js and the videos are built into it from results/
 tests/                   offline tests (no torch, no network)
-scripts/                 build_bundle.py packs src/coach into the notebook for Colab
+scripts/                 build_bundle.py packs src/coach into the notebook; replay_pin.py checks a refactor
 archive/                 earlier prototypes (POMDP benchmark, 3D kitchen, onion game, live-coach)
 .claude/skills/          project skills; project-structure says where new code goes
 ```
 
-Most of the logic from stage 13 on (coach, memory, timing, frame checks, scoring) still lives in notebook cells and is being moved into `src/coach/` subpackages, following the project-structure skill.
+Notebook cells call the package. What stays in cells is orchestration: the per-second run loops (`run_events`,
+`run_adaptive`) and the experiments that swap a run's inputs (skipped steps, the perfect probe, parallel reminders).
+`python3 scripts/replay_pin.py check` replays the saved runs of both dishes through the notebook's code with the saved
+coach and d1 answers, and confirms every tick, prompt and d1 input is unchanged.
 
 ### Notebook stages
 
@@ -63,6 +71,7 @@ Most of the logic from stage 13 on (coach, memory, timing, frame checks, scoring
 | 32, 37 | Upper bounds: annotated events (32) and annotations as a perfect probe (37) |
 | 33–36 | Scoring by the goals (remember started steps, remind unstarted ones), memory rules, the reminder coach, skipped-step tests |
 | 38–39 | Frame checks with a vision model, and a coach that can ask for one |
+| 40 | Parallel work: a step is only reminded once a step that needs it is under way (task graph with prerequisites) |
 
 ## Run it
 
@@ -70,7 +79,7 @@ On a laptop (no GPU):
 
 ```bash
 pip install -e .                                   # the coach package (src/coach)
-python3 tests/test_coach.py && python3 tests/test_goals.py   # offline tests
+for t in tests/test_*.py; do python3 $t; done      # offline tests
 python3 -m coach.data.fetch --annotations-only     # EPIC-KITCHENS + HD-EPIC labels and recipes into data/raw/
 python3 -m coach.render.serve --port 8080          # the demo page on http://127.0.0.1:8080 (videos seekable)
 ```
