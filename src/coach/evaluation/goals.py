@@ -113,3 +113,28 @@ def goal_table(results: Path, video_id: str, runs: dict[str, str] = RUN_FILES) -
 
 MEMORY_COLS = ["remembered by the end", "memory F1 over time", "median lag of the memory (s)",
                "remembered >10 s before it happened", "steps never done but remembered"]
+
+
+def reminder_timing(run: dict, needs: dict[int, list[int]], early_s: float = 120.0) -> dict:
+    """Was each REMIND worth saying when it was said? A step not started yet only needs a reminder shortly before a
+    step that depends on it begins; earlier than that the cook may just be working in another order."""
+    from ..coaching.taskgraph import needed_by
+    first, _ = first_last(run)
+    users = needed_by(needs)
+    kinds = []
+    for c in run["calls"]:
+        j = c.get("remind")
+        if j is None:
+            continue
+        if first.get(j, 1e9) <= c["ready"]:
+            kinds.append("about a step already started")
+            continue
+        due = [first[k] for k in users.get(j, []) if k in first]
+        if not due:
+            kinds.append("nothing that was done needs it")
+        elif c["ready"] < min(due) - early_s:
+            kinds.append(f"more than {early_s:.0f} s before it was needed")
+        else:
+            kinds.append("on time")
+    counts = pd.Series(kinds).value_counts().to_dict() if kinds else {}
+    return {"reminders": len(kinds), **{f"reminder: {k}": v for k, v in counts.items()}}
