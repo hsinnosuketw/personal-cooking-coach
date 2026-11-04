@@ -143,6 +143,11 @@ def compressions(usage: list[list]) -> list[float]:
     return [t for (_, a), (t, b) in zip(rows, rows[1:]) if b < COMPRESSION_DROP * a]
 
 
+def mentions(run: dict, pattern: str, a: float = 0.0, b: float = float("inf")) -> list[float]:
+    """Film times of the replies between a and b that match the pattern: how the film's counts are made."""
+    return [r["t"] for r in run["replies"] if a <= r["t"] <= b and re.search(pattern, r["text"], re.I)]
+
+
 @dataclass
 class Clock:
     """Film time is the last frame sent, so it stands still while reconnecting."""

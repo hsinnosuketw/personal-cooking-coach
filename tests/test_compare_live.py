@@ -111,6 +111,11 @@ def test_extra_inputs_are_sent_on_time_and_recorded():
     assert d["inputs"] == [{"t": 2, "text": "continue coaching"}]
 
 
+def test_mentions_count_replies_in_a_window():
+    run = {"replies": [{"t": 10, "text": "Crack the eggs."}, {"t": 20, "text": "Chop."}, {"t": 30, "text": "Whisk the EGGS."}]}
+    assert cl.mentions(run, r"\begg", 15, 40) == [30] and cl.mentions(run, r"\begg") == [10, 30]
+
+
 def test_compression_is_spotted_in_the_token_counts():
     assert cl.compressions([[1, 0, 100, 0], [2, 0, 120, 0], [3, 0, 60, 0], [4, 0, 80, 0]]) == [3]
 
