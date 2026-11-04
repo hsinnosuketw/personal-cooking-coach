@@ -66,7 +66,7 @@ def extract_frames(video: Path, out: Path, seconds: float | None = None, size: i
     out.mkdir(parents=True, exist_ok=True)
     frames = sorted(out.glob("*.jpg"))
     if not frames:
-        subprocess.run(["ffmpeg", "-v", "error", "-i", str(video), "-vf", f"fps=1,scale={size}:{size}", "-q:v", "4",
+        subprocess.run(["ffmpeg", "-v", "error", "-threads", "4", "-i", str(video), "-vf", f"fps=1,scale={size}:{size}", "-q:v", "4",
                         str(out / "%05d.jpg")], check=True)
         frames = sorted(out.glob("*.jpg"))
     return frames[: int(seconds)] if seconds else frames
@@ -145,13 +145,14 @@ def compressions(usage: list[list]) -> list[float]:
 class Clock:
     """Film time is the last frame sent, so it stands still while reconnecting."""
     start: float = 0.0
+    step: float = 1.0                               # film seconds between frames
     sent: int = 0
     handle: str | None = None
     scheduled: list = field(default_factory=list)   # [(film t, text)], extra inputs, sorted
 
     @property
     def t(self) -> float:
-        return self.start + max(self.sent - 1, 0)
+        return self.start + max(self.sent - 1, 0) * self.step
 
 
 async def _send(session, frames: list[bytes], clock: Clock, rec: Recorder, pace: float) -> None:
@@ -181,13 +182,13 @@ async def _receive(session, clock: Clock, rec: Recorder) -> str:
             return "closed"
 
 
-async def stream(connect, frames: list[bytes], rec: Recorder, start: float = 0.0, pace: float = 1.0, drain: float = 20.0,
-                 extra: list | None = None, backoff: float = 3.0, redact=str) -> None:
+async def stream(connect, frames: list[bytes], rec: Recorder, start: float = 0.0, pace: float = 1.0, step: float = 1.0,
+                 drain: float = 20.0, extra: list | None = None, backoff: float = 3.0, redact=str) -> None:
     """Send every frame in real time, reconnecting with the resumption handle when the server ends a connection.
 
     connect(handle) is an async context manager giving a session. After the last frame, wait `drain` s for a last reply.
     """
-    clock = Clock(start=start, scheduled=sorted(extra or [], key=lambda x: x[0]))
+    clock = Clock(start=start, step=step, scheduled=sorted(extra or [], key=lambda x: x[0]))
     tries = 0
     while tries <= MAX_RECONNECTS:
         rec.data["connections"].append({"t": clock.t, "resumed": clock.handle is not None})
@@ -218,7 +219,7 @@ async def stream(connect, frames: list[bytes], rec: Recorder, start: float = 0.0
     rec.save()
 
 
-def live_config(system: str, handle: str | None, proactive: bool = True):
+def live_config(system: str, handle: str | None, proactive: bool = True, resolution: str | None = None):
     from google.genai import types
     return types.LiveConnectConfig(
         response_modalities=["AUDIO"],
@@ -228,6 +229,7 @@ def live_config(system: str, handle: str | None, proactive: bool = True):
             trigger_tokens=TRIGGER_TOKENS, sliding_window=types.SlidingWindow(target_tokens=TARGET_TOKENS)),
         session_resumption=types.SessionResumptionConfig(handle=handle),
         proactivity=types.ProactivityConfig(proactive_audio=True) if proactive else None,
+        media_resolution=f"MEDIA_RESOLUTION_{resolution.upper()}" if resolution else None,
     )
 
 
@@ -243,16 +245,22 @@ def main() -> None:
     ap.add_argument("--api-version", default="v1beta")
     ap.add_argument("--seconds", type=float, help="only the first N seconds of the video")
     ap.add_argument("--nudge-every", type=float, help="extra input: 'continue coaching' every N s of film")
-    ap.add_argument("--probe", nargs=2, metavar=("T", "TEXT"), help="extra input, smoke test only: ask TEXT at film time T")
+    ap.add_argument("--probe", nargs=2, action="append", metavar=("T", "TEXT"), help="extra input, smoke test only: ask TEXT at film time T")
     ap.add_argument("--no-proactive", action="store_true", help="models that have it always on may refuse the setting")
     ap.add_argument("--tier", default="free", help="recorded in the results: on the free tier Google may use the content")
+    ap.add_argument("--every", type=int, default=1, help="send one frame every N s: at 192 tokens a frame, the whole "
+                                                         "film only stays in the 128k context at N=2 or more")
+    ap.add_argument("--resolution", choices=["low", "medium", "high"], help="the API's media_resolution; default: unset")
+    ap.add_argument("--final", help="asked right after the last frame, so it can't change what was said during the film; "
+                                    "also the only way to read the token count from a silent run")
     ap.add_argument("--list-models", action="store_true")
     args = ap.parse_args()
 
     key = load_key()
     redact = lambda s: str(s).replace(key, "***")
     if args.list_models:
-        names = [m.name for m in client(key, args.api_version).models.list()]
+        api = client(key, args.api_version)      # held: the SDK closes its connection when the client is collected
+        names = [m.name for m in api.models.list()]
         print("\n".join(n for n in names if "live" in n or "native-audio" in n))
         return
 
@@ -260,20 +268,24 @@ def main() -> None:
     name = json.loads((DATA_RAW / "hd-epic" / "complete_recipes.json").read_text())[RECIPE]["name"]
     system = system_prompt(name, run["steps"])
     paths = extract_frames(DATA_RAW / "hd-epic" / f"{VIDEO}.mp4", DATA_PROCESSED / "live_frames" / VIDEO, args.seconds)
-    frames = [p.read_bytes() for p in paths]
-    extra = [(float(args.probe[0]), args.probe[1])] if args.probe else []
+    frames = [p.read_bytes() for p in paths[:: args.every]]
+    film = len(frames) * args.every
+    extra = [(float(t), text) for t, text in args.probe or []]
     if args.nudge_every:
-        extra += [(t, "continue coaching") for t in range(int(args.nudge_every), len(frames), int(args.nudge_every))]
+        extra += [(t, "continue coaching") for t in range(int(args.nudge_every), film, int(args.nudge_every))]
 
-    settings = {"model": args.model, "api_version": args.api_version, "video": VIDEO, "recipe": RECIPE, "system": system,
-                "frames": len(frames), "frame_size": FRAME_SIZE, "fps": 1, "trigger_tokens": TRIGGER_TOKENS,
+    if args.final:
+        extra.append(((len(frames) - 1) * args.every, args.final))
+
+    settings = {"model": args.model, "resolution": args.resolution, "final": args.final, "api_version": args.api_version, "video": VIDEO, "recipe": RECIPE, "system": system,
+                "frames": len(frames), "frame_size": FRAME_SIZE, "every_s": args.every, "trigger_tokens": TRIGGER_TOKENS,
                 "target_tokens": TARGET_TOKENS, "proactive_audio": not args.no_proactive, "tier": args.tier,
                 "nudge_every": args.nudge_every, "probe": args.probe, "started": time.strftime("%Y-%m-%d %H:%M:%S %z")}
     rec = Recorder(RESULTS / f"gemini_live_{VIDEO}_{args.label}.json", settings)
     print(f"{args.model}: {len(frames)} frames, {name}", flush=True)
-    live = client(key, args.api_version).aio.live
-    connect = lambda handle: live.connect(model=args.model, config=live_config(system, handle, not args.no_proactive))
-    asyncio.run(stream(connect, frames, rec, extra=extra, redact=redact))
+    api = client(key, args.api_version)          # held: the SDK closes its connection when the client is collected
+    connect = lambda handle: api.aio.live.connect(model=args.model, config=live_config(system, handle, not args.no_proactive, args.resolution))
+    asyncio.run(stream(connect, frames, rec, pace=args.every, step=args.every, extra=extra, redact=redact))
     d = rec.data
     print(f"frames sent {d['frames_sent']}/{len(frames)}, replies {len(d['replies'])}, connections {len(d['connections'])}, "
           f"compressions {d['compressions']}, last usage {d['usage'][-1] if d['usage'] else None}", flush=True)

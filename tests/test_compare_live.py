@@ -73,6 +73,11 @@ def test_frames_only_by_default_and_replies_on_the_film_clock():
         assert w.getframerate() == 24000 and w.getnframes() == 10
 
 
+def test_every_other_frame_keeps_film_time():
+    _, _, d = run([{3: [say("Crack the eggs.")]}], step=2.0)
+    assert d["replies"][0]["t"] == 4                                 # third frame sent, every 2 s: second 4
+
+
 def test_transcript_pieces_join_into_one_reply():
     _, _, d = run([{2: [say("Crack ", done=False), say("the eggs.")]}])
     assert [r["text"] for r in d["replies"]] == ["Crack the eggs."]
