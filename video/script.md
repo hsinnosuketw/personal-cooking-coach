@@ -1,6 +1,6 @@
 # Script: Personal Cooking Coach (draft 7, for film v5)
 
-**Audience**: cooking learners, and the hackathon judges watching for them. **Length**: about 2:35 (estimate until the TTS is measured). **Voice**: a calm, warm TTS narrator. The coach's own lines ("Coach: …") use a second, flatter voice.
+**Audience**: cooking learners, and the hackathon judges watching for them. **Length**: about 2:58 (estimate until the TTS is measured; the limit is 3:00). **Voice**: a calm, warm TTS narrator. The coach's own lines ("Coach: …") use a second, flatter voice.
 
 **Framing (draft 7)**: Gemini Live, a service people can use today, against our whole designed system. The point is a coach that brings up what you are **not** doing, without being asked. The film tests the Gemini Live API (`gemini-3.8-live`), not the Gemini app, on the same footage and recipe, and says so on screen. It does not claim to be more accurate than Gemini: asked often enough, Gemini answers well, and the film shows that.
 
@@ -11,8 +11,8 @@ The footage is prerecorded, so our learner never hears either coach. No line may
 2. **The one-line catch**: with Gemini Live you have to keep asking.
 3. **Fair to Gemini**: asked every ten seconds, it answers well, but follows what is in front of it and repeats itself.
 4. **"So we designed an entire system around the chef"**: one learner's story.
-5. **The whole system**: three models, with the memory as one part.
-6. **One number and one honest limit.**
+5. **The whole system**: what each model takes in and gives back, and what the memory records.
+6. **One number about us, and one honest limit.** No Gemini number: the count of questions depends on how often we chose to ask.
 7. **A tagline that echoes the question.**
 
 The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `beat_map.md` and on the review page.
@@ -22,7 +22,7 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 
 **0:06 The catch.** You could try Gemini Live. We gave it our learner's video and the recipe. But you'll need to constantly ask questions to get the coaching step.
 
-**0:15 Chapter 1 · Gemini Live.** So we asked, every ten seconds, and it answers well. Coach: Chop the red onion. Spray the olive oil. Whisk the eggs.
+**0:15 Chapter 1 · Gemini Live.** So we asked, every ten seconds, and it answers well. Coach: Chop the red onion. Add a spray of olive oil. Whisk the eggs.
 
 **0:25 Not one mention.** But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs.
 
@@ -38,13 +38,13 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 
 **1:26 Another dish.** On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers in a row say: build the sandwich. Ours still says: season first.
 
-**1:50 Chapter 3 · How it works.** Here's the whole system. Meta's V-JEPA 2 world model watches the video and answers: what is the learner about to do? Muse Glimmer, the coach, reads the memory and answers: what matters now? And Liquid AI's d1 turns that into one next move, every second.
+**1:50 Chapter 3 · How it works.** Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three actions most likely to come next. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what to do next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.
 
-**2:09 One part, up close.** Here is one part of it, up close. Each action, take egg, cut onion, spray oil, is mapped back to its recipe step, with the moment it was first seen.
+**2:23 What the memory records.** Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; when it was first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.
 
-**2:20 The result.** To keep Gemini Live coaching through this one meal, we asked a hundred and eight times. Ours: zero. It still misses what the camera can't see, and that's what we're working on next.
+**2:40 The result.** Across both dishes, it brought up six of eleven steps before our learner started them, with nobody asking. It still misses what the camera can't see, and that's what we're working on next.
 
-**2:32 The close.** Your own coaching chef, designed as a whole system.
+**2:52 The close.** Your own coaching chef, designed as a whole system.
 
 ## Fact check (every claim, and its source)
 Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for now. Rerun on the paid tier before the film is published. Counts come from `coach.evaluation.compare_live.mentions` (notebook stage 41). The egg recording is `P08-20240614-085000`, the sandwich `P02-20240210-113925`.
@@ -53,7 +53,7 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 |---|---|
 | "You'll need to constantly ask questions" | No reply during the film with only the video and the recipe: eggs `A_1`, `A_2`, `B_2`, sandwich `A_2`. It answered every question in the runs that asked. We infer that it needs a turn; the docs don't say so directly. API only |
 | "We asked, every ten seconds" | Eggs `D10_2`: 108 questions, 108 answers. Our own setting, stated on screen |
-| "It answers well": chop the red onion, spray the olive oil, whisk the eggs | Eggs `D10_2`: 1:10, 3:40, 5:20. Narrations: the onion is cut 1:09–2:35, the oil spray picked up 3:29, sprayed 4:36; the eggs cracked 5:13–5:29, whisked 7:25–7:41 |
+| "It answers well": chop the red onion, add a spray of olive oil, whisk the eggs | Eggs `D10_2`: 1:10, 3:30, 5:20. Narrations: the onion is cut 1:09–2:35, the oil spray picked up 3:29, sprayed 4:36; the eggs cracked 5:13–5:29, whisked 7:25–7:41 |
 | "Four minutes … twenty-six answers, and not one mentions the eggs" | Eggs `D10_2`: 26 answers from 1:00 to 5:10, none matching "egg"; the next mention is 5:20, after cracking began at 5:13. Before 1:00 it does mention them (0:20–0:50). The learner chose this order and was not forgetting the eggs |
 | "Pour the eggs. Eighteen times in three minutes" | Eggs `D10_2`: 18 of 20 answers from 8:30 to 11:40. Pouring was a fair next step, and it happened at 11:47: repetition, not wrong advice |
 | "While our learner cooks the onions and gets the cheese ready" | Step annotations: onions 8:33–9:46, cottage cheese 8:53–9:13 and 10:04–10:19 |
@@ -64,7 +64,13 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 | Cheese while the eggs cook; season before the sandwich | Our sandwich run, 6:17 and 7:01; cheese shredded 7:25, seasoned 9:19 |
 | "Gemini Live mentions seasoning twice, then eight answers in a row say: build the sandwich" | Sandwich `D10_2`: seasoning at 7:40 and 7:50; 8 of 8 answers from 8:00 to 9:10 name the baguette or sandwich, none names seasoning; seasoned 9:19. It raises paprika again at 10:00 |
 | "Ours still says: season first" | Our sandwich run, 8:55: "Pause the buttering / bread handling briefly and season the eggs" |
-| "We asked a hundred and eight times. Ours: zero." | Eggs `D10_2`: 108 questions in 18:08, at the 10 s we chose. Our run: nobody asks; it answered 17 times on its own, at gaps of 17–99 s |
+| V-JEPA 2: "last few seconds of video", "three actions most likely to come next" | `coach.perception.clips`: 32 frames at 8 fps, predicting about 1 s ahead. The run keeps the top 3 per second (`ticks[].wm`). README says 3.2 s and 0.8 s; the film says "last few seconds" |
+| Memory: "takes in those actions", "a record for every recipe step" | `coach.coaching.reminders.memory_lines_parallel`, `coach.memory.checklist`. The coach's own status answers feed it too, which the film leaves out |
+| Muse Glimmer: takes in "the recipe, the memory and the recent actions"; says "where you are, what to do next, and which step not to forget" | `coach.coaching.prompts.event_prompt`, `adaptive_prompt`; `REMIND_PARALLEL_ANSWER`: Where, Next, REMIND. Its prompt also holds why it is asked now, and d1's current pick |
+| d1: takes in "the coach's advice, the predictions and the checklist"; "one next move, every second" | `coach.decision.d1`: `d1_state`, `with_checklist`, `d1_questions`. One answer per tick (877 of 877, 812 of 812), ranked top 3 kept. It also gets the tracker's step |
+| The memory's fields: status, first and last seen, which step needs it, times reminded | `memory_lines_parallel`: state, first sign, last, needed before step, reminded Nx |
+| The memory table at 4:53 | Our run's answer at 4:53 ("Where"), and its `REMIND` lines before it: step 2 ×5 (0:21–2:07). It shows what the system believed, errors included: onions "done, first 0:06" are early (cut from 1:09, in the pan 5:34) |
+| "Six of eleven steps before our learner started them" | `coach.evaluation.goals.reminder_scores`, "steps reminded before the cook started them": eggs 1/5, sandwich 5/6 |
 | "Misses what the camera can't see" | Our run said "step 1 not seen yet" from 3:39 to 7:46, although the eggs were cracked at 5:13 |
 
 ## What the film does not claim, and why

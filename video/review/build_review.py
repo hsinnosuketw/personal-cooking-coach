@@ -36,7 +36,9 @@ MOTION_REFS = [
 ]
 
 import json
-BEATS = json.loads((ROOT / "video/beats.json").read_text())
+sys.path.insert(0, str(ROOT / "video/pipeline"))
+from version import BEAT_MAP, BEATS_FILE  # noqa: E402  (video/pipeline/version.py)
+BEATS = json.loads(BEATS_FILE.read_text())
 
 # id, video, in–out, what the learner does, coach said (time), line on screen
 CLIPS = {
@@ -113,7 +115,7 @@ md = [f"# Beat map ({BEATS['version']})", "", BEATS["note"], ""]
 for bt in BEATS["beats"]:
     md += [f"## {bt['time']} · {bt['label']}", "", f"**What we say**: {bt['say']}", "", f"**What's on screen**: {bt['screen']}", "",
            f"**Clips**: {', '.join(bt['clips']) or 'graphic only'} · **Sound**: {bt['sound']}", ""]
-(ROOT / "video/beat_map.md").write_text("\n".join(md), encoding="utf-8")
+BEAT_MAP.write_text("\n".join(md), encoding="utf-8")
 
 clips = "\n".join(f"""<section class="clip-group"><h3>{e(group)}</h3><div class="clip-grid">{''.join(clip_card(*c) for c in items)}</div></section>"""
                   for group, items in CLIPS.items())
