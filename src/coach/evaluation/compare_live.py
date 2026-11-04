@@ -255,6 +255,8 @@ def main() -> None:
     ap.add_argument("--resolution", choices=["low", "medium", "high"], help="the API's media_resolution; default: unset")
     ap.add_argument("--final", help="asked right after the last frame, so it can't change what was said during the film; "
                                     "also the only way to read the token count from a silent run")
+    ap.add_argument("--repeat-prompt-every", type=float, help="extra input: send the coach prompt and recipe again as text "
+                                                              "every N s of film, which gives the model a turn to answer")
     ap.add_argument("--quiet-line", action="store_true", help="add 'Stay quiet otherwise', as runs A_1 and A_2 did")
     ap.add_argument("--list-models", action="store_true")
     args = ap.parse_args()
@@ -277,13 +279,15 @@ def main() -> None:
     if args.nudge_every:
         extra += [(t, "continue coaching") for t in range(int(args.nudge_every), film, int(args.nudge_every))]
 
+    if args.repeat_prompt_every:
+        extra += [(t, system) for t in range(int(args.repeat_prompt_every), film, int(args.repeat_prompt_every))]
     if args.final:
         extra.append(((len(frames) - 1) * args.every, args.final))
 
     settings = {"model": args.model, "resolution": args.resolution, "final": args.final, "api_version": args.api_version, "video": VIDEO, "recipe": RECIPE, "system": system,
                 "frames": len(frames), "frame_size": FRAME_SIZE, "every_s": args.every, "trigger_tokens": TRIGGER_TOKENS,
                 "target_tokens": TARGET_TOKENS, "proactive_audio": not args.no_proactive, "tier": args.tier,
-                "nudge_every": args.nudge_every, "probe": args.probe, "started": time.strftime("%Y-%m-%d %H:%M:%S %z")}
+                "nudge_every": args.nudge_every, "repeat_prompt_every": args.repeat_prompt_every, "probe": args.probe, "started": time.strftime("%Y-%m-%d %H:%M:%S %z")}
     rec = Recorder(RESULTS / f"gemini_live_{VIDEO}_{args.label}.json", settings)
     print(f"{args.model}: {len(frames)} frames, {name}", flush=True)
     api = client(key, args.api_version)          # held: the SDK closes its connection when the client is collected
