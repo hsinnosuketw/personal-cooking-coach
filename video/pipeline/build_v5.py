@@ -32,7 +32,12 @@ def beat_1(p):
     t = round(p.sent(2)[0] - 0.05, 3)
     p.footage("G1a", "P08", 120.0, 0, p.dur)      # chopping, no phone: it would read as "asking" the phone
     p.shade(t, p.dur)
-    p.coach("live", f"{LIVE} API · SAME VIDEO, SAME RECIPE", "Keep asking.", t, p.dur)
+    cid, cs, _ = p.add(p.label(f"{LIVE} API · SAME VIDEO, SAME RECIPE"), p.sent(1)[0], p.dur, "testchip")
+    p.anim_in(cid, cs)
+    eid, s, _ = p.add(f'<span class="line">{p.say("Keep *asking*.")}</span>', t, p.dur, "full hookline")      # the narrator's, not a coach card: Gemini never said it
+    p.js.append(f'tl.fromTo("#{eid} .line", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, {s});')
+    p.js.append(f'tl.fromTo("#{eid}", {{backgroundColor: "rgba(17,18,20,0)"}}, {{backgroundColor: "rgba(17,18,20,0.28)", duration: {IN_DUR}, ease: "none"}}, {s});')
+    p.cue(s, "pop")
     p.key(1.4, "G1 · the onion"); p.key(p.dur - 1.0, "keep asking")
 
 
@@ -204,7 +209,7 @@ def beat_12(p):
                        "left:0;width:1920px;top:196px;text-align:center;color:#8a8a8e;font-size:24px;")
     p.anim_in(eid, es)
     rows = ["Bacon", "Eggs", "Cheese", "Seasoning"]
-    cells = '<div class="head"></div><div class="head ours">Our system</div><div class="head live">Gemini Live</div>'
+    cells = '<div class="head"></div><div class="head ours">Our system</div><div class="head live">Gemini Live · not asked</div>'
     cells += "".join(f"<div>{p.label(r)}</div><div></div><div></div>" for r in rows)
     tid, ts, _ = p.add(cells, 0.3, p.dur, "restable")
     p.anim_in(tid, ts)

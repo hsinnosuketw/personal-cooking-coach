@@ -71,7 +71,7 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 | The memory's fields: status, first and last seen, which step needs it, times reminded | `memory_lines_parallel`: state, first sign, last, needed before step, reminded Nx |
 | The memory table at 4:53 | Our run's answer at 4:53 ("Where"), and its `REMIND` lines before it: step 2 ×5 (0:21–2:07). It shows what the system believed, errors included: onions "done, first 0:06" are early (cut from 1:09, in the pan 5:34) |
 | "Ours brings up the bacon, the eggs, the cheese and the seasoning before they start" | Our sandwich run (`STEP` and `REMIND` lines), then the annotations. Bacon 0:19, started 1:07. Eggs 2:48, started 3:01; cooking them 3:09, started 4:56. Cheese 5:47, started 7:25. Seasoning 7:20, started 9:19. `goals.reminder_scores`: 5/6 here. On the egg dish it is only 1/5, which the line does not claim |
-| "On its own, Gemini Live brings up none" | Sandwich `A_2`, video and recipe only: no reply during the film. **Asked every 10 s it does raise them** (`D10_2`: cheese 6:22, seasoning 7:40), so "on its own" must stay. Only this API was tested, so the film does not say "other agents" |
+| "On its own, Gemini Live brings up none" | Sandwich `A_2`, video and recipe only: no reply during the film. **Asked every 10 s it does raise them** (`D10_2`: cheese 6:22, seasoning 7:40), bacon 0:10, eggs 2:12 too, so "on its own" and the "not asked" column header must stay. Only this API was tested, so the film does not say "other agents" |
 | "Misses what the camera can't see" | Our run said "step 1 not seen yet" from 3:39 to 7:46, although the eggs were cracked at 5:13 |
 
 ## What the film does not claim, and why

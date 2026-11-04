@@ -14,9 +14,9 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 **What we say**: You could try Gemini Live. We gave it our learner's video and the recipe. But you'll need to constantly ask questions to get the coaching step.
 
-**What's on screen**: Full-screen footage: the learner cuts the onion. A small white card lands top-left, grey eyebrow GEMINI LIVE API · SAME VIDEO, SAME RECIPE, line "Keep asking." It holds while the sentence is spoken.
+**What's on screen**: Full-screen footage: the learner cuts the onion. On the last sentence the footage dims and a centred white line appears, the narrator's, not a coach card: "Keep asking." A small chip top-right, from the second sentence: GEMINI LIVE API · SAME VIDEO, SAME RECIPE.
 
-**Clips**: G1 · **Sound**: The music dips. Pop for the card.
+**Clips**: G1 · **Sound**: The music dips.
 
 ## 0:15 · Chapter 1 · Gemini Live
 
@@ -78,7 +78,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 **What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers say: build the sandwich. Ours still says: season first.
 
-**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." (eyebrow OUR SYSTEM · 6:17) and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 8:06: the learner has the baguette and butter out. A white card, grey eyebrow GEMINI LIVE · 8:00–9:10, "Build the sandwich.", with a counter rolling to "×8". Hard cut to the demo page at 8:55: green card, eyebrow OUR SYSTEM · 8:55, "Season first." The reply lifts to the centre, its line "season the eggs" marked in green. Hard cut to 9:19: salt goes into the learner's hand; the world model's "pour salt" and d1's "take salt" get their ticks.
+**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." (eyebrow OUR SYSTEM · 6:17) and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 8:06: the learner has the baguette and butter out. A white card, grey eyebrow GEMINI LIVE · 8:00–9:10, "Build the sandwich.", with a counter rolling to "×8". Hard cut to the demo page at 8:55: green card, eyebrow OUR SYSTEM · 8:55, "Season first." The reply lifts to the centre, its line "season the eggs" marked in green. Hard cut to 9:22: the learner salts the eggs; the world model's "pour salt" and d1's "take salt" get their ticks.
 
 **Clips**: B1, B2, G8, B4, B3 · **Sound**: Pops for the cards, a whoosh for the reply, soft ticks on the green ticks.
 
@@ -102,7 +102,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 **What we say**: On the sandwich, ours brings up the bacon, the eggs, the cheese and the seasoning before they start. On its own, Gemini Live brings up none. It still misses what the camera can't see, and that's what we're working on next.
 
-**What's on screen**: On paper, a small table under the eyebrow BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING. Four rows: Bacon, Eggs, Cheese, Seasoning. Two columns, Our system and Gemini Live. A green tick lands in the Our system column as each step is named. Then, on "none", a grey dash lands in each row of the Gemini Live column. It holds while the limit is said.
+**What's on screen**: On paper, a small table under the eyebrow BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING. Four rows: Bacon, Eggs, Cheese, Seasoning. Two columns, Our system and Gemini Live · not asked. A green tick lands in the Our system column as each step is named. Then, on "none", a grey dash lands in each row of the Gemini Live column. It holds while the limit is said.
 
 **Clips**: graphic only · **Sound**: The music lifts slightly.
 
