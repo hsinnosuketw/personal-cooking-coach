@@ -4,8 +4,9 @@
     python3 video/pipeline/assemble.py --sheet   # only the contact sheet, from the existing film
 
 Needs video/out/beats/beat_XX.mp4 (render_beats.py) and video/audio/narration.wav + timings.json (tts.py).
-The video is re-encoded once (libx264, CRF 18); the narration is normalised with two-pass loudnorm
-(-16 LUFS integrated, -1.5 dBTP) and muxed as AAC 192k at 48 kHz.
+The video is re-encoded once (libx264, CRF 18). The narration is normalised with two-pass loudnorm (-16 LUFS
+integrated, -1.5 dBTP); the music bed and the effects (sound.py: audio/music_bed.wav, audio/sfx.wav) are mixed under
+it, the music ducked by the narration (sidechain), then a limiter; AAC 192k at 48 kHz.
 """
 import json
 import re
@@ -21,7 +22,7 @@ VIDEO = Path(__file__).resolve().parents[1]
 OUT = VIDEO / "out"
 BEATS = OUT / "beats"
 AUDIO = VIDEO / "audio"
-VERSION = "v2"            # earlier versions stay in video/out for comparison
+VERSION = "v3"            # earlier versions stay in video/out for comparison
 FILM = OUT / f"demo_{VERSION}.mp4"
 THREADS = "3"
 # The renders are BT.709 limited range; a JPEG is BT.601 full range. Without this the greens come out light.
@@ -70,9 +71,14 @@ def concat_and_mux(ids):
             f.write(f"file '{(BEATS / f'beat_{bid:02d}.mp4').as_posix()}'\n")
         lst = f.name
     try:
-        af = loudnorm_args() + ",aresample=48000"
+        stereo = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo"
+        mix = (f"[1:a]{loudnorm_args()},{stereo},asplit=2[nar][key];"
+               f"[2:a]{stereo}[bed];[3:a]{stereo}[fx];"
+               "[bed][key]sidechaincompress=threshold=0.05:ratio=3:attack=20:release=400[mus];"
+               "[nar][mus][fx]amix=inputs=3:duration=first:normalize=0,alimiter=limit=0.84:level=false[aout]")
         run(["ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-i", str(AUDIO / "narration.wav"),
-             "-map", "0:v:0", "-map", "1:a:0", "-af", af,
+             "-i", str(AUDIO / "music_bed.wav"), "-i", str(AUDIO / "sfx.wav"),
+             "-filter_complex", mix, "-map", "0:v:0", "-map", "[aout]",
              "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", "30", "-g", "60",
              "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv",
              "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", "-threads", THREADS, str(FILM)])

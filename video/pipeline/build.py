@@ -6,13 +6,21 @@
 Every word shown on screen goes through `say()`, which checks it against the words in double quotes in that beat's
 `screen` text (numbers and times excepted). Eyebrows and model-name pills go through `label()`: they are evidence
 labels, which beats.json exempts from the five-word rule.
+
+The panel shots (beats 6, 8, 9) also read the stage-40 runs in results/ (through panel.py): green ticks on the
+panel rows that turn out right, and the coach's reply lifted to the centre. Run it with the package on the path:
+    PYTHONPATH=src python3 video/pipeline/build.py
+Every pop, tick and whoosh goes to hyperframes/cues.json, which assemble.py turns into the effects track.
 """
 import html
 import json
 import re
+import sys
 from pathlib import Path
 
 VIDEO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(VIDEO.parent / "src"))
+import panel  # noqa: E402  (video/pipeline/panel.py, next to this file)
 HF = VIDEO / "hyperframes"
 HD = VIDEO / "media" / "hd"
 BEATS = {b["id"]: b for b in json.loads((VIDEO / "beats.json").read_text())["beats"]}
@@ -22,6 +30,10 @@ SRC = {"P08": "P08-20240614-085000", "P02": "P02-20240210-113925"}
 # The demo page's video of the stage-40 memory run: the footage beside the live panel (world model, coach, d1).
 PANEL_RUN = "coach_adaptive_remind_parallel_hdtags_{}"
 PANEL_STEPS_TOP = 250    # in panel shots the step row sits under the coach card, clear of the page video's COACH banner
+HIT_HOLD = 3.0           # a d1 move that was done keeps its tick this long, while it stays in d1's top 3
+ZOOM_W, ZOOM_CY = 1440, 560   # the lifted coach reply: width and centre height on screen
+CHECK_SVG = ('<svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 9.5L7.2 13.5L15 4.8" fill="none" stroke="#fff" '
+             'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 CLIPS = {}
 for line in (VIDEO / "clips.tsv").read_text().split("\n"):
     if line.strip():
@@ -54,6 +66,7 @@ class Page:
         self.els, self.js, self.media, self.n = [], [], [], 0
         self.quoted = re.findall(r'"([^"]+)"', self.beat["screen"])
         self.keyframes = []      # (time, note) for the storyboard
+        self.cues = []           # (time, kind) for the effects track
 
     # ---- timing helpers ---------------------------------------------------------------------------------------
     def sent(self, i):
@@ -122,7 +135,10 @@ class Page:
             inner += '<div class="counter">' + "".join(f'<span>{self.say(c)}</span>' for _, c in counter) + "</div>"
         eid, s, e = self.add(inner, start, end, f"coach tone-{tone}")
         self.js.append(f'tl.fromTo("#{eid} .card", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, {s});')
+        self.cue(s, "pop")
         for k, (ct, _) in enumerate(counter or []):
+            if k:
+                self.cue(ct, "tick")
             sel = f"#{eid} .counter span:nth-child({k + 1})"
             self.js.append(f'tl.fromTo("{sel}", {{opacity: 0, y: 40}}, {{opacity: 1, y: 0, duration: 0.12, ease: EASE}}, {self.frame(ct)});')
             if k + 1 < len(counter):
@@ -160,6 +176,7 @@ class Page:
                 self.js.append(f'tl.set("#{oid}", {{opacity: 1}}, {s});')
             else:
                 self.js.append(f'tl.fromTo("#{oid}", {{opacity: 0, scale: 0.6}}, {{opacity: 1, scale: 1, duration: 0.3, ease: EASE}}, {w});')
+                self.cue(w, "tick")
                 rid, _, _ = self.add("", w, min(w + 0.6, e), f"step ring {rowcls}", f"left:{x}px;top:{yy}px;")
                 self.js.append(f'tl.fromTo("#{rid}", {{opacity: 0.9, scale: 1}}, {{opacity: 0, scale: 1.7, duration: 0.5, ease: "power2.out"}}, {w});')
             if lab:
@@ -171,11 +188,85 @@ class Page:
     def chapter_card(self, num, title, tone, start, end, paper=True):
         inner = f'<div class="chapter tone-{tone}"><b>{self.say(str(num))}</b><span>{self.say(title)}</span></div>'
         eid, s, e = self.add(inner, start, end, "full chaptercard" + (" paper" if paper else ""))
+        self.cue(s, "whoosh")
         self.js.append(f'tl.fromTo("#{eid} .chapter", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, {s});')
         return eid
 
     def key(self, t, note=""):
         self.keyframes.append((round(t, 2), note))
+
+    def cue(self, t, kind):
+        self.cues.append((round(t, 3), kind))
+
+    # ---- panel shots ------------------------------------------------------------------------------------------
+    def panel_shot(self, name, video, src_start, start, end):
+        """A cut of the demo page's video (footage + model panel), with green ticks on the rows that turn out right."""
+        self.footage(name, video, src_start, start, end, kind="panel")
+        self.marks(SRC.get(video, video), src_start, self.frame(start), min(self.frame(end), self.dur))
+
+    def marks(self, video, src0, start, end):
+        """World-model rows whose prediction comes true (find_moments' rule) get a green outline and tick for that
+        tick's second; a d1 row gets them from the moment its move is actually done, for HIT_HOLD s."""
+        wm_hits, done = panel.hits(video)
+        run = panel.load(video)
+        a, b = src0, src0 + (end - start)
+        cuts = {a, b} | {float(t) for t in run["_t"] if a < t < b} | set(panel.calls_change(video, a, b))
+        cuts |= {x for _, s in done for x in (s, s + HIT_HOLD) if a < x < b}
+        cuts = sorted(c for c in cuts if a <= c <= b)
+        segs = []   # [kind, row, top, t0, t1, fresh]
+        for t0, t1 in zip(cuts, cuts[1:]):
+            lay = panel.layout(video, t0 + 1e-4)
+            i = int(next(k for k, tk in enumerate(run["ticks"]) if tk is lay["tick"]))
+            rows = [("wm", k, y) for k, y in enumerate(lay["wm_rows"]) if lay["tick"]["wm"][k][0] in wm_hits[i]]
+            now = {act for act, s in done if s <= t0 + 1e-4 < s + HIT_HOLD}
+            rows += [("d1", k, y) for k, y in enumerate(lay["d1_rows"]) if lay["tick"]["d1"][k][0] in now]
+            for kind, k, y in rows:
+                last = next((g for g in reversed(segs) if g[0] == kind and g[1] == k and g[2] == y and abs(g[4] - t0) < 1e-6), None)
+                if last:
+                    last[4] = t1
+                else:
+                    fresh = kind == "d1" and any(abs(s - t0) < 1e-3 for _, s in done)
+                    segs.append([kind, k, y, t0, t1, fresh])
+        for kind, k, y, t0, t1, fresh in segs:
+            s0, s1 = start + (t0 - a), start + (t1 - a)
+            left, top = 738 * panel.SCALE, (y - 3) * panel.SCALE
+            eid, s, _ = self.add(f"<i>{CHECK_SVG}</i>", s0, s1, f"hit hit-{kind}",
+                                 f"left:{left:.1f}px;top:{top:.1f}px;width:{524 * panel.SCALE:.1f}px;height:{23 * panel.SCALE:.1f}px;")
+            self.js.append(f'tl.fromTo("#{eid}", {{opacity: 0, scale: 0.96}}, {{opacity: 1, scale: 1, duration: 0.18, ease: EASE}}, {s});')
+            if fresh:
+                self.cue(s, "check")
+
+    def zoom(self, video, start, src0, t_lift, t_drop, phrase, name):
+        """The coach's reply lifts out of the panel, grows to the centre while the rest dims, its key phrase is marked
+        in green, and it drops back into place. The box is redrawn crisply (panel.coach_box) from the run, so it is
+        exactly what the page shows; nothing may change in it while it is lifted."""
+        video = SRC.get(video, video)
+        back = t_drop + 0.4
+        src_lift, src_back = src0 + (t_lift - start), src0 + (back - start)
+        assert not panel.calls_change(video, src_lift - 0.05, src_back), f"beat {self.bid}: the coach box changes during the zoom"
+        out = HF / "assets" / "zoom"
+        out.mkdir(parents=True, exist_ok=True)
+        plain, box = panel.coach_box(video, src_lift, 3)
+        marked, _ = panel.coach_box(video, src_lift, 3, phrase)
+        fn = f"b{self.bid:02d}_{name}"
+        plain.save(out / f"{fn}.png")
+        marked.save(out / f"{fn}_mark.png")
+        bx, by = box[0] * panel.SCALE, box[1] * panel.SCALE
+        bw, bh = (box[2] - box[0] + 1) * panel.SCALE, (box[3] - box[1] + 1) * panel.SCALE
+        zh = bh * ZOOM_W / bw
+        left, top = (1920 - ZOOM_W) / 2, ZOOM_CY - zh / 2
+        sid, _, _ = self.add("", t_lift, back, "full zoomshade")
+        inner = (f'<img src="../assets/zoom/{fn}.png" alt=""><img class="mark" src="../assets/zoom/{fn}_mark.png" alt="">')
+        zid, s, _ = self.add(inner, t_lift, back, "zoom", f"left:{left:.1f}px;top:{top:.1f}px;width:{ZOOM_W}px;height:{zh:.1f}px;")
+        home = f"x: {bx - left:.1f}, y: {by - top:.1f}, scale: {bw / ZOOM_W:.4f}"
+        self.js.append(f'tl.fromTo("#{sid}", {{opacity: 0}}, {{opacity: 1, duration: 0.3, ease: "none"}}, {s});')
+        self.js.append(f'tl.fromTo("#{zid}", {{{home}}}, {{x: 0, y: 0, scale: 1, duration: 0.45, ease: EASE}}, {s});')
+        self.js.append(f'tl.fromTo("#{zid} .mark", {{clipPath: "inset(0% 100% 0% 0%)"}}, {{clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power1.inOut"}}, {round(s + 0.55, 3)});')
+        self.js.append(f'tl.to("#{zid}", {{{home}, duration: 0.4, ease: "power2.inOut"}}, {self.frame(t_drop)});')
+        self.js.append(f'tl.to("#{sid}", {{opacity: 0, duration: 0.4, ease: "none"}}, {self.frame(t_drop)});')
+        self.cue(s, "whoosh")
+        self.cue(t_drop, "whoosh")
+        return zid
 
     # ---- output -----------------------------------------------------------------------------------------------
     def html(self):
@@ -302,16 +393,19 @@ def beat_5(p):
 
 def beat_6(p):
     """Chapter 2, then the demo page's video (footage + model panel): M1 (plate first) and M2 (onion), with the
-    memory coach going along. M1 is moved past its clips.tsv window so the 0:39 answer reaches the panel with its card."""
+    memory coach going along. M1 is moved past its clips.tsv window so the 0:39 answer reaches the panel with its
+    card; the reply then lifts to the centre with "fine to do in parallel" marked."""
     ch = 1.1
     p.chapter_card(2, "With *memory*", "mem", 0, ch)
     c = round(p.word(1, "then") - 0.1, 3)
     t_card = ch + 0.5
-    p.footage("M1", "P08", 39.1 - (t_card - ch), ch, c, kind="panel")   # from the sink to the cottage-cheese plate
-    p.footage("M2", *tsv("M2", 2.4), c, p.dur, kind="panel")            # 1:54.4 on: beat 0 used 1:52-1:54
+    m1 = 39.1 - (t_card - ch)                                  # from the sink to the cottage-cheese plate
+    p.panel_shot("M1", "P08", m1, ch, c)
+    p.panel_shot("M2", *tsv("M2", 2.4), c, p.dur)              # 1:54.4 on: beat 0 used 1:52-1:54
     p.coach("mem", "MEMORY · 0:39", "Plate first? Fine.", t_card, c)
     p.coach("mem", "MEMORY · 1:45", "Keep going.", c, p.dur)
-    p.key(0.6, "chapter 2"); p.key(t_card + 1.0, "M1 · plate first, panel"); p.key(c + 1.4, "M2 · keep going, panel")
+    p.zoom("P08", ch, m1, t_card + 0.3, c - 0.45, "fine to do in parallel", "M1")
+    p.key(0.6, "chapter 2"); p.key(t_card + 1.3, "M1 · reply lifted, parallel marked"); p.key(c + 1.4, "M2 · keep going, panel")
 
 
 def beat_7(p):
@@ -328,32 +422,46 @@ def beat_7(p):
     p.steps(7, 0, p.dur, fills=fills)
 
 
+def ledger_on(video, t):
+    """Steps the memory has started or finished at second t, for a step row that agrees with the panel."""
+    tick, _, _ = panel.state(SRC.get(video, video), t)
+    return [(k + 1, "") for k, st in enumerate(tick["ledger"]) if st != "not started"]
+
+
 def beat_8(p):
-    """M4: the memory coach asks for the oil before the onions need it; M5: the learner sprays the pan (step 2 fills)."""
+    """E1: at 4:53 the coach steers the learner back to the eggs (card, then the reply lifted to the centre).
+    E2: d1's top 3 are open package, break egg, take egg; the learner opens the carton (5:12.1), takes an egg (5:13.1)
+    and cracks it (5:13.7), each getting its tick as it happens, on the narration's "open", "take" and "crack".
+    The step row shows what the memory has (2, 3, 7) and fills step 1 when the memory marks it, at 5:16.2."""
     c = p.cut(2)
     t_card = round(p.sent(1)[0] - 0.05, 3)
-    p.footage("M4", *aligned("M4", 127, t_card, c), 0, c, kind="panel")
-    p.footage("M5", "P08", 275.4, c, p.dur, kind="panel")   # the spray lands at 4:36, 0.6 s into the shot
-    p.steps(7, 0, p.dur, filled=[(7, "0:13"), (3, "1:50")], fills=[(2, "4:36", c + 0.6)], top_left=(96, PANEL_STEPS_TOP))
-    p.coach("mem", "MEMORY · 2:07", "Oil the pan first.", t_card, c)
-    p.key(1.2, "M4 · onion, row 3 and 7"); p.key(t_card + 1.5, "card: oil the pan"); p.key(c + 1.4, "M5 · step 2 fills 4:36")
+    e1 = 293.5 - t_card                                       # the 4:53 answer reaches the panel as the card lands
+    e2 = 312.08 - (p.word(2, "open") - c)                     # the carton opens on the word "open"
+    p.panel_shot("E1", "P08", e1, 0, c)
+    p.panel_shot("E2", "P08", e2, c, p.dur)
+    p.steps(7, 0, p.dur, filled=ledger_on("P08", e1), fills=[(1, "", c + (316.233 - e2))], top_left=(96, PANEL_STEPS_TOP))
+    p.coach("mem", "MEMORY · 4:53", "Back to the eggs.", t_card, c)
+    p.zoom("P08", 0, e1, t_card + 0.35, c - 0.5, "back to cracking and whisking the eggs", "E1")
+    p.key(t_card + 1.6, "E1 · reply lifted, eggs marked"); p.key(c + (313.3 - e2), "E2 · open and take ticked")
+    p.key(c + (314.6 - e2), "E2 · crack ticked, world model right"); p.key(p.dur - 0.3, "E2 · step 1 filled")
 
 
 def beat_9(p):
-    """Bacon & Egg on the demo page's video: B1 (cheese meanwhile), B2 (season first), B3 (the salted eggs; step 5
-    of 6 fills with 9:42). B1 and B2 start where their answers (6:17, 7:01) reach the panel, as their cards land.
-    B3 is where the memory marks step 5 (9:42.2, after the salt at 9:19), so the icon fills as the panel's checklist does."""
+    """Bacon & Egg on the demo page's video. B1, 6:47: the learner cuts the baguette while the 6:17 cheese answer is
+    the latest (card, reply lifted with the cheese line marked); the world model's "cut bread" and d1's "cut bread
+    (step 6)" turn out right. B2: the 7:01 answer (season first) arrives at the cut. B3, 9:20: salt into the hand;
+    the world model's "pour salt" and d1's "take salt" (done 9:24.3) get their ticks. No step row: the memory marks
+    seasoning only at 9:42."""
     c1 = round(p.word(0, "and", 1) - 0.1, 3)
     c2 = round(p.sent(0)[1] + 0.15, 3)
-    t_fill = c2 + 0.6
-    p.footage("B1", *aligned("B1", 377.9, 0.3, c1), 0, c1, kind="panel")
-    p.footage("B2", *aligned("B2", 421.6, 0.0, c2 - c1), c1, c2, kind="panel")
-    p.footage("B3", "P02", 582.233 - (t_fill - c2), c2, p.dur, kind="panel")
+    p.panel_shot("B1", "P02", 407.0, 0, c1)
+    p.panel_shot("B2", "P02", 421.6, c1, c2)
+    p.panel_shot("B3", "P02", 560.0, c2, p.dur)
     p.coach("mem", "MEMORY · 6:17", "Shred cheese meanwhile.", 0.3, c1)
     p.coach("mem", "MEMORY · 7:01", "Season the eggs first.", c1, c2)
-    p.steps(6, c2, p.dur, filled=[(1, ""), (2, ""), (3, ""), (4, ""), (6, "")], fills=[(5, "9:42", t_fill)],
-            top_left=(96, PANEL_STEPS_TOP))
-    p.key(2.0, "B1 · cheese meanwhile"); p.key(c1 + 1.6, "B2 · season first"); p.key(p.dur - 0.4, "B3 · step 5 fills 9:42")
+    p.zoom("P02", 0, 407.0, 0.8, 3.0, "shredding the cheddar cheese while the eggs and bacon continue cooking", "B1")
+    p.key(1.8, "B1 · reply lifted, cheese marked"); p.key(c1 - 0.8, "B1 · cut bread ticked"); p.key(c1 + 1.6, "B2 · season first")
+    p.key(p.dur - 0.3, "B3 · salt ticked")
 
 
 GLYPH = {
@@ -372,7 +480,7 @@ def beat_10(p):
     hid, hs, _ = p.add(f'<div class="chapter tone-mem small"><b>{p.say("3")}</b><span>{p.say("How it *works*")}</span></div>',
                        1.0, p.dur, "", "left:96px;top:96px;")
     p.anim_in(hid, hs)
-    W, H, A, Y = 230, 150, 48, 400
+    W, H, A, Y = 260, 172, 36, 370
     chip_w = 236
     total = 5 * W + chip_w + 5 * A
     x = (1920 - total) // 2
@@ -482,7 +590,8 @@ def beat_13(p):
     p.js.append(f'tl.fromTo("#{eid} .line", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, {s});')
     inner = ('<h1>Personal Cooking <span class="accent">Coach</span></h1>'
              f'<p>{p.label("Built with Meta V-JEPA 2 · Muse Glimmer · Liquid AI d1")}<br>'
-             f'{p.label("Footage: HD-EPIC, University of Bristol · CC BY-NC 4.0")}</p>')
+             f'{p.label("Footage: HD-EPIC, University of Bristol · CC BY-NC 4.0")}<br>'
+             f'{p.label("Music: “Bushwick Tarantella” by Kevin MacLeod (incompetech.com) · CC BY 4.0")}</p>')
     cid_, cs, _ = p.add(inner, t_end, p.dur, "full paper endcard")
     p.js.append(f'tl.fromTo("#{cid_}", {{opacity: 0}}, {{opacity: 1, duration: 0.3, ease: "none"}}, {cs});')
     p.js.append(f'tl.fromTo("#{cid_} h1", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, {round(cs + 0.15, 3)});')
@@ -505,7 +614,7 @@ def index_html(ids):
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>Personal Cooking Coach · demo v2</title>
+    <title>Personal Cooking Coach · demo v3</title>
     <link rel="stylesheet" href="assets/fonts/fonts.css" />
     <link rel="stylesheet" href="assets/style.css" />
     <script src="assets/vendor/gsap.min.js"></script>
@@ -531,17 +640,19 @@ def index_html(ids):
 def main():
     (HF / "compositions").mkdir(parents=True, exist_ok=True)
     HD.mkdir(parents=True, exist_ok=True)
-    media, keys = [], {}
+    media, keys, cues = [], {}, {}
     for bid, fn in sorted(BUILDERS.items()):
         p = Page(bid)
         fn(p)
         (HF / "compositions" / f"beat_{bid:02d}.html").write_text(p.html(), encoding="utf-8")
         media += p.media
         keys[str(bid)] = p.keyframes
+        cues[str(bid)] = sorted(p.cues)
         print(f"beat {bid:2d}  {p.dur:6.2f}s  {len(p.els):3d} elements  {len(p.media)} shots  {p.beat['label']}")
     (HD / "manifest.json").write_text(json.dumps(media, indent=1))
     (HF / "index.html").write_text(index_html(sorted(BUILDERS)), encoding="utf-8")
     (HF / "keyframes.json").write_text(json.dumps(keys, indent=1))
+    (HF / "cues.json").write_text(json.dumps(cues, indent=1))
 
 
 if __name__ == "__main__":

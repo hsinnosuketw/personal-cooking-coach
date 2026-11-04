@@ -28,7 +28,7 @@ TAIL = 0.50         # silence after the last word of each beat
 MIN_BEAT = 2.5
 # Extra hold after the speech, for pictures that need it (seconds, on top of TAIL).
 EXTRA_TAIL = {
-    9: 1.5,    # B3: the salt over the pan and the step-5 icon filling, after the sentence ends
+    9: 5.1,    # B3: the salt (9:20) until d1's "take salt" and "sprinkle salt" are done (9:24.4, 9:24.7)
     13: 4.0,   # the end card with the project name and the credits
 }
 VOICES = {

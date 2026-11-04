@@ -34,11 +34,18 @@ Times are video times. "Said at" is when the answer reached the screen (`ready`)
 | M1 | Learn your way | 0:24–0:32 | takes the ingredients out of the fridge, the cottage cheese for the plate among them (step 7) | "Shifted attention to the cottage cheese plate, which is fine to do in parallel. Keep supporting that plate prep" (0:39) | "Plate first? Fine." |
 | M2 | Learn your way | 1:52–2:00 | cuts the onion (step 3) | "Keep supporting the parallel work … step 7 plate prep and step 3 onion prep, without forcing" (1:45) | "Keep going." |
 | M3 | Remembers | 0:11 → 5:29 | step row fills: plate 0:13, onion 1:50, pan 4:36, eggs 5:13 | (memory overlay, not advice) | row of step icons |
-| M4 | Reminds only when needed | 2:03–2:11 | still on the onion | "Step 2 (spray olive oil … medium heat) is still not seen yet and is a prerequisite for proper sautéing … confirm the skillet is oiled" (2:07) | "Oil the pan first." |
-| M5 | Reminds only when needed | 4:32–4:40 | **sprays the pan** (the reminder worked) | — | ✓ step 2 |
-| B1 | Parallel (Bacon & Egg) | 6:12–6:20 | eggs cooking | "The eggs are already cooking … In parallel start Step 4 shredding the cheddar" (6:17) | "Shred cheese meanwhile." |
+| M4 | (v1–v2 only) | 2:03–2:11 | still on the onion | "Step 2 (spray olive oil … medium heat) is still not seen yet and is a prerequisite for proper sautéing … confirm the skillet is oiled" (2:07) | "Oil the pan first." |
+| M5 | (v1–v2 only) | 4:32–4:40 | **sprays the pan** (the reminder worked) | — | ✓ step 2 |
+| E1 | Only when it's needed (v3) | 4:50.9–4:57.3 | at the phone; the eggs are not cracked yet | "Gently guide the cook back to cracking and whisking the eggs now" (4:53) | "Back to the eggs." |
+| E2 | Only when it's needed (v3) | 5:09.1–5:17.3 | **opens the carton (5:12.1), takes an egg (5:13.1), cracks it (5:13.7)**: d1's top 3 at that moment are open package, break egg, take egg | — | ticks on d1's three rows; world model right from 5:14 (break egg, put shell) |
+| B1 | Parallel (Bacon & Egg) | 6:47–6:53 (v3; v1–v2 used 6:12–6:23) | **cuts the baguette**: the world model's "cut bread" and d1's "cut bread (step 6)" are right | "The eggs are already cooking … In parallel start Step 4 shredding the cheddar" (6:17, still the latest answer) | "Shred cheese meanwhile." |
 | B2 | Reminds before it's late | 6:58–7:06 | starts on the baguette (step 6) | "Step 5 seasoning is still not seen and Step 6 is listed as needing it, so the eggs should be seasoned before final assembly" (7:01) | "Season the eggs first." |
-| B3 | Reminds before it's late | 9:19–9:27 | **seasons the eggs** | — | ✓ step 5 |
+| B3 | Reminds before it's late | 9:20–9:25.7 (v3) | **salt into the hand (9:19.5), a pinch taken (9:24.4)**: the world model's "pour salt" and d1's "take salt (step 5)" are right | "season the eggs with salt and paprika while they are still warm" (8:55) | ticks on the right rows |
+
+Since v3 the memory shots are picked with `video/pipeline/find_moments.py`, which scores every second of the two
+memory runs against HD-EPIC's narrations: the world model is right when its top 3 holds the action narrated about a
+second later, d1 when the learner then does one of its top 3 within 8 s (the narration's main action). Scrambled Eggs
+has few such moments outside 5:09–5:26 (cracking the eggs); the plate and onion shots (M1, M2) stay for the story.
 
 ## Not used, on purpose
 - **Memory coach 3:39–7:46.** It kept saying "step 1 not seen yet" after the eggs were cracked at 5:13; the camera missed the cracking. That is the honest limit, said once in the script, not shown as a win.

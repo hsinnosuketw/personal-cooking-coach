@@ -1,4 +1,4 @@
-# Beat map (draft 4)
+# Beat map (draft 5)
 
 One home for the beat map: video/review/build_review.py renders it on the review page and writes video/beat_map.md from it. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:' (the coach's own, flatter voice). 'screen' describes everything visible. Words that appear on screen are in double quotes and stay at 5 or fewer per screen; eyebrows such as NO MEMORY · 13:28 are evidence labels and don't count. From draft 4, the memory beats (6, 8, 9) are cut from the demo page's video of the stage-40 run: the footage on the left, the page's live panel on the right (world model's next-action predictions, the coach's latest answer, d1's next move and the checklist), so every shot shows what the models actually output at that second.
 
@@ -8,7 +8,7 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What's on screen**: The learner's head-camera view as a meal begins: ingredients come out of the fridge, then the onion goes onto the chopping board. Over the footage, centred white text: "Your own coaching chef?", with "coaching chef" in italic serif. Nothing else on screen.
 
-**Clips**: M1, M2 · **Sound**: Warm music bed starts.
+**Clips**: M1, M2 · **Sound**: The music starts with the cooking: Bushwick Tarantella (Kevin MacLeod, CC BY 4.0), under the narration.
 
 ## 0:07 · The catch
 
@@ -54,7 +54,7 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What we say**: Start wherever you like. Our learner gets the plate ready first, then chops the onion, and the coach goes along: fine, do it in parallel.
 
-**What's on screen**: A green numbered square "2" and the title "With memory" for one second. Then the demo page's video: the learner on the left, the page's panel on the right (world model, coach, d1). The learner turns from the sink to the cottage-cheese plate; at 0:39 the coach's answer reaches the panel and a green card lands top-left, eyebrow MEMORY · 0:39, "Plate first? Fine." Hard cut to the onion being chopped (1:54); card "Keep going.", eyebrow MEMORY · 1:45, while the panel still shows that answer.
+**What's on screen**: A green numbered square "2" and the title "With memory" for one second. Then the demo page's video: the learner on the left, the page's panel on the right (world model, coach, d1). The learner turns from the sink to the cottage-cheese plate; at 0:39 the coach's answer reaches the panel and a green card lands top-left, eyebrow MEMORY · 0:39, "Plate first? Fine." The coach's reply lifts out of the panel and grows to the centre, its line "fine to do in parallel" marked in green, then drops back. Hard cut to the onion being chopped (1:54); card "Keep going.", eyebrow MEMORY · 1:45, while the panel still shows that answer.
 
 **Clips**: M1, M2 · **Sound**: The music returns; pop on each card.
 
@@ -68,19 +68,19 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 ## 1:20 · Only when it's needed
 
-**What we say**: It only speaks up when something is needed. The onions will need a hot pan, so it reminds you to oil the skillet. A couple of minutes later, you do.
+**What we say**: It only speaks up when something is needed. The eggs still aren't cracked, so it steers our learner back to them. The decision model lines up the next moves: open the carton, take an egg, crack it. Our learner does all three.
 
-**What's on screen**: The demo page's video, footage left, model panel right. The onion chopping continues; at 2:07 the coach's oil answer reaches the panel and a green card lands top-left, eyebrow MEMORY · 2:07, "Oil the pan first." Under the card, the step row (3 and 7 already green). Hard cut to the learner spraying oil into the pan (4:36); the pan icon fills with "4:36" and the panel's checklist ticks step 2.
+**What's on screen**: The demo page's video, footage left, model panel right. The learner is at the phone; at 4:53 the coach's answer reaches the panel and a green card lands top-left, eyebrow MEMORY · 4:53, "Back to the eggs." The coach's reply lifts out of the panel and grows to the centre, its line "back to cracking and whisking the eggs" marked in green, then drops back. Under the card, the step row (2, 3 and 7 on, as the memory has them). Hard cut to 5:10: d1's top three in the panel are open package, break egg and take egg; the learner opens the carton, takes an egg and cracks it, and each of d1's rows gets a green tick as its move happens. The world model's rows get a tick whenever its prediction comes true (break egg, put shell). Step 1 fills as the memory marks it, at 5:16.
 
-**Clips**: M4, M5 · **Sound**: Pop, then tick.
+**Clips**: E1, E2 · **Sound**: Pop for the card, a whoosh as the reply lifts and drops, a soft tick on each green tick and on the fill.
 
 ## 1:33 · Another dish
 
 **What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich.
 
-**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. Bacon and eggs in two pans; at 6:17 the coach's cheese answer reaches the panel and the green card lands, "Shred cheese meanwhile." Hard cut to the learner cutting a baguette (7:01); card "Season the eggs first." Hard cut to the salted eggs being stirred (the salt went in at 9:19); at 9:42 the memory marks the seasoning step, so the seasoning icon in a six-icon row under the card position fills with "9:42" as the panel's checklist turns step 5 on.
+**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:47: the learner cuts the baguette while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 9:19: salt goes into the learner's hand; the world model says pour salt and d1 says take salt and sprinkle salt, and each gets a tick as it happens.
 
-**Clips**: B1, B2, B3 · **Sound**: Pops, then a tick.
+**Clips**: B1, B2, B3 · **Sound**: Pops for the cards, a whoosh for the reply, soft ticks on the green ticks.
 
 ## 1:47 · Chapter 3 · How it works
 
@@ -110,6 +110,6 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What we say**: Your own coaching chef, one that remembers what you've done.
 
-**What's on screen**: The finished plate being seasoned, dimmed. White text: "Your own coaching chef.", with "coaching chef" in italic serif, echoing the opening. Then a paper card with the project name and the credits: built with Meta V-JEPA 2, Muse Glimmer and Liquid AI d1; footage HD-EPIC, University of Bristol, CC BY-NC 4.0.
+**What's on screen**: The finished plate being seasoned, dimmed. White text: "Your own coaching chef.", with "coaching chef" in italic serif, echoing the opening. Then a paper card with the project name and the credits: built with Meta V-JEPA 2, Muse Glimmer and Liquid AI d1; footage HD-EPIC, University of Bristol, CC BY-NC 4.0; music "Bushwick Tarantella" by Kevin MacLeod (incompetech.com), CC BY 4.0.
 
 **Clips**: graphic only · **Sound**: The music resolves and ends.

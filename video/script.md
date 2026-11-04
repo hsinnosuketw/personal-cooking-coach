@@ -1,6 +1,6 @@
-# Script: Personal Cooking Coach (draft 3)
+# Script: Personal Cooking Coach (draft 5, film v3)
 
-**Audience**: cooking learners, and the hackathon judges watching for them. **Length**: about 2:40, 326 narrated words. **Voice**: a calm, warm TTS narrator. The coach's own lines ("Coach: …") use a second, flatter voice.
+**Audience**: cooking learners, and the hackathon judges watching for them. **Length**: 2:17 (v3), about 335 narrated words. **Voice**: a calm, warm TTS narrator. The coach's own lines ("Coach: …") use a second, flatter voice.
 
 **Structure** (from `hook_library.md`):
 1. **A question anyone can picture**: your own coaching chef, or one you design.
@@ -30,7 +30,7 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 
 **1:09 It remembers.** Every action it sees is written down against a recipe step, so it always knows what has started and what is left.
 
-**1:20 Only when it's needed.** It only speaks up when something is needed. The onions will need a hot pan, so it reminds you to oil the skillet. A couple of minutes later, you do.
+**1:20 Only when it's needed.** It only speaks up when something is needed. The eggs still aren't cracked, so it steers our learner back to them. The decision model lines up the next moves: open the carton, take an egg, crack it. Our learner does all three.
 
 **1:33 Another dish.** On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich.
 
@@ -49,7 +49,10 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 | Cracked at five minutes, asked again at nine | Narrations: cracked 5:13–5:29; run answer at 8:54 |
 | "Eggs on the plate … add the onions" | Plating 13:41–13:52; the answer reached the screen at 13:59 |
 | "Fine, do it in parallel" | Memory run, 0:39: "fine to do in parallel" |
-| The oil reminder, then the learner oils the pan | Memory run, 2:07 ("step 2 … is a prerequisite for proper sautéing"); oil sprayed at 4:36 |
+| (v1–v2) The oil reminder, then the learner oils the pan | Memory run, 2:07 ("step 2 … is a prerequisite for proper sautéing"); oil sprayed at 4:36. Dropped in v3: d1's top 3 never held an oil move between 2:07 and 4:36 |
+| "The eggs still aren't cracked, so it steers our learner back to them" | Memory run, answer at 4:53 (asked 4:39, "off advice"): "Gently guide the cook back to cracking and whisking the eggs now"; cracked 5:13.7 (narrations) |
+| "The decision model lines up the next moves: open the carton, take an egg, crack it. Our learner does all three." | d1's top 3 from 4:49 to 5:13: open package, break egg, take egg. Narrations (main action): open egg carton 5:12.1, pick up egg 5:13.1, crack egg 5:13.7 |
+| Panel ticks (beats 6, 8, 9) | `video/pipeline/find_moments.py`: world model top 3 holds an action of a narration overlapping 0.5–2 s ahead; d1 move = a narration's main action within 8 s. B1 6:47–6:53 cut bread (both); B3 9:20 pour salt (world model), take salt 9:24.4 (d1) |
 | Cheese while the eggs cook; season before the sandwich | Bacon & Egg memory run, 6:17 and 7:01; cheese shredded 7:25, seasoned 9:19 |
 | 5 → 1 | Requests to crack after the eggs were whisked (7:41). No memory: 8:54, 9:56, 10:45, 13:28, 13:43. Memory: 7:46 |
 | "Misses what the camera can't see" | The memory run said "step 1 not seen yet" from 3:39 to 7:46, although the eggs were cracked at 5:13 |
