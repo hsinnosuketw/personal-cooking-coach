@@ -14,7 +14,7 @@ The five-word rule stays for what the viewer reads while watching. Two exception
 
 ## 5. Components
 - **Coach card, Gemini**: same card, grey eyebrow, "GEMINI LIVE · 1:10". The line is a faithful short version of the real answer. Anything Gemini did not say, such as "Keep asking." in beat 1, is narrator text and never goes on this card.
-- **Recipe list (beat 1)**: white handwriting (Caveat 700, 72 px, SIL OFL, in `assets/fonts`) over the dimmed footage, numbered 1 to 7, under a mono eyebrow. It stays 2 s after its sentence.
+- **Recipe list (beat 1)**: white Instrument Serif Italic, 72 px, the accent face of "coaching chef" in the hook, over the dimmed footage, numbered 1 to 7, under a mono eyebrow. It stays 2 s after its sentence.
 - **Test chip**: a small mono chip, "asked every 10 s", for all of beat 2. Our setting, so it stays visible.
 - **Counters**: "26 answers" then "Eggs: 0" (beat 3), "×1" to "×18" (beat 4), "×8" (beat 9).
 - **IN/OUT strip (beat 10)**: under the card row and left of the kitchen square. Mono labels IN and OUT at 24 px, text at 40 px, changing with the lit card. It replaces the question under each card.
