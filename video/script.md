@@ -20,7 +20,7 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 ## Narration, read straight through
 **0:00 The hook.** Ever thought of having a coaching chef in your house, teaching you to cook?
 
-**0:06 The catch.** You could try Gemini Live. We gave it our learner's video and the recipe. But you'll need to constantly ask questions to get the coaching step.
+**0:06 The catch.** We try Gemini Live with this recipe. We give it our learner's video too. But you'll need to constantly ask questions to get the coaching step.
 
 **0:15 Chapter 1 · Gemini Live.** So we asked, every ten seconds, and it answers well. Coach: Chop the red onion. Add a spray of olive oil. Whisk the eggs.
 
@@ -49,6 +49,7 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 
 | Claim | Source |
 |---|---|
+| The seven steps on screen, "this recipe" | `P08_R03`, the same seven steps our coach and Gemini were given, in short form |
 | "You'll need to constantly ask questions" | No reply during the film with only the video and the recipe: eggs `A_1`, `A_2`, `B_2`, sandwich `A_2`. It answered every question in the runs that asked. We infer that it needs a turn; the docs don't say so directly. API only |
 | "We asked, every ten seconds" | Eggs `D10_2`: 108 questions, 108 answers. Our own setting, stated on screen |
 | "It answers well": chop the red onion, add a spray of olive oil, whisk the eggs | Eggs `D10_2`: 1:10, 3:30, 5:20. Narrations: the onion is cut 1:09–2:35, the oil spray picked up 3:29, sprayed 4:36; the eggs cracked 5:13–5:29, whisked 7:25–7:41 |

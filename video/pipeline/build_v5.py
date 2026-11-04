@@ -26,10 +26,23 @@ def beat_0(p):
     p.key(1.5, "M1 · fridge"); p.key(c + 0.8, "M2 · onion")
 
 
+RECIPE = ["Crack and whisk the eggs", "Oil and heat the pan", "Sauté onions and chillies", "Pour in the eggs", "Fold and stir",
+          "Off the heat, season", "Plate with cottage cheese"]     # P08_R03's seven steps, short: the film's first sight of the recipe
+
+
 def beat_1(p):
-    """The catch, in one sentence: you have to keep asking."""
+    """The recipe on screen over the learner cooking, then the catch in one sentence: you have to keep asking."""
     t = round(p.sent(2)[0] - 0.05, 3)
     p.footage("G1a", "P08", 120.0, 0, p.dur)      # chopping, no phone: it would read as "asking" the phone
+    a, z = p.sent(0)[0], round(p.sent(1)[0] - 0.1, 3)
+    assert z - p.sent(0)[1] >= 2.0, "the recipe stays 2 s after its sentence"
+    sid, ss, _ = p.add("", a, z, "full shade dim")
+    p.js.append(f'tl.fromTo("#{sid}", {{opacity: 0}}, {{opacity: 1, duration: {IN_DUR}, ease: "none"}}, {ss});')
+    rows = "".join(f"<div>{k + 1}. {p.label(r)}</div>" for k, r in enumerate(RECIPE))
+    lid, ls, _ = p.add(f"<small>{p.label('SCRAMBLED EGGS · THE RECIPE')}</small>{rows}", a, z, "recipelist")
+    p.js.append(f'tl.fromTo("#{lid} div", {{opacity: 0, y: 10}}, {{opacity: 1, y: 0, duration: {IN_DUR}, stagger: 0.06, ease: EASE}}, {ls});')
+    p.anim_out(lid, z)
+    p.anim_out(sid, z)
     p.shade(t, p.dur)
     cid, cs, _ = p.add(p.label(f"{LIVE} API · SAME VIDEO, SAME RECIPE"), p.sent(1)[0], p.dur, "testchip")
     p.anim_in(cid, cs)
@@ -37,7 +50,7 @@ def beat_1(p):
     p.js.append(f'tl.fromTo("#{eid} .line", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, {s});')
     p.js.append(f'tl.fromTo("#{eid}", {{backgroundColor: "rgba(17,18,20,0)"}}, {{backgroundColor: "rgba(17,18,20,0.28)", duration: {IN_DUR}, ease: "none"}}, {s});')
     p.cue(s, "pop")
-    p.key(1.4, "G1 · the onion"); p.key(p.dur - 1.0, "keep asking")
+    p.key(round(z - 0.5, 2), "the recipe's seven steps"); p.key(p.sent(1)[0] + 0.6, "G1 · the learner keeps cooking"); p.key(p.dur - 1.0, "keep asking")
 
 
 def beat_2(p):

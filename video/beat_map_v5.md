@@ -12,9 +12,9 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 0:06 · The catch
 
-**What we say**: You could try Gemini Live. We gave it our learner's video and the recipe. But you'll need to constantly ask questions to get the coaching step.
+**What we say**: We try Gemini Live with this recipe. We give it our learner's video too. But you'll need to constantly ask questions to get the coaching step.
 
-**What's on screen**: Full-screen footage: the learner cuts the onion. On the last sentence the footage dims and a centred white line appears, the narrator's, not a coach card: "Keep asking." A small chip top-right, from the second sentence: GEMINI LIVE API · SAME VIDEO, SAME RECIPE.
+**What's on screen**: The learner keeps cutting the onion, full screen, dimmed. Over it, white text in the film's font, a numbered list of the recipe under a small eyebrow SCRAMBLED EGGS · THE RECIPE: 1. Crack and whisk the eggs 2. Oil and heat the pan 3. Sauté onions and chillies 4. Pour in the eggs 5. Fold and stir 6. Off the heat, season 7. Plate with cottage cheese. It stays 2 s after the sentence ends, so it can be read. Then the dim lifts. On the last sentence a centred white line appears, the narrator's, not a coach card: "Keep asking." A small chip top-right, from the second sentence: GEMINI LIVE API · SAME VIDEO, SAME RECIPE.
 
 **Clips**: G1 · **Sound**: The music dips.
 

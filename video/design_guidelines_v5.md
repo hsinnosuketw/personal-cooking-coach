@@ -3,7 +3,7 @@
 `design_guidelines.md` still applies. This file lists only what changes for v5.
 
 ## 1. Text density
-The five-word rule stays for what the viewer reads while watching. Two exceptions, because these screens explain rather than show: the How it works IN and OUT strip, and the result table. Each IN or OUT line stays at 5 words or fewer where it can (Glimmer's OUT takes 7).
+The five-word rule stays for what the viewer reads while watching. Two exceptions, because these screens explain rather than show: the recipe list in beat 1, the How it works IN and OUT strip, and the result table. Each IN or OUT line stays at 5 words or fewer where it can (Glimmer's OUT takes 7).
 
 ## 3. Colour
 | Token | Hex | Use |
@@ -14,6 +14,7 @@ The five-word rule stays for what the viewer reads while watching. Two exception
 
 ## 5. Components
 - **Coach card, Gemini**: same card, grey eyebrow, "GEMINI LIVE · 1:10". The line is a faithful short version of the real answer. Anything Gemini did not say, such as "Keep asking." in beat 1, is narrator text and never goes on this card.
+- **Recipe list (beat 1)**: white Figtree 52 px over the dimmed footage, numbered 1 to 7, under a mono eyebrow. It stays 2 s after its sentence.
 - **Test chip**: a small mono chip, "asked every 10 s", for all of beat 2. Our setting, so it stays visible.
 - **Counters**: "26 answers" then "Eggs: 0" (beat 3), "×1" to "×18" (beat 4), "×8" (beat 9).
 - **IN/OUT strip (beat 10)**: under the card row and left of the kitchen square. Mono labels IN and OUT at 24 px, text at 40 px, changing with the lit card. It replaces the question under each card.
