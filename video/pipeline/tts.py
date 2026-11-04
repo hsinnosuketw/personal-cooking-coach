@@ -40,9 +40,9 @@ PAUSE_AFTER = {
     8: {1: 0.9, 3: 0.2},   # the 4:53 reply held 2.5 s; "Open the carton. Take an egg. Crack it." spaced to the ticks
 }
 if V.VERSION == "v5":
-    EXTRA_TAIL[9] = 3.9    # B4's 8:55 reply stays lifted past the last line, then B3's salt until d1's ticks (9:24.4)
-    EXTRA_TAIL[12] = 1.5   # the table holds
-    PAUSE_AFTER[1] = {0: 2.0}   # the recipe list stays 2 s after its sentence, to be read
+    EXTRA_TAIL[9] = 3.9    # B3's salt until d1's ticks (9:24.4)
+    EXTRA_TAIL[12] = 0.5   # the table holds
+    PAUSE_AFTER[1] = {0: 3.0}   # the recipe list stays 3 s after its sentence, to be read
 VOICES = {
     "narrator": dict(voice="af_heart", speed=0.85),
     "coach": dict(voice="am_michael", speed=0.8),

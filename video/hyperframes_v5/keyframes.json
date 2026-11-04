@@ -11,15 +11,15 @@
  ],
  "1": [
   [
-   4.36,
+   5.36,
    "the recipe's seven steps"
   ],
   [
-   5.56,
+   6.56,
    "G1 \u00b7 the learner keeps cooking"
   ],
   [
-   10.7,
+   11.7,
    "keep asking"
   ]
  ],
@@ -33,11 +33,11 @@
    "G1 \u00b7 chop"
   ],
   [
-   6.34,
+   6.72,
    "G2 \u00b7 oil"
   ],
   [
-   8.73,
+   9.52,
    "G3 \u00b7 whisk"
   ]
  ],
@@ -47,8 +47,8 @@
    "G4 \u00b7 chopping"
   ],
   [
-   8.13,
-   "26 answers, eggs 0"
+   8.23,
+   "23 answers, eggs 0"
   ]
  ],
  "4": [
@@ -61,8 +61,8 @@
    "G6 \u00b7 onions, \u00d71"
   ],
   [
-   6.33,
-   "G7 \u00b7 \u00d718"
+   6.4,
+   "G7 \u00b7 \u00d720"
   ]
  ],
  "5": [
@@ -131,15 +131,11 @@
    "B2 \u00b7 season first"
   ],
   [
-   14.52,
-   "G8 \u00b7 build the sandwich, \u00d78"
+   13.21,
+   "G8 \u00b7 Gemini at 9:10"
   ],
   [
-   17.22,
-   "B4 \u00b7 8:55 reply marked"
-  ],
-  [
-   21.53,
+   17.73,
    "B3 \u00b7 salt ticked"
   ]
  ],
@@ -175,7 +171,7 @@
    "Gemini Live, not asked: none"
   ],
   [
-   18.9,
+   22.73,
    "ours: all but the last"
   ]
  ],

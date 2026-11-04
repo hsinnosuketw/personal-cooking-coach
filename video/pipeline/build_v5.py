@@ -33,9 +33,9 @@ RECIPE = ["Crack and whisk the eggs", "Oil and heat the pan", "Sauté onions and
 def beat_1(p):
     """The recipe on screen over the learner cooking, then the catch in one sentence: you have to keep asking."""
     t = round(p.sent(2)[0] - 0.05, 3)
-    p.footage("G1a", "P08", 120.0, 0, p.dur)      # chopping, no phone: it would read as "asking" the phone
+    p.footage("G1a", "P08", 109.0, 0, p.dur)      # chopping, no phone: it would read as "asking" the phone
     a, z = p.sent(0)[0], round(p.sent(1)[0] - 0.1, 3)
-    assert z - p.sent(0)[1] >= 2.0, "the recipe stays 2 s after its sentence"
+    assert z - p.sent(0)[1] >= 3.0, "the recipe stays 3 s after its sentence"
     sid, ss, _ = p.add("", a, z, "full shade dim")
     p.js.append(f'tl.fromTo("#{sid}", {{opacity: 0}}, {{opacity: 1, duration: {IN_DUR}, ease: "none"}}, {ss});')
     rows = "".join(f"<div>{k + 1}. {p.label(r)}</div>" for k, r in enumerate(RECIPE))
@@ -58,11 +58,11 @@ def beat_2(p):
     ch = 1.1
     p.chapter_card(1, "Gemini *Live*", "live", 0, ch)
     c1, c2, c3 = p.cut(1), p.cut(2), p.cut(3)
-    p.footage("G1", "P08", 68.0, ch, c2)
-    p.footage("G2", "P08", 211.0, c2, c3)
+    p.footage("G1", "P08", 127.5, ch, c2)
+    p.footage("G2", "P08", 274.6, c2, c3)
     p.footage("G3", "P08", 319.5, c3, p.dur)
     p.shade(c1, p.dur)
-    for brow, line, s, e in ((f"{LIVE} · 1:10", "Chop the red onion.", c1, c2), (f"{LIVE} · 3:30", "Add a spray of olive oil.", c2, c3),
+    for brow, line, s, e in ((f"{LIVE} · 2:10", "Keep chopping the red onion.", c1, c2), (f"{LIVE} · 4:30", "Spray olive oil into your skillet.", c2, c3),
                              (f"{LIVE} · 5:20", "Whisk the eggs.", c3, p.dur)):
         p.coach("live", brow, line, s, e)
     cid, cs, _ = p.add(p.say("asked every 10 s"), ch, p.dur, "testchip")
@@ -72,49 +72,41 @@ def beat_2(p):
 
 def beat_3(p):
     """Four minutes of answers, and the recipe's first step never comes up."""
-    t, t2 = p.word(0, "twenty-six"), p.word(0, "not")
+    t, t2 = p.word(0, "twenty-three"), p.word(0, "not")
     p.footage("G4", "P08", 137.0, 0, p.dur)
     p.shade(t, p.dur)
-    p.coach("live", f"{LIVE} · 1:00–5:10", "26 answers", t, p.dur, counter=[(t2, "Eggs: 0")])
-    p.key(1.0, "G4 · chopping"); p.key(p.dur - 0.8, "26 answers, eggs 0")
+    p.coach("live", f"{LIVE} · 1:30–5:10", "23 answers", t, p.dur, counter=[(t2, "Eggs: 0")])
+    p.key(1.0, "G4 · chopping"); p.key(p.dur - 0.8, "23 answers, eggs 0")
 
 
 def beat_4(p):
-    """When a step has to wait: the same answer, ×18. The film's only red."""
+    """When a step has to wait: the same answer, ×20. The film's only red."""
     c1, c2 = p.cut(1), p.cut(2)
     p.footage("G5", "P08", 540.0, 0, c1)
     p.footage("G6", "P08", 576.0, c1, c2)
     p.footage("G7", "P08", 606.0, c2, p.dur)
     p.shade(c1, p.dur)
-    a, z = c1 + 0.35, p.word(2, "minutes") + 0.3      # from "Pour the eggs" on: 5 frames a number, landing on "minutes"
-    counter = [(c1, "×1")] + [(a + (k - 2) * (z - a) / 16, f"×{k}") for k in range(2, 19)]
+    a, z = c1 + 0.35, p.word(2, "minutes") + 0.3      # from "Pour the eggs" on: 4 frames a number, landing on "minutes"
+    counter = [(c1, "×1")] + [(a + (k - 2) * (z - a) / 18, f"×{k}") for k in range(2, 21)]
     p.coach("live-red", f"{LIVE} · 8:30–11:40", "Pour the eggs.", c1, p.dur, counter=counter, roll=0)
-    p.key(1.0, "G5 · plate"); p.key(c1 + 0.8, "G6 · onions, ×1"); p.key(p.dur - 0.5, "G7 · ×18")
+    p.key(1.0, "G5 · plate"); p.key(c1 + 0.8, "G6 · onions, ×1"); p.key(p.dur - 0.5, "G7 · ×20")
 
 
 def beat_9(p):
-    """The sandwich: the cheese and the seasoning; Gemini's eight answers; ours at 8:55; then the salt."""
+    """The sandwich: the cheese and the seasoning from ours; Gemini gets to the seasoning at 9:10; then the salt."""
     c1 = round(p.word(0, "and", 1) - 0.1, 3)
     c2 = round(p.sent(0)[1] + 0.15, 3)
-    c3 = p.cut(2)
-    c4 = round(p.dur - 3.0, 3)
-    assert c4 - c3 >= 3.4, c4 - c3      # the 8:55 reply lifts for 2.6 s and drops back in 0.4 s
+    c3 = round(p.sent(1)[1] + 0.2, 3)
     p.panel_shot("B1", "P02", 405.0, 0, c1)
     p.panel_shot("B2", "P02", 421.6, c1, c2)
-    p.footage("G8", "P02", 486.0, c2, c3)
-    p.panel_shot("B4", "P02", 536.0, c3, c4)
-    p.panel_shot("B3", "P02", 561.9, c4, p.dur)
+    p.footage("G8", "P02", 550.0, c2, c3)
+    p.panel_shot("B3", "P02", round(564.9 - (p.dur - c3), 3), c3, p.dur)      # ends just after d1's "take salt" is done (9:24.4)
     p.coach("mem", "OUR SYSTEM · 6:17", "Shred cheese meanwhile.", 0.3, c1)
     p.coach("mem", "OUR SYSTEM · 7:01", "Season the eggs first.", c1, c2)
     p.shade(c2, c3)
-    t8 = p.word(1, "eight")
-    a, z = t8, p.word(1, "sandwich")
-    p.coach("live", f"{LIVE} · 8:00–9:10", "Build the sandwich.", t8, c3, counter=[(a, "×1")] + [(a + (k - 1) * (z - a) / 7, f"×{k}") for k in range(2, 9)])
-    p.coach("mem", "OUR SYSTEM · 8:55", "Season first.", c3, c4)
+    p.coach("live", f"{LIVE} · 9:10", "Season the eggs.", c2, c3)
     p.zoom("P02", 0, 405.0, 0.8, 3.0, "shredding the cheddar cheese while the eggs and bacon continue cooking", "B1")
-    p.zoom("P02", c3, 536.0, round(c3 + 0.3, 3), round(c3 + 2.9, 3), "season the eggs", "B4")
-    p.key(1.8, "B1 · cheese marked"); p.key(c1 + 1.0, "B2 · season first"); p.key(c3 - 0.5, "G8 · build the sandwich, ×8")
-    p.key(c3 + 2.2, "B4 · 8:55 reply marked"); p.key(p.dur - 0.3, "B3 · salt ticked")
+    p.key(1.8, "B1 · cheese marked"); p.key(c1 + 1.0, "B2 · season first"); p.key(c3 - 0.6, "G8 · Gemini at 9:10"); p.key(p.dur - 0.3, "B3 · salt ticked")
 
 
 def beat_10(p):
@@ -171,7 +163,7 @@ def beat_12(p):
     p.footage("pipS", "P02", 405.0, 0, p.dur, kind="pip")
     eid, es, _ = p.add(p.label("ONE VIDEO · BACON AND EGG SANDWICH"), 0.2, p.dur, "eyebrow", "left:164px;top:112px;color:#2f9e6e;font-size:26px;")
     p.anim_in(eid, es)
-    X_LIVE, X_OURS, Y0, HEAD, ROW = 560, 1040, 170, 72, 88
+    X_LIVE, X_OURS, Y0, HEAD, ROW = 610, 1060, 170, 72, 88
     t_steps = p.sent(1)[0]
     for x, cls, text in ((164, "live", "Reminded ahead?"), (X_LIVE, "live", "Gemini Live · not asked"), (X_OURS, "ours", "Our system")):
         hid, hs, _ = p.add(p.label(text), t_steps, p.dur, f"reshead {cls}", f"left:{x}px;top:{Y0 + 30}px;")

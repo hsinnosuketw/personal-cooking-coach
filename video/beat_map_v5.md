@@ -1,6 +1,6 @@
 # Beat map (draft 7 (film v5))
 
-One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 python3 video/review/build_review.py OUT_DIR writes video/beat_map_v5.md. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:'. 'screen' describes everything visible. Words on screen stay at 5 or fewer per screen; eyebrows, test conditions and the How it works IN/OUT labels are evidence and don't count (design_guidelines_v5.md). The comparison is the Gemini Live API on the same footage and recipe; every Gemini line is real, from results/gemini_live_*.json. The footage is prerecorded: no line implies the learner heard a coach.
+One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 python3 video/review/build_review.py OUT_DIR writes video/beat_map_v5.md. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:'. 'screen' describes everything visible. Words on screen stay at 5 or fewer per screen; eyebrows, test conditions and the How it works IN/OUT labels are evidence and don't count (design_guidelines_v5.md). The comparison is the Gemini Live API on the same footage and recipe; every Gemini line is real, from the paid-tier runs results/gemini_live_*_paid.json. The footage is prerecorded: no line implies the learner heard a coach.
 
 ## 0:00 · The hook
 
@@ -20,25 +20,25 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 0:15 · Chapter 1 · Gemini Live
 
-**What we say**: So we asked, every ten seconds, and it answers well. Coach: Chop the red onion. Add a spray of olive oil. Whisk the eggs.
+**What we say**: So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet. Whisk the eggs.
 
-**What's on screen**: On a pale card, a grey numbered square "1" and the title "Gemini Live" for one second. Then three hard cuts, each with a white card whose grey eyebrow gives the time, plus a small chip "asked every 10 s" for the whole beat. 1:10, the onion under the knife: "Chop the red onion." 3:30, the oil spray in hand: "Add a spray of olive oil." 5:20, an egg cracking into the bowl: "Whisk the eggs."
+**What's on screen**: On a pale card, a grey numbered square "1" and the title "Gemini Live" for one second. Then three hard cuts, each with a white card whose grey eyebrow gives the time, plus a small chip "asked every 10 s" for the whole beat. 2:10, the onion under the knife: "Keep chopping the red onion." 4:30, the learner picks up the oil spray and sprays the pan: "Spray olive oil into your skillet." 5:20, an egg cracking into the bowl: "Whisk the eggs."
 
 **Clips**: G1, G2, G3 · **Sound**: Pop on each card. The lines use Gemini's own recorded voice if the paid-tier rerun says the same words, the coach voice otherwise.
 
 ## 0:25 · Not one mention
 
-**What we say**: But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs, the first step in the recipe.
+**What we say**: But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe.
 
-**What's on screen**: The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:00–5:10. A big counter rolls to "26 answers" while it is spoken, then a second line lands beneath it: "Eggs: 0".
+**What's on screen**: The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:30–5:10. A big counter rolls to "23 answers" while it is spoken, then a second line lands beneath it: "Eggs: 0".
 
 **Clips**: G4 · **Sound**: A soft tick as the counter rolls.
 
 ## 0:32 · Again and again
 
-**What we say**: And when a step has to wait, it just says it again. Pour the eggs. Eighteen times in three minutes.
+**What we say**: And when a step has to wait, it just says it again. Pour the eggs. Twenty times in three minutes.
 
-**What's on screen**: Three hard cuts: 9:00 the plate on the scale, 9:36 the onions being stirred, 10:06 oil going onto the cottage cheese. The same card stays top-left, eyebrow GEMINI LIVE · 8:30–11:40, "Pour the eggs." The counter beside it rolls from "×1" to a red "×18". It is the only red in the film.
+**What's on screen**: Three hard cuts: 9:00 the plate on the scale, 9:36 the onions being stirred, 10:06 oil going onto the cottage cheese. The same card stays top-left, eyebrow GEMINI LIVE · 8:30–11:40, "Pour the eggs." The counter beside it rolls from "×1" to a red "×20". It is the only red in the film.
 
 **Clips**: G5, G6, G7 · **Sound**: A soft tick on each count.
 
@@ -76,11 +76,11 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 1:26 · Another dish
 
-**What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers say: build the sandwich. Ours still says: season first.
+**What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Asked every ten seconds, Gemini Live gets to the seasoning later.
 
-**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." (eyebrow OUR SYSTEM · 6:17) and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 8:06: the learner has the baguette and butter out. A white card, grey eyebrow GEMINI LIVE · 8:00–9:10, "Build the sandwich.", with a counter rolling to "×8". Hard cut to the demo page at 8:55: green card, eyebrow OUR SYSTEM · 8:55, "Season first." The reply lifts to the centre, its line "season the eggs" marked in green. Hard cut to 9:22: the learner salts the eggs; the world model's "pour salt" and d1's "take salt" get their ticks.
+**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." (eyebrow OUR SYSTEM · 6:17) and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 9:10: the eggs and bacon on the stove, seasoning not yet done. A white card, grey eyebrow GEMINI LIVE · 9:10, "Season the eggs." Hard cut to 9:21: the learner salts the eggs; the world model's "pour salt" and d1's "take salt" get their ticks.
 
-**Clips**: B1, B2, G8, B4, B3 · **Sound**: Pops for the cards, a whoosh for the reply, soft ticks on the green ticks.
+**Clips**: B1, B2, G8, B3 · **Sound**: Pops for the cards, a whoosh for the reply, soft ticks on the green ticks.
 
 ## 1:50 · Chapter 3 · How it works
 
@@ -92,9 +92,9 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 2:21 · One video, six steps
 
-**What we say**: We used one video, a bacon and egg sandwich. It has six steps: cook the bacon, mix the eggs, cook them, shred the cheese, season, and build the sandwich. Not asked, Gemini Live reminds you of none of them ahead of time. Ours reminds you of all but the last.
+**What we say**: We used one video, a bacon and egg sandwich. It has six steps: cook the bacon, mix the eggs, cook them, shred the cheese, season, and build the sandwich. Not asked, Gemini Live reminds you of none of them ahead of time. Ours reminds you of all but the last. It still misses what the camera can't see, and that's what we're working on next.
 
-**What's on screen**: On paper, the eyebrow ONE VIDEO · BACON AND EGG SANDWICH, with that video playing in a small rounded square, bottom-right. Six rows land as each step is named: Cook the bacon, Mix the eggs, Cook the eggs, Shred the cheese, Season the eggs, Build the sandwich. A header row: REMINDED AHEAD?, Gemini Live · not asked, Our system. On "none", a grey dash lands in each Gemini Live row. On "Ours", a green tick lands in the first five Our system rows, and a grey dash in the sixth.
+**What's on screen**: On paper, the eyebrow ONE VIDEO · BACON AND EGG SANDWICH, with that video playing in a small rounded square, bottom-right. Six rows land as each step is named: Cook the bacon, Mix the eggs, Cook the eggs, Shred the cheese, Season the eggs, Build the sandwich. A header row: REMINDED AHEAD?, Gemini Live · not asked, Our system. On "none", a grey dash lands in each Gemini Live row. On "Ours", a green tick lands in the first five Our system rows, and a grey dash in the sixth. It holds while the limit is said.
 
 **Clips**: graphic only · **Sound**: The music lifts slightly.
 

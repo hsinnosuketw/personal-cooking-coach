@@ -9,17 +9,17 @@ The five-word rule stays for what the viewer reads while watching. Two exception
 | Token | Hex | Use |
 |---|---|---|
 | live | `#8A8A8E` (muted) | Gemini Live: card eyebrow, its counter, chapter square. Grey, because it isn't wrong |
-| no-memory | `#E5484D` | **only** the "×18" in beat 4, for the repetition. No other red in the film |
+| no-memory | `#E5484D` | **only** the "×20" in beat 4, for the repetition. No other red in the film |
 | memory | `#2F9E6E` | our system, unchanged |
 
 ## 5. Components
 - **Coach card, Gemini**: same card, grey eyebrow, "GEMINI LIVE · 1:10". The line is a faithful short version of the real answer. Anything Gemini did not say, such as "Keep asking." in beat 1, is narrator text and never goes on this card.
-- **Recipe list (beat 1)**: white Instrument Serif Italic, 72 px, the accent face of "coaching chef" in the hook, over the dimmed footage, numbered 1 to 7, under a line "The Recipe" in the same face at 92 px. It stays 2 s after its sentence.
+- **Recipe list (beat 1)**: white Instrument Serif Italic, 72 px, the accent face of "coaching chef" in the hook, over the dimmed footage, numbered 1 to 7, under a line "The Recipe" in the same face at 92 px. It stays 3 s after its sentence.
 - **Test chip**: a small mono chip, "asked every 10 s", for all of beat 2. Our setting, so it stays visible.
-- **Counters**: "26 answers" then "Eggs: 0" (beat 3), "×1" to "×18" (beat 4), "×8" (beat 9).
+- **Counters**: "23 answers" then "Eggs: 0" (beat 3), "×1" to "×20" (beat 4).
 - **IN/OUT strip (beat 10)**: under the card row and left of the kitchen square. Mono labels IN and OUT at 24 px, text at 40 px, changing with the lit card. It replaces the question under each card.
-- **Result (beat 12)**: six rows landing as each step is named, two columns (Gemini Live · not asked, Our system), a small square of the video bottom-right. Grey dashes, green ticks, and an honest dash on the step ours did not raise. No times, no counts.
+- **Result (beat 12)**: six rows landing as each step is named, two columns (Gemini Live · not asked, Our system), a small square of the video bottom-right. Grey dashes, green ticks, and an honest dash on the step ours did not raise. No times, no counts. It holds under the limit line.
 - **Chapters**: 1 "Gemini *Live*", 2 "With our *system*", 3 "How it *works*".
 
 ## 8. Sound
-Pop and tick as before. The red "×18" gets the same tick, nothing louder. Gemini's lines use its own recorded voice if the paid-tier rerun says the same words, otherwise the coach voice.
+Pop and tick as before. The red "×20" gets the same tick, nothing louder. Gemini's lines use its own recorded voice if the paid-tier rerun says the same words, otherwise the coach voice.
