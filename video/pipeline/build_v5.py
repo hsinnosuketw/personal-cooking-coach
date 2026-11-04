@@ -30,7 +30,7 @@ def beat_0(p):
 def beat_1(p):
     """The catch, in one sentence: you have to keep asking."""
     t = round(p.sent(2)[0] - 0.05, 3)
-    p.footage("G1a", "P08", 74.0, 0, p.dur)
+    p.footage("G1a", "P08", 120.0, 0, p.dur)      # chopping, no phone: it would read as "asking" the phone
     p.shade(t, p.dur)
     p.coach("live", f"{LIVE} API · SAME VIDEO, SAME RECIPE", "Keep asking.", t, p.dur)
     p.key(1.4, "G1 · the onion"); p.key(p.dur - 1.0, "keep asking")
@@ -56,7 +56,7 @@ def beat_2(p):
 def beat_3(p):
     """Four minutes of answers, and the recipe's first step never comes up."""
     t, t2 = p.word(0, "twenty-six"), p.word(0, "not")
-    p.footage("G4", "P08", 130.0, 0, p.dur)
+    p.footage("G4", "P08", 137.0, 0, p.dur)
     p.shade(t, p.dur)
     p.coach("live", f"{LIVE} · 1:00–5:10", "26 answers", t, p.dur, counter=[(t2, "Eggs: 0")])
     p.key(1.0, "G4 · chopping"); p.key(p.dur - 0.8, "26 answers, eggs 0")

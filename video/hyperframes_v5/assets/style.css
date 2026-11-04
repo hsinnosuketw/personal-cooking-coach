@@ -136,4 +136,4 @@ video.full { object-fit: cover; display: block; }
 .memdim { background: var(--paper); }
 .panel.solo { width: 960px; height: 480px; }
 .panel.solo .big { font-weight: 700; font-size: 180px; line-height: 1; color: var(--mem); letter-spacing: -0.02em; white-space: nowrap; }
-.endcard .testline { font-size: 24px; color: var(--muted); margin-top: -28px; }
+.endcard .testline { font-size: 24px; color: #5f5f63; margin-top: -28px; }
