@@ -69,9 +69,9 @@ def beat_4(p):
     p.footage("G6", "P08", 576.0, c1, c2)
     p.footage("G7", "P08", 606.0, c2, p.dur)
     p.shade(c1, p.dur)
-    a, z = c2 + 0.12, p.word(2, "minutes")
+    a, z = c1 + 0.35, p.word(2, "minutes") + 0.3      # from "Pour the eggs" on: 5 frames a number, landing on "minutes"
     counter = [(c1, "×1")] + [(a + (k - 2) * (z - a) / 16, f"×{k}") for k in range(2, 19)]
-    p.coach("live-red", f"{LIVE} · 8:30–11:40", "Pour the eggs.", c1, p.dur, counter=counter)
+    p.coach("live-red", f"{LIVE} · 8:30–11:40", "Pour the eggs.", c1, p.dur, counter=counter, roll=0)
     p.key(1.0, "G5 · plate"); p.key(c1 + 0.8, "G6 · onions, ×1"); p.key(p.dur - 0.5, "G7 · ×18")
 
 

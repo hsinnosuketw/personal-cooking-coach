@@ -12,11 +12,12 @@ import subprocess
 from pathlib import Path
 
 VIDEO = Path(__file__).resolve().parents[1]
-OUT = VIDEO / "out" / "storyboard"
-BEATS = {b["id"]: b for b in json.loads((VIDEO / "beats.json").read_text())["beats"]}
-TIMES = json.loads((VIDEO / "audio" / "timings.json").read_text())
-KEYS = json.loads((VIDEO / "hyperframes" / "keyframes.json").read_text())
-FONTS = VIDEO / "hyperframes" / "assets" / "fonts"
+import version as V  # noqa: E402  (video/pipeline/version.py)
+OUT = V.STORYBOARD
+BEATS = {b["id"]: b for b in json.loads(V.BEATS_FILE.read_text())["beats"]}
+TIMES = json.loads((V.AUDIO / "timings.json").read_text())
+KEYS = json.loads((V.HF / "keyframes.json").read_text())
+FONTS = V.HF / "assets" / "fonts"
 e = html.escape
 # The renders are BT.709 limited range; a JPEG is BT.601 full range. Without this the greens come out light.
 JPEG_VF = "scale={w}:{h}:in_color_matrix=bt709:in_range=tv:out_color_matrix=bt601:out_range=pc,format=yuvj420p"
@@ -30,7 +31,7 @@ def stills():
     (OUT / "img").mkdir(parents=True, exist_ok=True)
     shots = {}
     for bid in sorted(KEYS, key=int):
-        src = VIDEO / "out" / "beats" / f"beat_{int(bid):02d}.mp4"
+        src = V.RENDERS / f"beat_{int(bid):02d}.mp4"
         dur = TIMES["beats"][bid]["duration"]
         for k, (t, note) in enumerate(KEYS[bid]):
             t = min(max(t, 0), dur - 1 / 30)
@@ -64,7 +65,7 @@ def page(shots):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Demo Storyboard v4</title>
+<title>Demo Storyboard {V.FILM}</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root {{ --paper: #f2f5f1; --surface: #fff; --ink: #1c1c1e; --muted: #6b6e6a; --line: #dde2db; --nomem: #e5484d; --mem: #2f9e6e;
@@ -102,9 +103,9 @@ footer {{ color: var(--muted); font-size: .85rem; }}
 <body>
 <div class="wrap">
 <header>
-  <p class="eyebrow">Personal Cooking Coach · demo video v4 · storyboard</p>
+  <p class="eyebrow">Personal Cooking Coach · demo video {V.FILM} · storyboard</p>
   <h1>Every beat, at its <i>key moments</i></h1>
-  <p class="lede">{len(shots)} beats, {mmss(total)} in all. Stills come from the rendered beat videos (out/beats), at the moments the page generator marks. Under each beat: where it starts in the film, its length, what the narrator says and what beats.json asks to see.</p>
+  <p class="lede">{len(shots)} beats, {mmss(total)} in all. Stills come from the rendered beat videos ({V.RENDERS.name}), at the moments the page generator marks. Under each beat: where it starts in the film, its length, what the narrator says and what beats.json asks to see.</p>
 </header>
 <div class="grid">
 {chr(10).join(cards)}

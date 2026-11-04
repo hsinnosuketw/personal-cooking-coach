@@ -132,8 +132,10 @@ class Page:
     def anim_out(self, eid, t):
         self.js.append(f'tl.fromTo("#{eid}", {{opacity: 1}}, {{opacity: 0, duration: {OUT_DUR}, ease: "none", immediateRender: false}}, {round(t - OUT_DUR, 3)});')
 
-    def coach(self, tone, eyebrow, line, start, end, counter=None, cut_out=True):
-        """The coach card at top-left; `counter` = [(time, '×N'), ...] rolls a big red number beside it."""
+    def coach(self, tone, eyebrow, line, start, end, counter=None, cut_out=True, roll=0.12):
+        """The coach card at top-left; `counter` = [(time, '×N'), ...] rolls a big red number beside it.
+        roll: each number's rise in seconds; 0 swaps them outright, for a fast count. A number still rising would
+        overrule the set that hides it, so the numbers would pile up: each must finish before the next."""
         inner = f'<div class="card"><small>{self.label(eyebrow)}</small><span>{self.say(line)}</span></div>'
         if counter:
             inner += '<div class="counter">' + "".join(f'<span>{self.say(c)}</span>' for _, c in counter) + "</div>"
@@ -144,7 +146,12 @@ class Page:
             if k:
                 self.cue(ct, "tick")
             sel = f"#{eid} .counter span:nth-child({k + 1})"
-            self.js.append(f'tl.fromTo("{sel}", {{opacity: 0, y: 40}}, {{opacity: 1, y: 0, duration: 0.12, ease: EASE}}, {self.frame(ct)});')
+            if k + 1 < len(counter):
+                assert self.frame(counter[k + 1][0]) - self.frame(ct) >= max(roll, 3 / FPS), f"beat {self.bid}: the counter runs too fast at {ct}"
+            if roll:
+                self.js.append(f'tl.fromTo("{sel}", {{opacity: 0, y: 40}}, {{opacity: 1, y: 0, duration: {roll}, ease: EASE}}, {self.frame(ct)});')
+            else:
+                self.js.append(f'tl.set("{sel}", {{opacity: 1}}, {self.frame(ct)});')
             if k + 1 < len(counter):
                 self.js.append(f'tl.set("{sel}", {{opacity: 0}}, {self.frame(counter[k + 1][0])});')
         if not cut_out:
