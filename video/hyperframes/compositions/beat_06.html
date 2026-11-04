@@ -20,17 +20,16 @@
     <div id="e1" class="clip full chaptercard paper" style="" data-start="0.0" data-duration="1.1" data-track-index="1"><div class="chapter tone-mem"><b>2</b><span>With <span class="accent">memory</span></span></div></div>
     <video id="e2" class="clip full" style="" data-start="1.1" data-duration="2.9333" data-track-index="2" src="../assets/hd/b06_M1.mp4" muted playsinline></video>
     <video id="e3" class="clip full" style="" data-start="4.0333" data-duration="5.5664" data-track-index="3" src="../assets/hd/b06_M2.mp4" muted playsinline></video>
-    <div id="e4" class="clip full shade" style="" data-start="1.2667" data-duration="8.333" data-track-index="4"></div>
-    <div id="e5" class="clip coach tone-mem" style="" data-start="1.2667" data-duration="2.7666" data-track-index="5"><div class="card"><small>MEMORY · 0:39</small><span>Plate first? Fine.</span></div></div>
-    <div id="e6" class="clip coach tone-mem" style="" data-start="4.0333" data-duration="5.5664" data-track-index="6"><div class="card"><small>MEMORY · 1:45</small><span>Keep going.</span></div></div>
+    <div id="e4" class="clip coach tone-mem" style="" data-start="1.6" data-duration="2.4333" data-track-index="4"><div class="card"><small>MEMORY · 0:39</small><span>Plate first? Fine.</span></div></div>
+    <div id="e5" class="clip coach tone-mem" style="" data-start="4.0333" data-duration="5.5664" data-track-index="5"><div class="card"><small>MEMORY · 1:45</small><span>Keep going.</span></div></div>
     </div>
     <script>
       gsap.registerPlugin(CustomEase);
       const EASE = CustomEase.create("hfIn", "0.2,0.8,0.2,1");
       const tl = gsap.timeline({ paused: true });
       tl.fromTo("#e1 .chapter", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 0.0);
-      tl.fromTo("#e5 .card", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 1.2667);
-      tl.fromTo("#e6 .card", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 4.0333);
+      tl.fromTo("#e4 .card", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 1.6);
+      tl.fromTo("#e5 .card", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 4.0333);
       tl.set({}, {}, 9.59967);
       window.__timelines = window.__timelines || {};
       window.__timelines["beat-06"] = tl;

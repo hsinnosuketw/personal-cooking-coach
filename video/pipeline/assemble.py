@@ -1,7 +1,7 @@
-"""Join the rendered beats into the film: demo_v1.mp4 (+ narration at -16 LUFS), demo_v1.srt and a contact sheet.
+"""Join the rendered beats into the film: demo_VERSION.mp4 (+ narration at -16 LUFS), demo_VERSION.srt and a contact sheet.
 
     python3 video/pipeline/assemble.py           # system python3 (needs Pillow, which the .venv lacks)
-    python3 video/pipeline/assemble.py --sheet   # only the contact sheet, from the existing demo_v1.mp4
+    python3 video/pipeline/assemble.py --sheet   # only the contact sheet, from the existing film
 
 Needs video/out/beats/beat_XX.mp4 (render_beats.py) and video/audio/narration.wav + timings.json (tts.py).
 The video is re-encoded once (libx264, CRF 18); the narration is normalised with two-pass loudnorm
@@ -21,7 +21,8 @@ VIDEO = Path(__file__).resolve().parents[1]
 OUT = VIDEO / "out"
 BEATS = OUT / "beats"
 AUDIO = VIDEO / "audio"
-FILM = OUT / "demo_v1.mp4"
+VERSION = "v2"            # earlier versions stay in video/out for comparison
+FILM = OUT / f"demo_{VERSION}.mp4"
 THREADS = "3"
 # The renders are BT.709 limited range; a JPEG is BT.601 full range. Without this the greens come out light.
 JPEG_VF = "scale={w}:{h}:in_color_matrix=bt709:in_range=tv:out_color_matrix=bt601:out_range=pc,format=yuvj420p"
@@ -50,7 +51,7 @@ def write_srt(timings):
     lines = []
     for i, (a, b, text) in enumerate(cues, 1):
         lines += [str(i), f"{ts(a)} --> {ts(b)}", "\n".join(textwrap.wrap(text, 42)), ""]
-    (OUT / "demo_v1.srt").write_text("\n".join(lines), encoding="utf-8")
+    (OUT / f"demo_{VERSION}.srt").write_text("\n".join(lines), encoding="utf-8")
     return len(cues)
 
 
@@ -100,7 +101,7 @@ def contact_sheet(total, every=4.0, cols=6, w=320):
             sheet.paste(Image.open(fp), (x, y + lab))
             t = i * every
             draw.text((x + 2, y + 4), f"{int(t // 60)}:{t % 60:04.1f}", fill=(220, 224, 220), font=font)
-        sheet.save(OUT / "demo_v1_sheet.jpg", quality=88)
+        sheet.save(OUT / f"demo_{VERSION}_sheet.jpg", quality=88)
         return len(frames)
 
 
@@ -120,7 +121,7 @@ def loudness(path):
 
 def main():
     timings = json.loads((AUDIO / "timings.json").read_text())
-    if "--sheet" in sys.argv:   # only the contact sheet, from the existing demo_v1.mp4
+    if "--sheet" in sys.argv:   # only the contact sheet, from the existing film
         print(f"sheet of {contact_sheet(timings['total'])} frames")
         return
     ids = sorted(int(k) for k in timings["beats"])

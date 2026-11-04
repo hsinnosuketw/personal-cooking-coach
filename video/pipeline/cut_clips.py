@@ -5,6 +5,7 @@
 
 Full-bleed: crop x 0-1408, y 520-1312 (exactly 16:9), scale to 1920x1080.
 Picture-in-picture: a 1000x1000 crop from x 204, y 408, at 680x680 (twice its 340 px size on screen).
+Panel: the demo page's 1280x776 video of a run (results/coach_*.mp4, 15 fps), its bottom strip cut off, scaled 1.5x.
 H.264, short GOP for fast seeking, no audio, ffmpeg -threads 3.
 """
 import json
@@ -16,8 +17,10 @@ VIDEO = Path(__file__).resolve().parents[1]
 ROOT = VIDEO.parent
 HD = VIDEO / "media" / "hd"
 RAW = ROOT / "data" / "raw" / "hd-epic"
+RUNS = ROOT / "results"
 CROP = {"full": "crop=1408:792:0:520,scale=1920:1080:flags=lanczos",
-        "pip": "crop=1000:1000:204:408,scale=680:680:flags=lanczos"}
+        "pip": "crop=1000:1000:204:408,scale=680:680:flags=lanczos",
+        "panel": "crop=1280:720:0:0,scale=1920:1080:flags=lanczos"}
 
 
 def cut(m, force=False):
@@ -25,7 +28,7 @@ def cut(m, force=False):
     stamp = out.with_suffix(".json")
     if not force and out.exists() and stamp.exists() and json.loads(stamp.read_text()) == m:
         return False
-    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{m['start']:.3f}", "-i", str(RAW / f"{m['video']}.mp4"),
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{m['start']:.3f}", "-i", str((RUNS if m["kind"] == "panel" else RAW) / f"{m['video']}.mp4"),
            "-t", f"{m['duration']:.3f}", "-vf", CROP[m["kind"]] + ",fps=30,format=yuv420p", "-an",
            "-c:v", "libx264", "-preset", "veryfast", "-crf", "17", "-g", "15", "-movflags", "+faststart", "-threads", "3", str(out)]
     subprocess.run(cmd, check=True)

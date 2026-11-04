@@ -1,6 +1,6 @@
-# Beat map (draft 3)
+# Beat map (draft 4)
 
-One home for the beat map: video/review/build_review.py renders it on the review page and writes video/beat_map.md from it. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:' (the coach's own, flatter voice). 'screen' describes everything visible. Words that appear on screen are in double quotes and stay at 5 or fewer per screen; eyebrows such as NO MEMORY · 13:28 are evidence labels and don't count.
+One home for the beat map: video/review/build_review.py renders it on the review page and writes video/beat_map.md from it. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:' (the coach's own, flatter voice). 'screen' describes everything visible. Words that appear on screen are in double quotes and stay at 5 or fewer per screen; eyebrows such as NO MEMORY · 13:28 are evidence labels and don't count. From draft 4, the memory beats (6, 8, 9) are cut from the demo page's video of the stage-40 run: the footage on the left, the page's live panel on the right (world model's next-action predictions, the coach's latest answer, d1's next move and the checklist), so every shot shows what the models actually output at that second.
 
 ## 0:00 · The hook
 
@@ -54,7 +54,7 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What we say**: Start wherever you like. Our learner gets the plate ready first, then chops the onion, and the coach goes along: fine, do it in parallel.
 
-**What's on screen**: A green numbered square "2" and the title "With memory" for one second. The learner takes ingredients from the fridge; green card, eyebrow MEMORY · 0:39, "Plate first? Fine." Hard cut to the onion being chopped; card "Keep going."
+**What's on screen**: A green numbered square "2" and the title "With memory" for one second. Then the demo page's video: the learner on the left, the page's panel on the right (world model, coach, d1). The learner turns from the sink to the cottage-cheese plate; at 0:39 the coach's answer reaches the panel and a green card lands top-left, eyebrow MEMORY · 0:39, "Plate first? Fine." Hard cut to the onion being chopped (1:54); card "Keep going.", eyebrow MEMORY · 1:45, while the panel still shows that answer.
 
 **Clips**: M1, M2 · **Sound**: The music returns; pop on each card.
 
@@ -70,7 +70,7 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What we say**: It only speaks up when something is needed. The onions will need a hot pan, so it reminds you to oil the skillet. A couple of minutes later, you do.
 
-**What's on screen**: The onion chopping continues; a green card, eyebrow MEMORY · 2:07, "Oil the pan first." Hard cut to the learner spraying oil into the pan; the pan icon in the step row fills with "4:36".
+**What's on screen**: The demo page's video, footage left, model panel right. The onion chopping continues; at 2:07 the coach's oil answer reaches the panel and a green card lands top-left, eyebrow MEMORY · 2:07, "Oil the pan first." Under the card, the step row (3 and 7 already green). Hard cut to the learner spraying oil into the pan (4:36); the pan icon fills with "4:36" and the panel's checklist ticks step 2.
 
 **Clips**: M4, M5 · **Sound**: Pop, then tick.
 
@@ -78,7 +78,7 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich.
 
-**What's on screen**: Bacon and eggs in two pans; green card "Shred cheese meanwhile." Hard cut to the learner cutting a baguette; card "Season the eggs first." Hard cut to salt going over the pan; the seasoning icon in a six-icon row fills with "9:19".
+**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. Bacon and eggs in two pans; at 6:17 the coach's cheese answer reaches the panel and the green card lands, "Shred cheese meanwhile." Hard cut to the learner cutting a baguette (7:01); card "Season the eggs first." Hard cut to the salted eggs being stirred (the salt went in at 9:19); at 9:42 the memory marks the seasoning step, so the seasoning icon in a six-icon row under the card position fills with "9:42" as the panel's checklist turns step 5 on.
 
 **Clips**: B1, B2, B3 · **Sound**: Pops, then a tick.
 

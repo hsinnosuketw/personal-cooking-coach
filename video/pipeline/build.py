@@ -19,6 +19,9 @@ BEATS = {b["id"]: b for b in json.loads((VIDEO / "beats.json").read_text())["bea
 TIMES = json.loads((VIDEO / "audio" / "timings.json").read_text())
 FPS = TIMES["fps"]
 SRC = {"P08": "P08-20240614-085000", "P02": "P02-20240210-113925"}
+# The demo page's video of the stage-40 memory run: the footage beside the live panel (world model, coach, d1).
+PANEL_RUN = "coach_adaptive_remind_parallel_hdtags_{}"
+PANEL_STEPS_TOP = 250    # in panel shots the step row sits under the coach card, clear of the page video's COACH banner
 CLIPS = {}
 for line in (VIDEO / "clips.tsv").read_text().split("\n"):
     if line.strip():
@@ -90,10 +93,13 @@ class Page:
         return eid, start, end
 
     def footage(self, name, video, src_start, start, end, kind="full"):
-        """A cut of the source footage, made to measure for this shot (video/media/hd/bXX_name.mp4)."""
+        """A cut of the source footage, made to measure for this shot (video/media/hd/bXX_name.mp4).
+        kind="panel" cuts the demo page's video of the memory run instead, so the model panel is in the shot."""
         start, end = self.frame(start), min(self.frame(end), self.dur)
         fn = f"b{self.bid:02d}_{name}.mp4"
-        self.media.append({"file": fn, "video": SRC.get(video, video), "start": round(src_start, 3),
+        src = SRC.get(video, video)
+        src = PANEL_RUN.format(src) if kind == "panel" else src
+        self.media.append({"file": fn, "video": src, "start": round(src_start, 3),
                            "duration": round(end - start + 0.2, 3), "kind": kind})
         if kind == "pip":
             return self.add("", start, end, "pip", "right:96px;bottom:96px;", tag="video",
@@ -125,15 +131,17 @@ class Page:
             self.anim_out(eid, e)
         return eid
 
-    def steps(self, n, start, end, filled=(), fills=(), big=False, paper=False, y_bottom=96):
-        """A row of n step icons, bottom-centre. `filled` = [(step, time label or '')] already on at `start`;
-        `fills` = [(step, time label, when)] that fill during the shot (300 ms + one ring pulse)."""
+    def steps(self, n, start, end, filled=(), fills=(), big=False, paper=False, y_bottom=96, top_left=None):
+        """A row of n step icons, bottom-centre, or from `top_left` = (x, y). `filled` = [(step, time label or '')]
+        already on at `start`; `fills` = [(step, time label, when)] that fill during the shot (300 ms + one ring pulse)."""
         size = 96 if big else 64
         gap = 40 if big else STEP_GAP
         width = n * size + (n - 1) * gap
         x0 = (1920 - width) // 2
         lab_h = 34 if big else 28
         y = 1080 - y_bottom - lab_h - 10 - size
+        if top_left:
+            x0, y = top_left
         rowcls = ("paperrow " if paper else "") + ("big" if big else "")
         parts, pos = [], {}
         for k in range(1, n + 1):
@@ -293,16 +301,17 @@ def beat_5(p):
 
 
 def beat_6(p):
-    """Chapter 2, M1 (plate first) and M2 (onion), with the memory coach going along."""
+    """Chapter 2, then the demo page's video (footage + model panel): M1 (plate first) and M2 (onion), with the
+    memory coach going along. M1 is moved past its clips.tsv window so the 0:39 answer reaches the panel with its card."""
     ch = 1.1
     p.chapter_card(2, "With *memory*", "mem", 0, ch)
     c = round(p.word(1, "then") - 0.1, 3)
-    p.footage("M1", *tsv("M1", -4.0), ch, c)           # 0:20 on, still in the fridge (beat 0 used 0:24-0:28; by 0:27 the learner is at the sink)
-    p.footage("M2", *tsv("M2", 2.4), c, p.dur)          # 1:54.4 on: beat 0 used 1:52-1:54
-    p.shade(ch + 0.15, p.dur)
-    p.coach("mem", "MEMORY · 0:39", "Plate first? Fine.", ch + 0.15, c)
+    t_card = ch + 0.5
+    p.footage("M1", "P08", 39.1 - (t_card - ch), ch, c, kind="panel")   # from the sink to the cottage-cheese plate
+    p.footage("M2", *tsv("M2", 2.4), c, p.dur, kind="panel")            # 1:54.4 on: beat 0 used 1:52-1:54
+    p.coach("mem", "MEMORY · 0:39", "Plate first? Fine.", t_card, c)
     p.coach("mem", "MEMORY · 1:45", "Keep going.", c, p.dur)
-    p.key(0.6, "chapter 2"); p.key(ch + 1.2, "M1 · plate first"); p.key(c + 1.4, "M2 · keep going")
+    p.key(0.6, "chapter 2"); p.key(t_card + 1.0, "M1 · plate first, panel"); p.key(c + 1.4, "M2 · keep going, panel")
 
 
 def beat_7(p):
@@ -323,26 +332,28 @@ def beat_8(p):
     """M4: the memory coach asks for the oil before the onions need it; M5: the learner sprays the pan (step 2 fills)."""
     c = p.cut(2)
     t_card = round(p.sent(1)[0] - 0.05, 3)
-    p.footage("M4", *aligned("M4", 127, t_card, c), 0, c)
-    p.footage("M5", "P08", 275.4, c, p.dur)            # the spray lands at 4:36, 0.6 s into the shot
-    p.shade(0, p.dur)
-    p.steps(7, 0, p.dur, filled=[(7, "0:13"), (3, "1:50")], fills=[(2, "4:36", c + 0.6)])
+    p.footage("M4", *aligned("M4", 127, t_card, c), 0, c, kind="panel")
+    p.footage("M5", "P08", 275.4, c, p.dur, kind="panel")   # the spray lands at 4:36, 0.6 s into the shot
+    p.steps(7, 0, p.dur, filled=[(7, "0:13"), (3, "1:50")], fills=[(2, "4:36", c + 0.6)], top_left=(96, PANEL_STEPS_TOP))
     p.coach("mem", "MEMORY · 2:07", "Oil the pan first.", t_card, c)
     p.key(1.2, "M4 · onion, row 3 and 7"); p.key(t_card + 1.5, "card: oil the pan"); p.key(c + 1.4, "M5 · step 2 fills 4:36")
 
 
 def beat_9(p):
-    """Bacon & Egg: B1 (cheese meanwhile), B2 (season first), B3 (the salt; step 5 of 6 fills with 9:19)."""
+    """Bacon & Egg on the demo page's video: B1 (cheese meanwhile), B2 (season first), B3 (the salted eggs; step 5
+    of 6 fills with 9:42). B1 and B2 start where their answers (6:17, 7:01) reach the panel, as their cards land.
+    B3 is where the memory marks step 5 (9:42.2, after the salt at 9:19), so the icon fills as the panel's checklist does."""
     c1 = round(p.word(0, "and", 1) - 0.1, 3)
     c2 = round(p.sent(0)[1] + 0.15, 3)
-    p.footage("B1", *tsv("B1"), 0, c1)
-    p.footage("B2", *tsv("B2"), c1, c2)
-    p.footage("B3", *tsv("B3"), c2, p.dur)
-    p.shade(0.3, p.dur)
+    t_fill = c2 + 0.6
+    p.footage("B1", *aligned("B1", 377.9, 0.3, c1), 0, c1, kind="panel")
+    p.footage("B2", *aligned("B2", 421.6, 0.0, c2 - c1), c1, c2, kind="panel")
+    p.footage("B3", "P02", 582.233 - (t_fill - c2), c2, p.dur, kind="panel")
     p.coach("mem", "MEMORY · 6:17", "Shred cheese meanwhile.", 0.3, c1)
     p.coach("mem", "MEMORY · 7:01", "Season the eggs first.", c1, c2)
-    p.steps(6, c2, p.dur, filled=[(1, ""), (2, ""), (3, ""), (4, ""), (6, "")], fills=[(5, "9:19", c2 + 0.45)])
-    p.key(2.0, "B1 · cheese meanwhile"); p.key(c1 + 1.6, "B2 · season first"); p.key(p.dur - 0.4, "B3 · step 5 fills 9:19")
+    p.steps(6, c2, p.dur, filled=[(1, ""), (2, ""), (3, ""), (4, ""), (6, "")], fills=[(5, "9:42", t_fill)],
+            top_left=(96, PANEL_STEPS_TOP))
+    p.key(2.0, "B1 · cheese meanwhile"); p.key(c1 + 1.6, "B2 · season first"); p.key(p.dur - 0.4, "B3 · step 5 fills 9:42")
 
 
 GLYPH = {
@@ -494,7 +505,7 @@ def index_html(ids):
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>Personal Cooking Coach · demo v1</title>
+    <title>Personal Cooking Coach · demo v2</title>
     <link rel="stylesheet" href="assets/fonts/fonts.css" />
     <link rel="stylesheet" href="assets/style.css" />
     <script src="assets/vendor/gsap.min.js"></script>

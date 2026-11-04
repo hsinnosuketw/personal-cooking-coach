@@ -19,30 +19,29 @@
     <div id="root" data-composition-id="beat-08" data-start="0" data-duration="9.533" data-width="1920" data-height="1080" data-fps="30">
     <video id="e1" class="clip full" style="" data-start="0.0" data-duration="7.0667" data-track-index="1" src="../assets/hd/b08_M4.mp4" muted playsinline></video>
     <video id="e2" class="clip full" style="" data-start="7.0667" data-duration="2.4663" data-track-index="2" src="../assets/hd/b08_M5.mp4" muted playsinline></video>
-    <div id="e3" class="clip full shade" style="" data-start="0.0" data-duration="9.533" data-track-index="3"></div>
-    <div id="e4" class="clip full" style="" data-start="0.0" data-duration="9.533" data-track-index="4"><div class="step " style="position:absolute;left:652px;top:882px">1</div><div class="step " style="position:absolute;left:744px;top:882px">2</div><div class="step " style="position:absolute;left:836px;top:882px">3</div><div class="step " style="position:absolute;left:928px;top:882px">4</div><div class="step " style="position:absolute;left:1020px;top:882px">5</div><div class="step " style="position:absolute;left:1112px;top:882px">6</div><div class="step " style="position:absolute;left:1204px;top:882px">7</div></div>
-    <div id="e5" class="clip step on " style="left:1204px;top:882px;" data-start="0.0" data-duration="9.533" data-track-index="5">7</div>
-    <div id="e6" class="clip steptime " style="left:1176px;top:956px;" data-start="0.0" data-duration="9.533" data-track-index="6">0:13</div>
-    <div id="e7" class="clip step on " style="left:836px;top:882px;" data-start="0.0" data-duration="9.533" data-track-index="7">3</div>
-    <div id="e8" class="clip steptime " style="left:808px;top:956px;" data-start="0.0" data-duration="9.533" data-track-index="8">1:50</div>
-    <div id="e9" class="clip step on " style="left:744px;top:882px;" data-start="0.0" data-duration="9.533" data-track-index="9">2</div>
-    <div id="e10" class="clip step ring " style="left:744px;top:882px;" data-start="7.6667" data-duration="0.6" data-track-index="10"></div>
-    <div id="e11" class="clip steptime " style="left:716px;top:956px;" data-start="0.0" data-duration="9.533" data-track-index="11">4:36</div>
-    <div id="e12" class="clip coach tone-mem" style="" data-start="2.6333" data-duration="4.4334" data-track-index="12"><div class="card"><small>MEMORY · 2:07</small><span>Oil the pan first.</span></div></div>
+    <div id="e3" class="clip full" style="" data-start="0.0" data-duration="9.533" data-track-index="3"><div class="step " style="position:absolute;left:96px;top:250px">1</div><div class="step " style="position:absolute;left:188px;top:250px">2</div><div class="step " style="position:absolute;left:280px;top:250px">3</div><div class="step " style="position:absolute;left:372px;top:250px">4</div><div class="step " style="position:absolute;left:464px;top:250px">5</div><div class="step " style="position:absolute;left:556px;top:250px">6</div><div class="step " style="position:absolute;left:648px;top:250px">7</div></div>
+    <div id="e4" class="clip step on " style="left:648px;top:250px;" data-start="0.0" data-duration="9.533" data-track-index="4">7</div>
+    <div id="e5" class="clip steptime " style="left:620px;top:324px;" data-start="0.0" data-duration="9.533" data-track-index="5">0:13</div>
+    <div id="e6" class="clip step on " style="left:280px;top:250px;" data-start="0.0" data-duration="9.533" data-track-index="6">3</div>
+    <div id="e7" class="clip steptime " style="left:252px;top:324px;" data-start="0.0" data-duration="9.533" data-track-index="7">1:50</div>
+    <div id="e8" class="clip step on " style="left:188px;top:250px;" data-start="0.0" data-duration="9.533" data-track-index="8">2</div>
+    <div id="e9" class="clip step ring " style="left:188px;top:250px;" data-start="7.6667" data-duration="0.6" data-track-index="9"></div>
+    <div id="e10" class="clip steptime " style="left:160px;top:324px;" data-start="0.0" data-duration="9.533" data-track-index="10">4:36</div>
+    <div id="e11" class="clip coach tone-mem" style="" data-start="2.6333" data-duration="4.4334" data-track-index="11"><div class="card"><small>MEMORY · 2:07</small><span>Oil the pan first.</span></div></div>
     </div>
     <script>
       gsap.registerPlugin(CustomEase);
       const EASE = CustomEase.create("hfIn", "0.2,0.8,0.2,1");
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#e4", {opacity: 0, y: 12}, {opacity: 1, y: 0, duration: 0.22, ease: EASE}, 0.0);
-      tl.set("#e5", {opacity: 1}, 0.0);
-      tl.fromTo("#e6", {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.3, ease: EASE}, 0.0);
-      tl.set("#e7", {opacity: 1}, 0.0);
-      tl.fromTo("#e8", {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.3, ease: EASE}, 0.0);
-      tl.fromTo("#e9", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.3, ease: EASE}, 7.6667);
-      tl.fromTo("#e10", {opacity: 0.9, scale: 1}, {opacity: 0, scale: 1.7, duration: 0.5, ease: "power2.out"}, 7.6667);
-      tl.fromTo("#e11", {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.3, ease: EASE}, 7.6667);
-      tl.fromTo("#e12 .card", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 2.6333);
+      tl.fromTo("#e3", {opacity: 0, y: 12}, {opacity: 1, y: 0, duration: 0.22, ease: EASE}, 0.0);
+      tl.set("#e4", {opacity: 1}, 0.0);
+      tl.fromTo("#e5", {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.3, ease: EASE}, 0.0);
+      tl.set("#e6", {opacity: 1}, 0.0);
+      tl.fromTo("#e7", {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.3, ease: EASE}, 0.0);
+      tl.fromTo("#e8", {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.3, ease: EASE}, 7.6667);
+      tl.fromTo("#e9", {opacity: 0.9, scale: 1}, {opacity: 0, scale: 1.7, duration: 0.5, ease: "power2.out"}, 7.6667);
+      tl.fromTo("#e10", {opacity: 0, y: 8}, {opacity: 1, y: 0, duration: 0.3, ease: EASE}, 7.6667);
+      tl.fromTo("#e11 .card", {opacity: 0, scale: 0.94}, {opacity: 1, scale: 1, duration: 0.22, ease: EASE}, 2.6333);
       tl.set({}, {}, 9.533);
       window.__timelines = window.__timelines || {};
       window.__timelines["beat-08"] = tl;
