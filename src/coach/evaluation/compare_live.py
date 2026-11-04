@@ -246,7 +246,8 @@ def main() -> None:
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--api-version", default="v1beta")
     ap.add_argument("--seconds", type=float, help="only the first N seconds of the video")
-    ap.add_argument("--nudge-every", type=float, help="extra input: 'continue coaching' every N s of film")
+    ap.add_argument("--nudge-every", type=float, help="extra input: --nudge-text every N s of film")
+    ap.add_argument("--nudge-text", default="continue coaching")
     ap.add_argument("--probe", nargs=2, action="append", metavar=("T", "TEXT"), help="extra input, smoke test only: ask TEXT at film time T")
     ap.add_argument("--no-proactive", action="store_true", help="models that have it always on may refuse the setting")
     ap.add_argument("--tier", default="free", help="recorded in the results: on the free tier Google may use the content")
@@ -277,7 +278,7 @@ def main() -> None:
     film = len(frames) * args.every
     extra = [(float(t), text) for t, text in args.probe or []]
     if args.nudge_every:
-        extra += [(t, "continue coaching") for t in range(int(args.nudge_every), film, int(args.nudge_every))]
+        extra += [(t, args.nudge_text) for t in range(int(args.nudge_every), film, int(args.nudge_every))]
 
     if args.repeat_prompt_every:
         extra += [(t, system) for t in range(int(args.repeat_prompt_every), film, int(args.repeat_prompt_every))]
@@ -287,7 +288,7 @@ def main() -> None:
     settings = {"model": args.model, "resolution": args.resolution, "final": args.final, "api_version": args.api_version, "video": VIDEO, "recipe": RECIPE, "system": system,
                 "frames": len(frames), "frame_size": FRAME_SIZE, "every_s": args.every, "trigger_tokens": TRIGGER_TOKENS,
                 "target_tokens": TARGET_TOKENS, "proactive_audio": not args.no_proactive, "tier": args.tier,
-                "nudge_every": args.nudge_every, "repeat_prompt_every": args.repeat_prompt_every, "probe": args.probe, "started": time.strftime("%Y-%m-%d %H:%M:%S %z")}
+                "nudge_every": args.nudge_every, "nudge_text": args.nudge_text if args.nudge_every else None, "repeat_prompt_every": args.repeat_prompt_every, "probe": args.probe, "started": time.strftime("%Y-%m-%d %H:%M:%S %z")}
     rec = Recorder(RESULTS / f"gemini_live_{VIDEO}_{args.label}.json", settings)
     print(f"{args.model}: {len(frames)} frames, {name}", flush=True)
     api = client(key, args.api_version)          # held: the SDK closes its connection when the client is collected
