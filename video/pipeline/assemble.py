@@ -22,7 +22,7 @@ VIDEO = Path(__file__).resolve().parents[1]
 OUT = VIDEO / "out"
 BEATS = OUT / "beats"
 AUDIO = VIDEO / "audio"
-VERSION = "v3"            # earlier versions stay in video/out for comparison
+VERSION = "v4"            # earlier versions stay in video/out for comparison
 FILM = OUT / f"demo_{VERSION}.mp4"
 THREADS = "3"
 # The renders are BT.709 limited range; a JPEG is BT.601 full range. Without this the greens come out light.

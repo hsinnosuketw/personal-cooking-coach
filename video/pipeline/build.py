@@ -105,15 +105,18 @@ class Page:
                         f'data-duration="{round(end - start, 4)}" data-track-index="{self.n}"{attrs}>{inner}</{tag}>')
         return eid, start, end
 
-    def footage(self, name, video, src_start, start, end, kind="full"):
+    def footage(self, name, video, src_start, start, end, kind="full", holds=()):
         """A cut of the source footage, made to measure for this shot (video/media/hd/bXX_name.mp4).
-        kind="panel" cuts the demo page's video of the memory run instead, so the model panel is in the shot."""
+        kind="panel" cuts the demo page's video of the stage-40 run instead, so the model panel is in the shot.
+        holds = [(source second, seconds)]: the picture freezes there that long (cut_clips.py)."""
         start, end = self.frame(start), min(self.frame(end), self.dur)
         fn = f"b{self.bid:02d}_{name}.mp4"
         src = SRC.get(video, video)
         src = PANEL_RUN.format(src) if kind == "panel" else src
-        self.media.append({"file": fn, "video": src, "start": round(src_start, 3),
-                           "duration": round(end - start + 0.2, 3), "kind": kind})
+        m = {"file": fn, "video": src, "start": round(src_start, 3), "duration": round(end - start + 0.2, 3), "kind": kind}
+        if holds:
+            m["holds"] = [[round(a - src_start, 3), round(h, 3)] for a, h in holds]
+        self.media.append(m)
         if kind == "pip":
             return self.add("", start, end, "pip", "right:96px;bottom:96px;", tag="video",
                             attrs=f' src="../assets/hd/{fn}" muted playsinline')
@@ -199,18 +202,33 @@ class Page:
         self.cues.append((round(t, 3), kind))
 
     # ---- panel shots ------------------------------------------------------------------------------------------
-    def panel_shot(self, name, video, src_start, start, end):
-        """A cut of the demo page's video (footage + model panel), with green ticks on the rows that turn out right."""
-        self.footage(name, video, src_start, start, end, kind="panel")
-        self.marks(SRC.get(video, video), src_start, self.frame(start), min(self.frame(end), self.dur))
+    def panel_shot(self, name, video, src_start, start, end, holds=()):
+        """A cut of the demo page's video (footage + model panel), with green ticks on the rows that turn out right
+        and a Liquid AI label on the decision model. Returns the shot's clock: source second -> beat second."""
+        holds = sorted(holds)
+        self.footage(name, video, src_start, start, end, kind="panel", holds=holds)
+        start, end = self.frame(start), min(self.frame(end), self.dur)
+        at = lambda src: start + (src - src_start) + sum(h for x, h in holds if x < src - 1e-9)
+        src_end = src_start + (end - start) - sum(h for _, h in holds)
+        video = SRC.get(video, video)
+        self.marks(video, src_start, src_end, at, [x for x, _ in holds])
+        self.model_tag(video, src_start, src_end, at)
+        return at
 
-    def marks(self, video, src0, start, end):
+    def model_tag(self, video, a, b, at):
+        """'Liquid AI · d1' beside the panel's Decision Model header, which moves when the coach's box changes size."""
+        cuts = sorted({a, b} | set(panel.calls_change(video, a, b)))
+        for t0, t1 in zip(cuts, cuts[1:]):
+            title_y = panel.layout(video, t0 + 1e-4)["d1_rows"][0] - 7 - 30
+            self.add(self.label("Liquid AI · d1"), at(t0), at(t1), "modeltag",
+                     f"left:{1112 * panel.SCALE:.1f}px;top:{(title_y - 3) * panel.SCALE:.1f}px;")
+
+    def marks(self, video, a, b, at, extra_cuts=()):
         """World-model rows whose prediction comes true (find_moments' rule) get a green outline and tick for that
-        tick's second; a d1 row gets them from the moment its move is actually done, for HIT_HOLD s."""
+        tick's second; a d1 row gets them from the moment its move is actually done, for HIT_HOLD s of source time."""
         wm_hits, done = panel.hits(video)
         run = panel.load(video)
-        a, b = src0, src0 + (end - start)
-        cuts = {a, b} | {float(t) for t in run["_t"] if a < t < b} | set(panel.calls_change(video, a, b))
+        cuts = {a, b} | {float(t) for t in run["_t"] if a < t < b} | set(panel.calls_change(video, a, b)) | set(extra_cuts)
         cuts |= {x for _, s in done for x in (s, s + HIT_HOLD) if a < x < b}
         cuts = sorted(c for c in cuts if a <= c <= b)
         segs = []   # [kind, row, top, t0, t1, fresh]
@@ -228,7 +246,7 @@ class Page:
                     fresh = kind == "d1" and any(abs(s - t0) < 1e-3 for _, s in done)
                     segs.append([kind, k, y, t0, t1, fresh])
         for kind, k, y, t0, t1, fresh in segs:
-            s0, s1 = start + (t0 - a), start + (t1 - a)
+            s0, s1 = at(t0), at(t1)
             left, top = 738 * panel.SCALE, (y - 3) * panel.SCALE
             eid, s, _ = self.add(f"<i>{CHECK_SVG}</i>", s0, s1, f"hit hit-{kind}",
                                  f"left:{left:.1f}px;top:{top:.1f}px;width:{524 * panel.SCALE:.1f}px;height:{23 * panel.SCALE:.1f}px;")
@@ -344,17 +362,17 @@ def beat_1(p):
     p.shade(t_card, p.dur)
     a, b = p.word(1, "crack"), p.sent(1)[1] - 0.1
     counter = [(t_card, "×1")] + [(a + (k - 2) * (b - a) / 12, f"×{k}") for k in range(2, 15)]
-    p.coach("nomem", "NO MEMORY · 13:28", "Crack the eggs.", t_card, p.dur, counter=counter)
+    p.coach("nomem", "OTHER CHEF · 13:28", "Crack the eggs.", t_card, p.dur, counter=counter)
     p.key(1.4, "N6 · eggs in the pan"); p.key(b + 0.6, "card + ×14")
 
 
 def beat_2(p):
     """Chapter 1, then three hard cuts (N1, N2, N3), one per coach line, the counter stepping ×1, ×2, ×3."""
     ch = 1.1
-    p.chapter_card(1, "Without *memory*", "nomem", 0, ch)
+    p.chapter_card(1, "Other *chefs*", "nomem", 0, ch)
     cuts = [p.cut(1), p.cut(2), p.cut(3)]
-    shots = [("N1", 68, "NO MEMORY · 1:08", ch, cuts[1]), ("N2", 185, "NO MEMORY · 3:05", cuts[1], cuts[2]),
-             ("N3", 212, "NO MEMORY · 3:32", cuts[2], p.dur)]
+    shots = [("N1", 68, "OTHER CHEF · 1:08", ch, cuts[1]), ("N2", 185, "OTHER CHEF · 3:05", cuts[1], cuts[2]),
+             ("N3", 212, "OTHER CHEF · 3:32", cuts[2], p.dur)]
     for k, (cid, said, brow, s, e) in enumerate(shots):
         card_t = cuts[k]
         p.footage(cid, *aligned(cid, said, card_t - s, e - s), s, e)
@@ -370,7 +388,7 @@ def beat_3(p):
     p.footage("N5", *aligned("N5", 534, 0.0, p.dur - c), c, p.dur)
     p.shade(0, p.dur)
     p.steps(1, 0.25, p.dur, fills=[(1, "5:13", p.word(1, "cracked"))])
-    p.coach("nomem", "NO MEMORY · 8:54", "Crack the eggs.", c, p.dur)
+    p.coach("nomem", "OTHER CHEF · 8:54", "Crack the eggs.", c, p.dur)
     p.key(p.word(1, "cracked") + 1.0, "N4 · egg icon 5:13"); p.key(c + 1.0, "N5 · asks again")
 
 
@@ -379,33 +397,34 @@ def beat_4(p):
     p.footage("N7", *tsv("N7"), 0, p.dur)
     t = p.word(1, "says")
     p.shade(t, p.dur)
-    p.coach("nomem", "NO MEMORY · 13:59", "Add the onions.", t, p.dur)
+    p.coach("nomem", "OTHER CHEF · 13:59", "Add the onions.", t, p.dur)
     p.key(1.2, "N7 · plating"); p.key(p.dur - 0.6, "card on the finished plate")
 
 
 def beat_5(p):
     """The turn: full-bleed memory green, one line, a slow push-in."""
-    eid, s, e = p.add(f'<span class="line">{p.say("What if it *remembered*?")}</span>', 0, p.dur, "full turn")
+    eid, s, e = p.add(f'<span class="line">{p.say("We designed a *system*.")}</span>', 0, p.dur, "full turn")
     p.js.append(f'tl.fromTo("#{eid} .line", {{opacity: 0, scale: 0.94}}, {{opacity: 1, scale: 1, duration: {IN_DUR}, ease: EASE}}, 0.1);')
     p.js.append(f'tl.fromTo("#{eid} .line", {{scale: 1}}, {{scale: 1.04, duration: {round(p.dur - 0.32, 3)}, ease: "none", immediateRender: false}}, 0.32);')
     p.key(1.2, "turn card")
 
 
 def beat_6(p):
-    """Chapter 2, then the demo page's video (footage + model panel): M1 (plate first) and M2 (onion), with the
-    memory coach going along. M1 is moved past its clips.tsv window so the 0:39 answer reaches the panel with its
-    card; the reply then lifts to the centre with "fine to do in parallel" marked."""
+    """Chapter 2, then the demo page's video (footage + model panel): M1 (plate first) and M2 (onion), with our
+    system going along. M1 is moved past its clips.tsv window so the 0:39 answer reaches the panel with its card; the
+    reply lifts to the centre as the narrator gets to "fine, do it in parallel", and holds about 2 s. In M2 the world
+    model's "peel onion" (tick 1:58.2) turns out right; the picture freezes 1 s so its tick stays 2 s."""
     ch = 1.1
-    p.chapter_card(2, "With *memory*", "mem", 0, ch)
-    c = round(p.word(1, "then") - 0.1, 3)
+    p.chapter_card(2, "With our *system*", "mem", 0, ch)
+    c = p.cut(2)
     t_card = ch + 0.5
     m1 = 39.1 - (t_card - ch)                                  # from the sink to the cottage-cheese plate
     p.panel_shot("M1", "P08", m1, ch, c)
-    p.panel_shot("M2", *tsv("M2", 2.4), c, p.dur)              # 1:54.4 on: beat 0 used 1:52-1:54
-    p.coach("mem", "MEMORY · 0:39", "Plate first? Fine.", t_card, c)
-    p.coach("mem", "MEMORY · 1:45", "Keep going.", c, p.dur)
-    p.zoom("P08", ch, m1, t_card + 0.3, c - 0.45, "fine to do in parallel", "M1")
-    p.key(0.6, "chapter 2"); p.key(t_card + 1.3, "M1 · reply lifted, parallel marked"); p.key(c + 1.4, "M2 · keep going, panel")
+    p.panel_shot("M2", "P08", 117.6, c, p.dur, holds=[(118.7, 1.0)])
+    p.coach("mem", "OUR SYSTEM · 0:39", "Plate first? Fine.", t_card, c)
+    p.coach("mem", "OUR SYSTEM · 1:45", "Keep going.", c, p.dur)
+    p.zoom("P08", ch, m1, p.word(1, "goes") + 0.33, c - 0.45, "fine to do in parallel", "M1")
+    p.key(0.6, "chapter 2"); p.key(p.word(1, "fine") + 0.8, "M1 · reply lifted, parallel marked"); p.key(c + 1.6, "M2 · peel onion ticked, held")
 
 
 def beat_7(p):
@@ -429,21 +448,27 @@ def ledger_on(video, t):
 
 
 def beat_8(p):
-    """E1: at 4:53 the coach steers the learner back to the eggs (card, then the reply lifted to the centre).
+    """E1: at 4:53 the coach steers the learner back to the eggs (card, then the reply lifted to the centre, held).
     E2: d1's top 3 are open package, break egg, take egg; the learner opens the carton (5:12.1), takes an egg (5:13.1)
-    and cracks it (5:13.7), each getting its tick as it happens, on the narration's "open", "take" and "crack".
-    The step row shows what the memory has (2, 3, 7) and fills step 1 when the memory marks it, at 5:16.2."""
+    and cracks it (5:13.7). The picture freezes at least 0.5 s on each tick, long enough that each lands on the
+    narration's "Open", "Take", "Crack". The step row shows what the memory has (2, 3, 7) and fills step 1 when the
+    memory marks it, at 5:16.2."""
     c = p.cut(2)
     t_card = round(p.sent(1)[0] - 0.05, 3)
     e1 = 293.5 - t_card                                       # the 4:53 answer reaches the panel as the card lands
-    e2 = 312.08 - (p.word(2, "open") - c)                     # the carton opens on the word "open"
     p.panel_shot("E1", "P08", e1, 0, c)
-    p.panel_shot("E2", "P08", e2, c, p.dur)
-    p.steps(7, 0, p.dur, filled=ledger_on("P08", e1), fills=[(1, "", c + (316.233 - e2))], top_left=(96, PANEL_STEPS_TOP))
-    p.coach("mem", "MEMORY · 4:53", "Back to the eggs.", t_card, c)
+    acts = [(312.08, p.word(3, "open")), (313.13, p.word(4, "take")), (313.72, p.word(5, "crack"))]   # (done, said)
+    holds = [(src, max(0.5, round((nw - w) - (ns - src), 3)) if k + 1 < len(acts) else 0.5)
+             for k, ((src, w), (ns, nw)) in enumerate(zip(acts, acts[1:] + acts[-1:]))]
+    e2 = acts[0][0] - (acts[0][1] - c)                        # the carton opens on the word "Open"
+    at = p.panel_shot("E2", "P08", e2, c, p.dur, holds=holds)
+    fill = at(316.233)
+    assert fill < p.dur - 0.3, f"beat 8: step 1 fills at {fill:.2f}, past the end; lengthen EXTRA_TAIL[8]"
+    p.steps(7, 0, p.dur, filled=ledger_on("P08", e1), fills=[(1, "", fill)], top_left=(96, PANEL_STEPS_TOP))
+    p.coach("mem", "OUR SYSTEM · 4:53", "Back to the eggs.", t_card, c)
     p.zoom("P08", 0, e1, t_card + 0.35, c - 0.5, "back to cracking and whisking the eggs", "E1")
-    p.key(t_card + 1.6, "E1 · reply lifted, eggs marked"); p.key(c + (313.3 - e2), "E2 · open and take ticked")
-    p.key(c + (314.6 - e2), "E2 · crack ticked, world model right"); p.key(p.dur - 0.3, "E2 · step 1 filled")
+    p.key(t_card + 1.8, "E1 · reply lifted, eggs marked"); p.key(at(313.13) + 0.3, "E2 · open and take ticked")
+    p.key(at(313.72) + 0.3, "E2 · crack ticked"); p.key(fill + 0.4, "E2 · step 1 filled")
 
 
 def beat_9(p):
@@ -457,8 +482,8 @@ def beat_9(p):
     p.panel_shot("B1", "P02", 405.0, 0, c1)
     p.panel_shot("B2", "P02", 421.6, c1, c2)
     p.panel_shot("B3", "P02", 560.0, c2, p.dur)
-    p.coach("mem", "MEMORY · 6:17", "Shred cheese meanwhile.", 0.3, c1)
-    p.coach("mem", "MEMORY · 7:01", "Season the eggs first.", c1, c2)
+    p.coach("mem", "OUR SYSTEM · 6:17", "Shred cheese meanwhile.", 0.3, c1)
+    p.coach("mem", "OUR SYSTEM · 7:01", "Season the eggs first.", c1, c2)
     p.zoom("P02", 0, 405.0, 0.8, 3.0, "shredding the cheddar cheese while the eggs and bacon continue cooking", "B1")
     p.key(1.8, "B1 · reply lifted, cheese marked"); p.key(c1 - 0.8, "B1 · cut bread ticked"); p.key(c1 + 1.6, "B2 · season first")
     p.key(p.dur - 0.3, "B3 · salt ticked")
@@ -497,7 +522,7 @@ def beat_10(p):
         ("Memory", '<div class="dots">' + "".join(f'<i class="{"f" if k in (1, 2, 3, 7) else ""}"></i>' for k in range(1, 8)) + "</div>",
          s2, None, None),
         ("Muse Glimmer", GLYPH["bubble"], t_gl, t_gl, s3 - 0.1),
-        ("d1", GLYPH["arrow"], t_d1, t_d1, p.dur),
+        ("Liquid AI d1", GLYPH["arrow"], t_d1, t_d1, p.dur),
     ]
     for k, (lab, glyph, t_in, lit0, lit1) in enumerate(nodes):
         nid, ns, _ = p.add(f"<em>{p.label(lab)}</em>{glyph}", t_in, p.dur, "node", f"left:{xs[k]}px;top:{Y}px;width:{W}px;height:{H}px;")
@@ -568,7 +593,7 @@ def beat_12(p):
     a, b = p.word(0, "asked"), p.word(0, "five")
     nomem = [(0.35, "0")] + [(a + (k - 1) * (b - a) / 4, str(k)) for k in range(1, 6)]
     mem = [(0.35, "0"), (p.word(1, "once"), "1")]
-    for k, (cls, lab, seq) in enumerate([("nomem", "No memory", nomem), ("mem", "Memory", mem)]):
+    for k, (cls, lab, seq) in enumerate([("nomem", "Other chef", nomem), ("mem", "Our system", mem)]):
         spans = "".join(f"<span>{p.say(v)}</span>" for _, v in seq)
         pid, ps, _ = p.add(f'<div class="numstack">{spans}</div><div class="lab">{p.say(lab)}</div>', 0.3, p.dur, f"panel {cls}",
                            f"left:{x0 + k * (PW + G)}px;top:{PY}px;")
@@ -614,7 +639,7 @@ def index_html(ids):
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>Personal Cooking Coach · demo v3</title>
+    <title>Personal Cooking Coach · demo v4</title>
     <link rel="stylesheet" href="assets/fonts/fonts.css" />
     <link rel="stylesheet" href="assets/style.css" />
     <script src="assets/vendor/gsap.min.js"></script>

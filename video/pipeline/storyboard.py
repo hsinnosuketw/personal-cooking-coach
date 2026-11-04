@@ -64,7 +64,7 @@ def page(shots):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Demo Storyboard v2</title>
+<title>Demo Storyboard v4</title>
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root {{ --paper: #f2f5f1; --surface: #fff; --ink: #1c1c1e; --muted: #6b6e6a; --line: #dde2db; --nomem: #e5484d; --mem: #2f9e6e;
@@ -102,7 +102,7 @@ footer {{ color: var(--muted); font-size: .85rem; }}
 <body>
 <div class="wrap">
 <header>
-  <p class="eyebrow">Personal Cooking Coach · demo video v2 · storyboard</p>
+  <p class="eyebrow">Personal Cooking Coach · demo video v4 · storyboard</p>
   <h1>Every beat, at its <i>key moments</i></h1>
   <p class="lede">{len(shots)} beats, {mmss(total)} in all. Stills come from the rendered beat videos (out/beats), at the moments the page generator marks. Under each beat: where it starts in the film, its length, what the narrator says and what beats.json asks to see.</p>
 </header>

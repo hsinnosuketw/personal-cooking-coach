@@ -28,8 +28,15 @@ TAIL = 0.50         # silence after the last word of each beat
 MIN_BEAT = 2.5
 # Extra hold after the speech, for pictures that need it (seconds, on top of TAIL).
 EXTRA_TAIL = {
+    6: 1.2,    # M2: the world model's "peel onion" tick held 2 s
+    8: 1.0,    # E2: on to the moment the memory marks step 1 (5:16.2), after the freezes on the three ticks
     9: 5.1,    # B3: the salt (9:20) until d1's "take salt" and "sprinkle salt" are done (9:24.4, 9:24.7)
     13: 4.0,   # the end card with the project name and the credits
+}
+# Extra silence after a sentence: {beat: {sentence index: seconds}}, so a picture can hold before the next line.
+PAUSE_AFTER = {
+    6: {1: 0.9},           # the coach's "fine to do in parallel" stays lifted and marked for about 2 s
+    8: {1: 0.9, 3: 0.2},   # the 4:53 reply held 2.5 s; "Open the carton. Take an egg. Crack it." spaced to the ticks
 }
 VOICES = {
     "narrator": dict(voice="af_heart", speed=0.85),
@@ -90,8 +97,9 @@ def build_beat(pipe, bt):
     parts, sents, t = [], [], 0.0
     for i, (voice, text) in enumerate(sentences(bt["say"])):
         if i:
-            parts.append(np.zeros(int(GAP * SR), np.float32))
-            t += GAP
+            gap = GAP + PAUSE_AFTER.get(bt["id"], {}).get(i - 1, 0.0)
+            parts.append(np.zeros(int(gap * SR), np.float32))
+            t += gap
         a, words = synth(pipe, voice, text)
         d = len(a) / SR
         sents.append({"voice": voice, "text": text, "start": round(t, 3), "end": round(t + d, 3),

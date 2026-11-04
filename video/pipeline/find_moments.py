@@ -59,7 +59,7 @@ def score(vid, hd):
         for a, step, _ in tk["d1"]:
             when = next((x[0] for x in acts if t <= x[0] <= t + D1_HORIZON and a in x[4]), None)
             if when is not None:
-                d1_done.append((a, step, round(when - t, 1)))
+                d1_done.append((a, step, round(when - t, 3)))   # exact: the panel ticks are timed from it
         rows.append({"t": t, "wm": wm, "now": [x[3] for x in now], "wm_hit": wm_hit, "d1": [(a, s) for a, s, _ in tk["d1"]],
                      "d1_done": d1_done, "narr": next((x[3] for x in acts if x[0] <= t + 1 <= x[1]), "")})
     return run, rows

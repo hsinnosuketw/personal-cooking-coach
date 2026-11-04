@@ -114,7 +114,7 @@ def hits(video):
     from coach.data.vocab import Vocab
     _, rows = find_moments.score(video[:3], HDEpicExtractor(Vocab.load()))
     wm = {i: r["wm_hit"] for i, r in enumerate(rows)}
-    done = sorted({(a, round(r["t"] + dt, 2)) for r in rows for a, _, dt in r["d1_done"]}, key=lambda x: x[1])
+    done = sorted({(a, round(r["t"] + dt, 3)) for r in rows for a, _, dt in r["d1_done"]}, key=lambda x: x[1])
     return wm, done
 
 

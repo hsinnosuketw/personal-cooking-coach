@@ -113,3 +113,5 @@ video.full { object-fit: cover; display: block; }
 .zoom { transform-origin: 0 0; }
 .zoom img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
 .zoom img:first-child { filter: drop-shadow(0 24px 60px rgba(0, 0, 0, 0.5)); }
+.modeltag { font-family: var(--mono); font-weight: 500; font-size: 18px; letter-spacing: 0.04em; color: #fff; white-space: nowrap;
+  padding: 3px 12px; border-radius: 999px; border: 2px solid #5ac878; background: rgba(90, 200, 120, 0.2); }
