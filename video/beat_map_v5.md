@@ -4,7 +4,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 0:00 · The hook
 
-**What we say**: Ever thought of having a coaching chef in your house, teaching you to cook? Or even designing your own?
+**What we say**: Ever thought of having a coaching chef in your house, teaching you to cook?
 
 **What's on screen**: The learner's head-camera view as a meal begins: ingredients come out of the fridge, then the onion goes onto the chopping board. Over the footage, centred white text: "Your own coaching chef?", with "coaching chef" in italic serif. Nothing else on screen.
 
@@ -28,7 +28,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 0:25 · Not one mention
 
-**What we say**: But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs.
+**What we say**: But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs, the first step in the recipe.
 
 **What's on screen**: The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:00–5:10. A big counter rolls to "26 answers" while it is spoken, then a second line lands beneath it: "Eggs: 0".
 

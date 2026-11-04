@@ -7,7 +7,7 @@
 The footage is prerecorded, so our learner never hears either coach. No line may imply that the learner acted on advice.
 
 **Structure**:
-1. **A question anyone can picture**: your own coaching chef, or one you design.
+1. **A question anyone can picture**: your own coaching chef.
 2. **The one-line catch**: with Gemini Live you have to keep asking.
 3. **Fair to Gemini**: asked every ten seconds, it answers well, but follows what is in front of it and repeats itself.
 4. **"So we designed an entire system around the chef"**: one learner's story.
@@ -18,13 +18,13 @@ The footage is prerecorded, so our learner never hears either coach. No line may
 The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `beat_map.md` and on the review page.
 
 ## Narration, read straight through
-**0:00 The hook.** Ever thought of having a coaching chef in your house, teaching you to cook? Or even designing your own?
+**0:00 The hook.** Ever thought of having a coaching chef in your house, teaching you to cook?
 
 **0:06 The catch.** You could try Gemini Live. We gave it our learner's video and the recipe. But you'll need to constantly ask questions to get the coaching step.
 
 **0:15 Chapter 1 · Gemini Live.** So we asked, every ten seconds, and it answers well. Coach: Chop the red onion. Add a spray of olive oil. Whisk the eggs.
 
-**0:25 Not one mention.** But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs.
+**0:25 Not one mention.** But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs, the first step in the recipe.
 
 **0:32 Again and again.** And when a step has to wait, it just says it again. Pour the eggs. Eighteen times in three minutes, while our learner cooks the onions and gets the cheese ready.
 
@@ -54,7 +54,7 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 | "You'll need to constantly ask questions" | No reply during the film with only the video and the recipe: eggs `A_1`, `A_2`, `B_2`, sandwich `A_2`. It answered every question in the runs that asked. We infer that it needs a turn; the docs don't say so directly. API only |
 | "We asked, every ten seconds" | Eggs `D10_2`: 108 questions, 108 answers. Our own setting, stated on screen |
 | "It answers well": chop the red onion, add a spray of olive oil, whisk the eggs | Eggs `D10_2`: 1:10, 3:30, 5:20. Narrations: the onion is cut 1:09–2:35, the oil spray picked up 3:29, sprayed 4:36; the eggs cracked 5:13–5:29, whisked 7:25–7:41 |
-| "Four minutes … twenty-six answers, and not one mentions the eggs" | Eggs `D10_2`: 26 answers from 1:00 to 5:10, none matching "egg"; the next mention is 5:20, after cracking began at 5:13. Before 1:00 it does mention them (0:20–0:50). The learner chose this order and was not forgetting the eggs |
+| "Four minutes … twenty-six answers, and not one mentions the eggs, the first step in the recipe" | Eggs `D10_2`: 26 answers from 1:00 to 5:10, none matching "egg"; the next mention is 5:20, after cracking began at 5:13. Before 1:00 it does mention them (0:20–0:50). Cracking the eggs is step 1 of `P08_R03`. The learner chose this order and was not forgetting the eggs |
 | "Pour the eggs. Eighteen times in three minutes" | Eggs `D10_2`: 18 of 20 answers from 8:30 to 11:40. Pouring was a fair next step, and it happened at 11:47: repetition, not wrong advice |
 | "While our learner cooks the onions and gets the cheese ready" | Step annotations: onions 8:33–9:46, cottage cheese 8:53–9:13 and 10:04–10:19 |
 | "Fine, do it in parallel" | Our run, 0:39: "fine to do in parallel" |

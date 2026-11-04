@@ -7,7 +7,7 @@
    "time": "0:00",
    "label": "The hook",
    "tone": "neutral",
-   "say": "Ever thought of having a coaching chef in your house, teaching you to cook? Or even designing your own?",
+   "say": "Ever thought of having a coaching chef in your house, teaching you to cook?",
    "screen": "The learner's head-camera view as a meal begins: ingredients come out of the fridge, then the onion goes onto the chopping board. Over the footage, centred white text: \"Your own coaching chef?\", with \"coaching chef\" in italic serif. Nothing else on screen.",
    "clips": [
     "M1",
@@ -46,7 +46,7 @@
    "time": "0:25",
    "label": "Not one mention",
    "tone": "live",
-   "say": "But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs.",
+   "say": "But for four minutes, while the onion gets done, twenty-six answers, and not one mentions the eggs, the first step in the recipe.",
    "screen": "The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:00–5:10. A big counter rolls to \"26 answers\" while it is spoken, then a second line lands beneath it: \"Eggs: 0\".",
    "clips": [
     "G4"
