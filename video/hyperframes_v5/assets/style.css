@@ -137,10 +137,9 @@ video.full { object-fit: cover; display: block; }
 .panel.solo { width: 960px; height: 480px; }
 .panel.solo .big { font-weight: 700; font-size: 180px; line-height: 1; color: var(--mem); letter-spacing: -0.02em; white-space: nowrap; }
 .endcard .testline { font-size: 24px; color: #5f5f63; margin-top: -28px; }
-.restable { left: 360px; top: 262px; width: 1200px; display: grid; grid-template-columns: 480px 360px 360px; font-size: 52px; font-weight: 600; color: var(--ink); }
-.restable > div { height: 112px; display: flex; align-items: center; padding-left: 24px; border-bottom: 2px solid #dfe5de; white-space: nowrap; }
-.restable .head { height: 72px; font-family: var(--mono); font-weight: 500; font-size: 24px; letter-spacing: 0.08em; text-transform: uppercase; }
-.restable .head.ours { color: var(--mem); } .restable .head.live { color: var(--muted); }
-.restick { width: 64px; height: 64px; border-radius: 50%; background: var(--mem); display: grid; place-items: center; }
-.restick svg { width: 36px; height: 36px; }
-.resdash { width: 64px; height: 64px; display: grid; place-items: center; color: var(--muted); font-weight: 600; font-size: 60px; line-height: 1; }
+.resrow { left: 140px; width: 1200px; height: 88px; display: flex; align-items: center; padding-left: 24px; border-bottom: 2px solid #dfe5de; font-size: 44px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.reshead { font-family: var(--mono); font-weight: 500; font-size: 22px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.reshead.ours { color: var(--mem); } .reshead.live { color: var(--muted); }
+.restick { width: 56px; height: 56px; border-radius: 50%; background: var(--mem); display: grid; place-items: center; }
+.restick svg { width: 32px; height: 32px; }
+.resdash { width: 56px; height: 56px; display: grid; place-items: center; color: var(--muted); font-weight: 600; font-size: 52px; line-height: 1; }

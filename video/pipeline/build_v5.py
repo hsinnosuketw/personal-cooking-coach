@@ -5,7 +5,6 @@
 The comparison is the Gemini Live API on the same footage and recipe (results/gemini_live_*.json, video/script.md).
 Unchanged beats (5, 6, 7, 8) come straight from build.py; video/design_guidelines_v5.md has the new components.
 """
-import json
 import os
 
 os.environ.setdefault("DEMO_VERSION", "v5")
@@ -138,7 +137,7 @@ def beat_10(p):
                 lit1 = p.frame(lit1)
                 p.js.append(f'tl.set("#{nid}", {{borderColor: "rgba(0,0,0,0)"}}, {lit1}); tl.set("#{nid} em", {{backgroundColor: "#e9eee9", color: "#1c1c1e"}}, {lit1});')
     strips = [("Last few seconds of video", "Top 3 next actions", p.word(1, "takes"), p.word(1, "gives"), s2 - 0.1),
-              ("Actions seen, with times", "A record per step", p.word(2, "takes"), p.word(2, "keeps"), s3 - 0.1),
+              ("Actions seen, with times", "Status, when seen, what needs it", p.word(2, "takes"), p.word(2, "records"), s3 - 0.1),
               ("Recipe, memory, recent actions", "Where you are, what\'s next, what not to forget", p.word(3, "takes"), p.word(3, "says"), s4 - 0.1),
               ("Advice, predictions, checklist", "One next move, every second", p.word(4, "takes"), p.word(4, "picks"), p.dur)]
     for a, c, t_in, t_out, end in strips:
@@ -153,78 +152,35 @@ def beat_10(p):
     p.key(s4 - 0.5, "Muse Glimmer in and out"); p.key(p.dur - 0.5, "d1 in and out")
 
 
-MEMORY = [  # step, name, status class, status, first, last, needed before, reminded: our answer at 4:53, checked in beat_11
-    (1, "Eggs", "", "not seen yet", "", "", "step 4", ""), (2, "Oil", "done", "done", "3:17", "4:33", "step 3", "×5"),
-    (3, "Onions", "done", "done", "0:06", "4:28", "step 4", ""), (4, "Pour", "", "not seen yet", "", "", "step 5", ""),
-    (5, "Stir", "", "not seen yet", "", "", "step 6", ""), (6, "Off heat", "", "not seen yet", "", "", "", ""),
-    (7, "Plate", "part", "in progress", "0:06", "4:28", "", "")]
-
-
-def check_memory():
-    """The table must be what the run said at 4:53, errors included."""
-    run = json.loads((b.VIDEO.parent / "results" / "coach_adaptive_remind_parallel_hdtags_P08-20240614-085000.json").read_text())
-    call = next(c for c in run["calls"] if abs(c["ready"] - 293.46) < 1)
-    for s in ("is done, first sign 3:17 last 4:33", "is done, first sign 0:06 last 4:28", "is in progress, first sign 0:06 last 4:28",
-              "is not seen yet; needed before step 4", "is not seen yet; needed before step 5", "is not seen yet; needed before step 6", "DONE: 2,3", "IN PROGRESS: 7"):
-        assert s in call["text"], s
-    assert sum(c.get("remind") == 1 for c in run["calls"] if c["ready"] <= call["ready"]) == 5
-    assert run["needs"]["2"] == [1] and run["needs"]["3"] == [0, 2]      # oil before step 3; eggs and onions before step 4
-
-
-def beat_11(p):
-    """What the memory records: the real table at 4:53, each column lit as it is named, then the eggs."""
-    check_memory()
-    p.add("", 0, p.dur, "full paper")
-    eid, es, _ = p.add(p.label("OUR SYSTEM · MEMORY AT 4:53"), 0.2, p.dur, "eyebrow", "left:150px;top:128px;color:#2f9e6e;font-size:26px;")
-    p.anim_in(eid, es)
-    heads = ["Step", "Status", "First seen", "Last seen", "Needed before", "Reminded"]
-    cells = "".join(f'<div class="head">{p.label(h)}</div>' for h in heads)
-    for n, name, cls, status, first, last, need, told in MEMORY:
-        cells += (f"<div>{n} {p.label(name)}</div><div><i class=\"{cls}\"></i>{p.label(status)}</div><div>{first}</div><div>{last}</div>"
-                  f"<div>{p.label(need)}</div><div>{told}</div>")
-    tid, ts, _ = p.add(cells, 0.3, p.dur, "memtable")
-    p.anim_in(tid, ts)
-    X0, Y0, HEAD, ROW = 150, 196, 62, 88
-    widths = [300, 340, 220, 220, 300, 240]
-    left = lambda k: X0 + sum(widths[:k])
-    h_all = HEAD + 7 * ROW
-    t_stat, t_first, t_need, t_told, t_eggs = p.word(1, "done"), p.word(1, "first"), p.word(1, "which"), p.word(1, "how"), p.sent(2)[0]
-    for k0, k1, a, z in ((1, 2, t_stat, t_first), (2, 4, t_first, t_need), (4, 5, t_need, t_told), (5, 6, t_told, t_eggs)):
-        cid, cs, _ = p.add("", a, z, "memcol", f"left:{left(k0)}px;top:{Y0}px;width:{left(k1) - left(k0)}px;height:{h_all}px;")
-        p.js.append(f'tl.fromTo("#{cid}", {{opacity: 0}}, {{opacity: 1, duration: 0.2, ease: "none"}}, {cs});')
-        p.cue(cs, "tick")
-    dim, ds, _ = p.add("", t_eggs, p.dur, "memdim", f"left:{X0}px;top:{Y0 + HEAD + ROW}px;width:1620px;height:{6 * ROW}px;")
-    p.js.append(f'tl.fromTo("#{dim}", {{opacity: 0}}, {{opacity: 0.6, duration: 0.25, ease: "none"}}, {ds});')
-    rid, rs, _ = p.add("", t_eggs, p.dur, "memrow", f"left:{X0}px;top:{Y0 + HEAD}px;width:1620px;height:{ROW}px;")
-    p.js.append(f'tl.fromTo("#{rid}", {{opacity: 0}}, {{opacity: 1, duration: 0.25, ease: "none"}}, {rs});')
-    p.cue(rs, "check")
-    p.key(1.2, "the memory at 4:53"); p.key(t_stat + 0.6, "status"); p.key(t_first + 0.6, "first and last seen"); p.key(t_need + 0.5, "needed before")
-    p.key(t_told + 0.6, "reminded"); p.key(p.dur - 0.6, "the eggs: not seen, needed before step 4")
-
-
 def beat_12(p):
-    """The result: which steps it raised before they started, with nobody asking. No counts."""
+    """One video, its six steps, and who reminds you of them ahead of time. No times, no counts."""
     p.add("", 0, p.dur, "full paper")
-    eid, es, _ = p.add(p.label("BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING"), 0.2, p.dur, "eyebrow",
-                       "left:0;width:1920px;top:196px;text-align:center;color:#8a8a8e;font-size:24px;")
+    p.footage("pipS", "P02", 405.0, 0, p.dur, kind="pip")
+    eid, es, _ = p.add(p.label("ONE VIDEO · BACON AND EGG SANDWICH"), 0.2, p.dur, "eyebrow", "left:164px;top:112px;color:#2f9e6e;font-size:26px;")
     p.anim_in(eid, es)
-    rows = ["Bacon", "Eggs", "Cheese", "Seasoning"]
-    cells = '<div class="head"></div><div class="head ours">Our system</div><div class="head live">Gemini Live · not asked</div>'
-    cells += "".join(f"<div>{p.label(r)}</div><div></div><div></div>" for r in rows)
-    tid, ts, _ = p.add(cells, 0.3, p.dur, "restable")
-    p.anim_in(tid, ts)
-    X_OURS, X_LIVE, Y0, HEAD, ROW = 360 + 480 + 24, 360 + 480 + 360 + 24, 262, 72, 112
-    y = lambda k: Y0 + HEAD + k * ROW + (ROW - 64) // 2
-    for k, r in enumerate(rows):
-        t = p.word(0, r.lower())
-        mid, ms, _ = p.add(b.CHECK_SVG, t, p.dur, "restick", f"left:{X_OURS}px;top:{y(k)}px;")
+    X_LIVE, X_OURS, Y0, HEAD, ROW = 560, 1040, 170, 72, 88
+    t_steps = p.sent(1)[0]
+    for x, cls, text in ((164, "live", "Reminded ahead?"), (X_LIVE, "live", "Gemini Live · not asked"), (X_OURS, "ours", "Our system")):
+        hid, hs, _ = p.add(p.label(text), t_steps, p.dur, f"reshead {cls}", f"left:{x}px;top:{Y0 + 30}px;")
+        p.anim_in(hid, hs)
+    rows = [("Cook the bacon", p.word(1, "bacon")), ("Mix the eggs", p.word(1, "mix")), ("Cook the eggs", p.word(1, "cook", 1)),
+            ("Shred the cheese", p.word(1, "shred")), ("Season the eggs", p.word(1, "season")), ("Build the sandwich", p.word(1, "build"))]
+    y = lambda k: Y0 + HEAD + k * ROW + (ROW - 56) // 2
+    for k, (text, t) in enumerate(rows):
+        rid, rs, _ = p.add(p.label(text), t - 0.1, p.dur, "resrow", f"top:{Y0 + HEAD + k * ROW}px;")
+        p.anim_in(rid, rs)
+        p.cue(rs, "tick")
+    t_none, t_ours = p.word(2, "none"), p.sent(3)[0]
+    for k in range(6):
+        did, ds, _ = p.add("—", t_none + k * 0.07, p.dur, "resdash", f"left:{X_LIVE}px;top:{y(k)}px;")
+        p.anim_in(did, ds)
+    for k in range(5):
+        mid, ms, _ = p.add(b.CHECK_SVG, t_ours + 0.1 + k * 0.22, p.dur, "restick", f"left:{X_OURS}px;top:{y(k)}px;")
         p.anim_in(mid, ms)
         p.cue(ms, "tick")
-    t_none = p.word(1, "none")
-    for k in range(4):
-        did, ds, _ = p.add("—", t_none + k * 0.08, p.dur, "resdash", f"left:{X_LIVE}px;top:{y(k)}px;")
-        p.anim_in(did, ds)
-    p.key(p.word(0, "cheese") + 0.5, "ticks landing"); p.key(t_none + 0.8, "Gemini Live, on its own: none"); p.key(p.dur - 1.0, "held under the limit")
+    did, ds, _ = p.add("—", t_ours + 0.1 + 5 * 0.22, p.dur, "resdash", f"left:{X_OURS}px;top:{y(5)}px;")
+    p.anim_in(did, ds)
+    p.key(p.word(1, "season") + 0.3, "the six steps landing"); p.key(t_none + 0.9, "Gemini Live, not asked: none"); p.key(p.dur - 0.5, "ours: all but the last")
 
 
 def beat_13(p):
@@ -245,7 +201,8 @@ def beat_13(p):
     p.key(2.0, "your own coaching chef"); p.key(p.dur - 1.0, "end card")
 
 
-b.BUILDERS.update({0: beat_0, 1: beat_1, 2: beat_2, 3: beat_3, 4: beat_4, 9: beat_9, 10: beat_10, 11: beat_11, 12: beat_12, 13: beat_13})
+b.BUILDERS.update({0: beat_0, 1: beat_1, 2: beat_2, 3: beat_3, 4: beat_4, 9: beat_9, 10: beat_10, 12: beat_12, 13: beat_13})
+del b.BUILDERS[11]                                      # the memory table: the result now says all the film needs
 
 if __name__ == "__main__":
     b.main()

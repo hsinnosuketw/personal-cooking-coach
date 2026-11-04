@@ -1,6 +1,6 @@
 {
  "version": "draft 7 (film v5)",
- "note": "One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 python3 video/review/build_review.py OUT_DIR writes video/beat_map_v5.md. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:'. 'screen' describes everything visible. Words on screen stay at 5 or fewer per screen; eyebrows, test conditions and the How it works IN/OUT labels and memory table are evidence and don't count (design_guidelines_v5.md). The comparison is the Gemini Live API on the same footage and recipe; every Gemini line is real, from results/gemini_live_*.json. The footage is prerecorded: no line implies the learner heard a coach.",
+ "note": "One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 python3 video/review/build_review.py OUT_DIR writes video/beat_map_v5.md. Times are estimates until the TTS files exist. 'say' is the narrator unless a line starts with 'Coach:'. 'screen' describes everything visible. Words on screen stay at 5 or fewer per screen; eyebrows, test conditions and the How it works IN/OUT labels are evidence and don't count (design_guidelines_v5.md). The comparison is the Gemini Live API on the same footage and recipe; every Gemini line is real, from results/gemini_live_*.json. The footage is prerecorded: no line implies the learner heard a coach.",
  "beats": [
   {
    "id": 0,
@@ -134,36 +134,26 @@
    "time": "1:50",
    "label": "Chapter 3 · How it works",
    "tone": "neutral",
-   "say": "Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three likeliest next actions. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what's next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.",
-   "screen": "A numbered square \"3\" and \"How it works\". On pale green paper, white cards appear one at a time, joined by dashed arrows: Video, V-JEPA 2, Memory, Muse Glimmer, Liquid AI d1, Next move. The card being named lights up green. Under the row, one strip for that card, with mono labels: IN and OUT. V-JEPA 2: IN \"Last few seconds of video\", OUT \"Top 3 next actions\". Memory: IN \"Actions seen, with times\", OUT \"A record per step\". Muse Glimmer: IN \"Recipe, memory, recent actions\", OUT \"Where you are, what's next, what not to forget\". Liquid AI d1: IN \"Advice, predictions, checklist\", OUT \"One next move, every second\". The kitchen keeps playing in a small rounded square, bottom-right.",
+   "say": "Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three likeliest next actions. The memory takes in those actions, and records each step's status, when it was seen, and what needs it. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what's next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.",
+   "screen": "A numbered square \"3\" and \"How it works\". On pale green paper, white cards appear one at a time, joined by dashed arrows: Video, V-JEPA 2, Memory, Muse Glimmer, Liquid AI d1, Next move. The card being named lights up green. Under the row, one strip for that card, with mono labels: IN and OUT. V-JEPA 2: IN \"Last few seconds of video\", OUT \"Top 3 next actions\". Memory: IN \"Actions seen, with times\", OUT \"Status, when seen, what needs it\". Muse Glimmer: IN \"Recipe, memory, recent actions\", OUT \"Where you are, what's next, what not to forget\". Liquid AI d1: IN \"Advice, predictions, checklist\", OUT \"One next move, every second\". The kitchen keeps playing in a small rounded square, bottom-right.",
    "clips": [
     "M2"
    ],
    "sound": "A soft tick as each card lands."
   },
   {
-   "id": 11,
-   "time": "2:23",
-   "label": "What the memory records",
-   "tone": "mem",
-   "say": "Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.",
-   "screen": "On paper, the real memory at 4:53, seven rows, one per recipe step, with columns that light up as they are named. Status (a filled, half or empty icon), First seen, Last seen, Needed before, Reminded. 1 Eggs: not seen yet, needed before 4. 2 Oil: done, 3:17, 4:33, needed before 3, reminded ×5. 3 Onions: done, 0:06, 4:28, needed before 4. 4 Pour: not seen yet, needed before 5. 5 Stir: not seen yet, needed before 6. 6 Off heat: not seen yet. 7 Plate: in progress, 0:06, 4:28. On \"The eggs\", row 1 fills green and the others dim.",
-   "clips": [],
-   "sound": "A tick as each column lights."
-  },
-  {
    "id": 12,
-   "time": "2:40",
-   "label": "The result",
+   "time": "2:21",
+   "label": "One video, six steps",
    "tone": "neutral",
-   "say": "On the sandwich, ours brings up the bacon, the eggs, the cheese and the seasoning before they start. On its own, Gemini Live brings up none. It still misses what the camera can't see, and that's what we're working on next.",
-   "screen": "On paper, a small table under the eyebrow BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING. Four rows: Bacon, Eggs, Cheese, Seasoning. Two columns, Our system and Gemini Live · not asked. A green tick lands in the Our system column as each step is named. Then, on \"none\", a grey dash lands in each row of the Gemini Live column. It holds while the limit is said.",
+   "say": "We used one video, a bacon and egg sandwich. It has six steps: cook the bacon, mix the eggs, cook them, shred the cheese, season, and build the sandwich. Not asked, Gemini Live reminds you of none of them ahead of time. Ours reminds you of all but the last.",
+   "screen": "On paper, the eyebrow ONE VIDEO · BACON AND EGG SANDWICH, with that video playing in a small rounded square, bottom-right. Six rows land as each step is named: Cook the bacon, Mix the eggs, Cook the eggs, Shred the cheese, Season the eggs, Build the sandwich. A header row: REMINDED AHEAD?, Gemini Live · not asked, Our system. On \"none\", a grey dash lands in each Gemini Live row. On \"Ours\", a green tick lands in the first five Our system rows, and a grey dash in the sixth.",
    "clips": [],
    "sound": "The music lifts slightly."
   },
   {
    "id": 13,
-   "time": "2:52",
+   "time": "2:35",
    "label": "The close",
    "tone": "mem",
    "say": "Your own coaching chef, designed as a whole system.",

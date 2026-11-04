@@ -3,7 +3,7 @@
 `design_guidelines.md` still applies. This file lists only what changes for v5.
 
 ## 1. Text density
-The five-word rule stays for what the viewer reads while watching. Two exceptions, because these screens explain rather than show: the How it works IN and OUT strip, and the memory table. Each IN or OUT line stays at 5 words or fewer where it can (Glimmer's OUT takes 7).
+The five-word rule stays for what the viewer reads while watching. Two exceptions, because these screens explain rather than show: the How it works IN and OUT strip, and the result table. Each IN or OUT line stays at 5 words or fewer where it can (Glimmer's OUT takes 7).
 
 ## 3. Colour
 | Token | Hex | Use |
@@ -17,8 +17,7 @@ The five-word rule stays for what the viewer reads while watching. Two exception
 - **Test chip**: a small mono chip, "asked every 10 s", for all of beat 2. Our setting, so it stays visible.
 - **Counters**: "26 answers" then "Eggs: 0" (beat 3), "×1" to "×18" (beat 4), "×8" (beat 9).
 - **IN/OUT strip (beat 10)**: under the card row and left of the kitchen square. Mono labels IN and OUT at 24 px, text at 40 px, changing with the lit card. It replaces the question under each card.
-- **Memory table (beat 11)**: seven rows on paper, Figtree 32 px, tabular figures. Status is an icon (filled, half, empty). A column lights in green as it is named. On "The eggs", row 1 fills green and the others dim to 40%.
-- **Result (beat 12)**: a small table on paper, four steps by two columns, Our system and Gemini Live · not asked (asked every 10 s, it raises all four): a green tick per step named, then a grey dash per row. No numbers.
+- **Result (beat 12)**: six rows landing as each step is named, two columns (Gemini Live · not asked, Our system), a small square of the video bottom-right. Grey dashes, green ticks, and an honest dash on the step ours did not raise. No times, no counts.
 - **Chapters**: 1 "Gemini *Live*", 2 "With our *system*", 3 "How it *works*".
 
 ## 8. Sound
