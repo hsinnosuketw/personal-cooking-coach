@@ -157,11 +157,12 @@ class Clock:
         return self.start + max(self.sent - 1, 0) * self.step
 
 
-async def _send(session, frames: list[bytes], clock: Clock, rec: Recorder, pace: float) -> None:
+async def _send(session, frames: list[bytes | None], clock: Clock, rec: Recorder, pace: float) -> None:
     base = time.monotonic() - clock.sent * pace
     while clock.sent < len(frames):
         await asyncio.sleep(max(0.0, base + clock.sent * pace - time.monotonic()))
-        await session.send_realtime_input(video={"data": frames[clock.sent], "mime_type": "image/jpeg"})
+        if frames[clock.sent] is not None:          # None: a dropped frame, the film clock still moves on
+            await session.send_realtime_input(video={"data": frames[clock.sent], "mime_type": "image/jpeg"})
         clock.sent += 1
         rec.data["frames_sent"] = clock.sent
         while clock.scheduled and clock.scheduled[0][0] <= clock.t:
@@ -184,7 +185,7 @@ async def _receive(session, clock: Clock, rec: Recorder) -> str:
             return "closed"
 
 
-async def stream(connect, frames: list[bytes], rec: Recorder, start: float = 0.0, pace: float = 1.0, step: float = 1.0,
+async def stream(connect, frames: list[bytes | None], rec: Recorder, start: float = 0.0, pace: float = 1.0, step: float = 1.0,
                  drain: float = 20.0, extra: list | None = None, backoff: float = 3.0, redact=str) -> None:
     """Send every frame in real time, reconnecting with the resumption handle when the server ends a connection.
 
@@ -221,6 +222,11 @@ async def stream(connect, frames: list[bytes], rec: Recorder, start: float = 0.0
     rec.save()
 
 
+def drop_spans(spec: str | None) -> list[tuple[float, float]]:
+    """"209-298,392-409" -> [(209.0, 298.0), (392.0, 409.0)], film seconds to withhold (the skipped-step test, stage 36)."""
+    return [tuple(float(x) for x in part.split("-")) for part in spec.split(",")] if spec else []
+
+
 def live_config(system: str, handle: str | None, proactive: bool = True, resolution: str | None = None):
     from google.genai import types
     return types.LiveConnectConfig(
@@ -243,6 +249,9 @@ def client(key: str, api_version: str):
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", default="smoke")
+    ap.add_argument("--video", default=VIDEO)
+    ap.add_argument("--recipe", default=RECIPE)
+    ap.add_argument("--drop", help="film seconds to withhold, as 209-298,392-409: the cook seems to skip what happens there")
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--api-version", default="v1beta")
     ap.add_argument("--seconds", type=float, help="only the first N seconds of the video")
@@ -270,11 +279,14 @@ def main() -> None:
         print("\n".join(n for n in names if "live" in n or "native-audio" in n))
         return
 
-    run = json.loads((RESULTS / f"coach_timeline_{VIDEO}.json").read_text())       # the steps our coach was given
-    name = json.loads((DATA_RAW / "hd-epic" / "complete_recipes.json").read_text())[RECIPE]["name"]
+    run = json.loads((RESULTS / f"coach_adaptive_remind_parallel_hdtags_{args.video}.json").read_text())  # the steps our coach got
+    assert run["recipe"] == args.recipe, run["recipe"]
+    name = json.loads((DATA_RAW / "hd-epic" / "complete_recipes.json").read_text())[args.recipe]["name"]
     system = system_prompt(name, run["steps"], args.quiet_line)
-    paths = extract_frames(DATA_RAW / "hd-epic" / f"{VIDEO}.mp4", DATA_PROCESSED / "live_frames" / VIDEO, args.seconds)
-    frames = [p.read_bytes() for p in paths[:: args.every]]
+    paths = extract_frames(DATA_RAW / "hd-epic" / f"{args.video}.mp4", DATA_PROCESSED / "live_frames" / args.video, args.seconds)
+    spans = drop_spans(args.drop)
+    kept = lambda t: not any(a <= t <= b for a, b in spans)
+    frames = [p.read_bytes() if kept(k * args.every) else None for k, p in enumerate(paths[:: args.every])]
     film = len(frames) * args.every
     extra = [(float(t), text) for t, text in args.probe or []]
     if args.nudge_every:
@@ -285,11 +297,11 @@ def main() -> None:
     if args.final:
         extra.append(((len(frames) - 1) * args.every, args.final))
 
-    settings = {"model": args.model, "resolution": args.resolution, "final": args.final, "api_version": args.api_version, "video": VIDEO, "recipe": RECIPE, "system": system,
+    settings = {"model": args.model, "resolution": args.resolution, "final": args.final, "api_version": args.api_version, "video": args.video, "recipe": args.recipe, "system": system, "drop": args.drop,
                 "frames": len(frames), "frame_size": FRAME_SIZE, "every_s": args.every, "trigger_tokens": TRIGGER_TOKENS,
                 "target_tokens": TARGET_TOKENS, "proactive_audio": not args.no_proactive, "tier": args.tier,
                 "nudge_every": args.nudge_every, "nudge_text": args.nudge_text if args.nudge_every else None, "repeat_prompt_every": args.repeat_prompt_every, "probe": args.probe, "started": time.strftime("%Y-%m-%d %H:%M:%S %z")}
-    rec = Recorder(RESULTS / f"gemini_live_{VIDEO}_{args.label}.json", settings)
+    rec = Recorder(RESULTS / f"gemini_live_{args.video}_{args.label}.json", settings)
     print(f"{args.model}: {len(frames)} frames, {name}", flush=True)
     api = client(key, args.api_version)          # held: the SDK closes its connection when the client is collected
     connect = lambda handle: api.aio.live.connect(model=args.model, config=live_config(system, handle, not args.no_proactive, args.resolution))

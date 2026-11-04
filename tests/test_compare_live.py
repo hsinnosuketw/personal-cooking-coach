@@ -83,6 +83,15 @@ def test_every_other_frame_keeps_film_time():
     assert d["replies"][0]["t"] == 4                                 # third frame sent, every 2 s: second 4
 
 
+def test_dropped_frames_are_withheld_but_the_film_clock_moves_on():
+    log = {"frames": [], "text": [], "handles": []}
+    rec = cl.Recorder(Path(tempfile.mkdtemp()) / "run.json", {})
+    frames = [b"a", None, None, b"d"]
+    asyncio.run(cl.stream(connector([{2: [say("Oil the pan.")]}], log), frames, rec, pace=0.0, drain=0.01, backoff=0.0))
+    assert log["frames"] == [b"a", b"d"]
+    assert rec.data["frames_sent"] == 4 and cl.drop_spans("209-298,392-409") == [(209.0, 298.0), (392.0, 409.0)]
+
+
 def test_transcript_pieces_join_into_one_reply():
     _, _, d = run([{2: [say("Crack ", done=False), say("the eggs.")]}])
     assert [r["text"] for r in d["replies"]] == ["Crack the eggs."]
