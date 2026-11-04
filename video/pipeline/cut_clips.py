@@ -16,7 +16,8 @@ from pathlib import Path
 
 VIDEO = Path(__file__).resolve().parents[1]
 ROOT = VIDEO.parent
-HD = VIDEO / "media" / "hd"
+import version as V  # noqa: E402  (video/pipeline/version.py)
+HD = V.HD
 RAW = ROOT / "data" / "raw" / "hd-epic"
 RUNS = ROOT / "results"
 CROP = {"full": "crop=1408:792:0:520,scale=1920:1080:flags=lanczos",

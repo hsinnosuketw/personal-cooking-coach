@@ -58,7 +58,7 @@
    "time": "0:32",
    "label": "Again and again",
    "tone": "nomem",
-   "say": "And when a step has to wait, it just says it again. Pour the eggs. Eighteen times in three minutes, while our learner cooks the onions and gets the cheese ready.",
+   "say": "And when a step has to wait, it just says it again. Pour the eggs. Eighteen times in three minutes.",
    "screen": "Three hard cuts: 9:00 the plate on the scale, 9:36 the onions being stirred, 10:06 oil going onto the cottage cheese. The same card stays top-left, eyebrow GEMINI LIVE · 8:30–11:40, \"Pour the eggs.\" The counter beside it rolls from \"×1\" to a red \"×18\". It is the only red in the film.",
    "clips": [
     "G5",
@@ -134,7 +134,7 @@
    "time": "1:50",
    "label": "Chapter 3 · How it works",
    "tone": "neutral",
-   "say": "Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three actions most likely to come next. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what to do next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.",
+   "say": "Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three likeliest next actions. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what's next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.",
    "screen": "A numbered square \"3\" and \"How it works\". On pale green paper, white cards appear one at a time, joined by dashed arrows: Video, V-JEPA 2, Memory, Muse Glimmer, Liquid AI d1, Next move. The card being named lights up green. Under the row, one strip for that card, with mono labels: IN and OUT. V-JEPA 2: IN \"Last few seconds of video\", OUT \"Top 3 next actions\". Memory: IN \"Actions seen, with times\", OUT \"A record per step\". Muse Glimmer: IN \"Recipe, memory, recent actions\", OUT \"Where you are, what's next, what not to forget\". Liquid AI d1: IN \"Advice, predictions, checklist\", OUT \"One next move, every second\". The kitchen keeps playing in a small rounded square, bottom-right.",
    "clips": [
     "M2"
@@ -146,7 +146,7 @@
    "time": "2:23",
    "label": "What the memory records",
    "tone": "mem",
-   "say": "Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; when it was first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.",
+   "say": "Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.",
    "screen": "On paper, the real memory at 4:53, seven rows, one per recipe step, with columns that light up as they are named. Status (a filled, half or empty icon), First seen, Last seen, Needed before, Reminded. 1 Eggs: not seen yet, needed before 4. 2 Oil: done, 3:17, 4:33, needed before 3, reminded ×5. 3 Onions: done, 0:06, 4:28, needed before 4. 4 Pour: not seen yet, needed before 5. 5 Stir: not seen yet, needed before 6. 6 Off heat: not seen yet. 7 Plate: in progress, 0:06, 4:28. On \"The eggs\", row 1 fills green and the others dim.",
    "clips": [],
    "sound": "A tick as each column lights."
@@ -156,7 +156,7 @@
    "time": "2:40",
    "label": "The result",
    "tone": "neutral",
-   "say": "Across both dishes, it brought up six of eleven steps before our learner started them, with nobody asking. It still misses what the camera can't see, and that's what we're working on next.",
+   "say": "Across both dishes, it raised six of eleven steps before they started, with nobody asking. It still misses what the camera can't see, and that's what we're working on next.",
    "screen": "One pale green panel, centred, under a small eyebrow STEPS BROUGHT UP BEFORE THEY STARTED · NOBODY ASKED. A big number counts up: \"6 of 11\". It holds while the limit is said.",
    "clips": [],
    "sound": "The music lifts slightly."

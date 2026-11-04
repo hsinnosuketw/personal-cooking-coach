@@ -1,0 +1,210 @@
+{
+ "0": [
+  [
+   1.5,
+   "M1 \u00b7 fridge"
+  ],
+  [
+   3.67,
+   "M2 \u00b7 onion"
+  ]
+ ],
+ "1": [
+  [
+   1.4,
+   "G1 \u00b7 the onion"
+  ],
+  [
+   8.67,
+   "keep asking"
+  ]
+ ],
+ "2": [
+  [
+   0.6,
+   "chapter 1"
+  ],
+  [
+   4.45,
+   "G1 \u00b7 chop"
+  ],
+  [
+   6.34,
+   "G2 \u00b7 oil"
+  ],
+  [
+   8.73,
+   "G3 \u00b7 whisk"
+  ]
+ ],
+ "3": [
+  [
+   1.0,
+   "G4 \u00b7 chopping"
+  ],
+  [
+   8.13,
+   "26 answers, eggs 0"
+  ]
+ ],
+ "4": [
+  [
+   1.0,
+   "G5 \u00b7 plate"
+  ],
+  [
+   3.98,
+   "G6 \u00b7 onions, \u00d71"
+  ],
+  [
+   6.33,
+   "G7 \u00b7 \u00d718"
+  ]
+ ],
+ "5": [
+  [
+   1.2,
+   "turn card"
+  ]
+ ],
+ "6": [
+  [
+   0.6,
+   "chapter 2"
+  ],
+  [
+   6.33,
+   "M1 \u00b7 reply lifted, parallel marked"
+  ],
+  [
+   9.98,
+   "M2 \u00b7 peel onion ticked, held"
+  ]
+ ],
+ "7": [
+  [
+   1.7,
+   "step 7 \u00b7 0:13"
+  ],
+  [
+   3.97,
+   "step 3 \u00b7 1:50"
+  ],
+  [
+   6.23,
+   "step 2 \u00b7 4:36"
+  ],
+  [
+   8.5,
+   "step 1 \u00b7 5:13"
+  ]
+ ],
+ "8": [
+  [
+   4.42,
+   "E1 \u00b7 reply lifted, eggs marked"
+  ],
+  [
+   14.59,
+   "E2 \u00b7 open and take ticked"
+  ],
+  [
+   15.85,
+   "E2 \u00b7 crack ticked"
+  ],
+  [
+   18.96,
+   "E2 \u00b7 step 1 filled"
+  ]
+ ],
+ "9": [
+  [
+   1.8,
+   "B1 \u00b7 cheese marked"
+  ],
+  [
+   6.63,
+   "B2 \u00b7 season first"
+  ],
+  [
+   15.35,
+   "G8 \u00b7 build the sandwich, \u00d78"
+  ],
+  [
+   18.05,
+   "B4 \u00b7 8:55 reply marked"
+  ],
+  [
+   23.8,
+   "B3 \u00b7 salt ticked"
+  ]
+ ],
+ "10": [
+  [
+   0.5,
+   "chapter 3"
+  ],
+  [
+   9.64,
+   "V-JEPA 2 in and out"
+  ],
+  [
+   14.74,
+   "memory in and out"
+  ],
+  [
+   24.08,
+   "Muse Glimmer in and out"
+  ],
+  [
+   33.27,
+   "d1 in and out"
+  ]
+ ],
+ "11": [
+  [
+   1.2,
+   "the memory at 4:53"
+  ],
+  [
+   5.36,
+   "status"
+  ],
+  [
+   7.96,
+   "first and last seen"
+  ],
+  [
+   9.54,
+   "needed before"
+  ],
+  [
+   11.14,
+   "reminded"
+  ],
+  [
+   17.97,
+   "the eggs: not seen, needed before step 4"
+  ]
+ ],
+ "12": [
+  [
+   3.38,
+   "6 of 11"
+  ],
+  [
+   11.03,
+   "held under the limit"
+  ]
+ ],
+ "13": [
+  [
+   2.0,
+   "your own coaching chef"
+  ],
+  [
+   5.87,
+   "end card"
+  ]
+ ]
+}

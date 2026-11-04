@@ -19,10 +19,11 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 VIDEO = Path(__file__).resolve().parents[1]
+import version as V  # noqa: E402  (video/pipeline/version.py)
 OUT = VIDEO / "out"
-BEATS = OUT / "beats"
-AUDIO = VIDEO / "audio"
-VERSION = "v4"            # earlier versions stay in video/out for comparison
+BEATS = V.RENDERS
+AUDIO = V.AUDIO
+VERSION = V.FILM          # earlier versions stay in video/out for comparison
 FILM = OUT / f"demo_{VERSION}.mp4"
 THREADS = "3"
 # The renders are BT.709 limited range; a JPEG is BT.601 full range. Without this the greens come out light.

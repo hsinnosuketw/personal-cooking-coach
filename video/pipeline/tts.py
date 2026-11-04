@@ -18,7 +18,8 @@ import numpy as np
 import soundfile as sf
 
 VIDEO = Path(__file__).resolve().parents[1]
-AUDIO = VIDEO / "audio"
+import version as V  # noqa: E402  (video/pipeline/version.py)
+AUDIO = V.AUDIO
 AUDIO.mkdir(exist_ok=True)
 SR = 24000
 FPS = 30
@@ -38,6 +39,9 @@ PAUSE_AFTER = {
     6: {1: 0.9},           # the coach's "fine to do in parallel" stays lifted and marked for about 2 s
     8: {1: 0.9, 3: 0.2},   # the 4:53 reply held 2.5 s; "Open the carton. Take an egg. Crack it." spaced to the ticks
 }
+if V.VERSION == "v5":
+    EXTRA_TAIL[9] = 5.3    # B4's 8:55 reply stays lifted past the last line, then B3's salt until d1's ticks (9:24.4)
+    EXTRA_TAIL[13] = 3.0   # the end card, to stay within 3:00
 VOICES = {
     "narrator": dict(voice="af_heart", speed=0.85),
     "coach": dict(voice="am_michael", speed=0.8),
@@ -141,7 +145,7 @@ def layout(beats):
 
 
 def main():
-    beats = json.loads((VIDEO / "beats.json").read_text())["beats"]
+    beats = json.loads(V.BEATS_FILE.read_text())["beats"]
     only = {int(a) for a in sys.argv[1:]}
     todo = [b for b in beats if not only or b["id"] in only]
     if todo:

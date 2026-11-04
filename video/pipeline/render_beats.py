@@ -15,8 +15,9 @@ import time
 from pathlib import Path
 
 VIDEO = Path(__file__).resolve().parents[1]
-HF = VIDEO / "hyperframes"
-OUT = VIDEO / "out" / "beats"
+import version as V  # noqa: E402  (video/pipeline/version.py)
+HF = V.HF
+OUT = V.RENDERS
 HF_CLI = "hyperframes@0.9.8"
 MAX_LOAD = float(os.environ.get("MAX_LOAD", "7"))
 MIN_IDLE = float(os.environ.get("MIN_IDLE", "45"))   # macOS load counts I/O-blocked threads, so idle CPU also lets a render start
@@ -57,7 +58,7 @@ def main():
         i = args.index("--workers")
         workers = int(args[i + 1])
         del args[i:i + 2]
-    timings = json.loads((VIDEO / "audio" / "timings.json").read_text())["beats"]
+    timings = json.loads((V.AUDIO / "timings.json").read_text())["beats"]
     ids = [int(a) for a in args] or sorted(int(k) for k in timings)
     OUT.mkdir(parents=True, exist_ok=True)
     ok = True

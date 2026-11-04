@@ -21,10 +21,11 @@ from pathlib import Path
 VIDEO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(VIDEO.parent / "src"))
 import panel  # noqa: E402  (video/pipeline/panel.py, next to this file)
-HF = VIDEO / "hyperframes"
-HD = VIDEO / "media" / "hd"
-BEATS = {b["id"]: b for b in json.loads((VIDEO / "beats.json").read_text())["beats"]}
-TIMES = json.loads((VIDEO / "audio" / "timings.json").read_text())
+import version as V  # noqa: E402  (video/pipeline/version.py)
+HF = V.HF
+HD = V.HD
+BEATS = {b["id"]: b for b in json.loads(V.BEATS_FILE.read_text())["beats"]}
+TIMES = json.loads((V.AUDIO / "timings.json").read_text())
 FPS = TIMES["fps"]
 SRC = {"P08": "P08-20240614-085000", "P02": "P02-20240210-113925"}
 # The demo page's video of the stage-40 memory run: the footage beside the live panel (world model, coach, d1).
@@ -639,7 +640,7 @@ def index_html(ids):
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>Personal Cooking Coach · demo v4</title>
+    <title>Personal Cooking Coach · demo {V.FILM}</title>
     <link rel="stylesheet" href="assets/fonts/fonts.css" />
     <link rel="stylesheet" href="assets/style.css" />
     <script src="assets/vendor/gsap.min.js"></script>

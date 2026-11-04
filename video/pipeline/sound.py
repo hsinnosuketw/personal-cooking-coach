@@ -16,7 +16,8 @@ from pathlib import Path
 import numpy as np
 
 VIDEO = Path(__file__).resolve().parents[1]
-AUDIO = VIDEO / "audio"
+import version as V  # noqa: E402  (video/pipeline/version.py)
+AUDIO = V.AUDIO
 MUSIC = VIDEO / "media" / "music" / "Bushwick Tarantella.mp3"
 SR = 48000
 # Music level per beat, in dB, before ducking. None = silent. It starts with the cooking, dips under the three
@@ -119,7 +120,7 @@ def music(timings, n):
 
 def main():
     timings = json.loads((AUDIO / "timings.json").read_text())
-    cues = json.loads((VIDEO / "hyperframes" / "cues.json").read_text())
+    cues = json.loads((V.HF / "cues.json").read_text())
     n = int(round(timings["total"] * SR))
     sfx, count = effects(timings, cues, n)
     write(AUDIO / "sfx.wav", sfx)
