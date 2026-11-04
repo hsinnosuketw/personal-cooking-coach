@@ -39,15 +39,17 @@ COMPRESSION_DROP = 0.9
 MAX_RECONNECTS = 8
 
 
-def system_prompt(name: str, texts: list[str]) -> str:
-    """Our coach's opening and recipe block (coaching.prompts.coach_prompt), and the order line stage 40 tells it."""
+def system_prompt(name: str, texts: list[str], quiet_line: bool = False) -> str:
+    """Our coach's opening and recipe block (coaching.prompts.coach_prompt), and the order line stage 40 tells it.
+
+    quiet_line: "Stay quiet otherwise", as runs A_1 and A_2 had it. It may be why they said nothing, so it is off."""
     recipe = "\n".join(f"{k + 1}. {s}" for k, s in enumerate(texts))
     return f"""You are a cooking coach watching a home cook through a head-mounted camera. The video is live.
 
 Recipe: {name}
 {recipe}
 
-The cook may do the steps in any order; the recipe order is only a guide. The cook can't ask you anything, so speak up on your own whenever the cook needs guidance, in English, in one or two short sentences. Stay quiet otherwise."""
+The cook may do the steps in any order; the recipe order is only a guide. The cook can't ask you anything, so speak up on your own whenever the cook needs guidance, in English, in one or two short sentences.{" Stay quiet otherwise." if quiet_line else ""}"""
 
 
 def load_key() -> str:
@@ -253,6 +255,7 @@ def main() -> None:
     ap.add_argument("--resolution", choices=["low", "medium", "high"], help="the API's media_resolution; default: unset")
     ap.add_argument("--final", help="asked right after the last frame, so it can't change what was said during the film; "
                                     "also the only way to read the token count from a silent run")
+    ap.add_argument("--quiet-line", action="store_true", help="add 'Stay quiet otherwise', as runs A_1 and A_2 did")
     ap.add_argument("--list-models", action="store_true")
     args = ap.parse_args()
 
@@ -266,7 +269,7 @@ def main() -> None:
 
     run = json.loads((RESULTS / f"coach_timeline_{VIDEO}.json").read_text())       # the steps our coach was given
     name = json.loads((DATA_RAW / "hd-epic" / "complete_recipes.json").read_text())[RECIPE]["name"]
-    system = system_prompt(name, run["steps"])
+    system = system_prompt(name, run["steps"], args.quiet_line)
     paths = extract_frames(DATA_RAW / "hd-epic" / f"{VIDEO}.mp4", DATA_PROCESSED / "live_frames" / VIDEO, args.seconds)
     frames = [p.read_bytes() for p in paths[:: args.every]]
     film = len(frames) * args.every

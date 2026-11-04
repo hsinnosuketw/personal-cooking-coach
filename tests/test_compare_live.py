@@ -64,6 +64,11 @@ def test_only_the_recipe_goes_in_the_system_prompt():
     assert not any(w in p.lower() for w in ("checklist", "expects", "tracker", "done so far"))
 
 
+def test_the_quiet_line_is_off_unless_asked_for():
+    assert "quiet" not in cl.system_prompt("Eggs", ["Crack."]).lower()
+    assert cl.system_prompt("Eggs", ["Crack."], quiet_line=True).endswith("Stay quiet otherwise.")
+
+
 def test_frames_only_by_default_and_replies_on_the_film_clock():
     log, rec, d = run([{3: [say("Crack the eggs.")]}])
     assert log["frames"] == FRAMES and log["text"] == []             # the recipe and the video, nothing else
