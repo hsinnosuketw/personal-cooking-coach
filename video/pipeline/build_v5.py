@@ -54,29 +54,30 @@ def beat_1(p):
 
 
 def beat_2(p):
-    """Chapter 1, then three real answers on the footage they came with, asked every 10 s."""
+    """Chapter 1, then two real answers on the footage they came with, asked every 10 s."""
     ch = 1.1
     p.chapter_card(1, "Gemini *Live*", "live", 0, ch)
-    c1, c2, c3 = p.cut(1), p.cut(2), p.cut(3)
+    c1, c2 = p.cut(1), p.cut(2)
     p.footage("G1", "P08", 127.5, ch, c2)
-    p.footage("G2", "P08", 274.6, c2, c3)
-    p.footage("G3", "P08", 319.5, c3, p.dur)
+    p.footage("G2", "P08", 274.6, c2, p.dur)
     p.shade(c1, p.dur)
-    for brow, line, s, e in ((f"{LIVE} · 2:10", "Keep chopping the red onion.", c1, c2), (f"{LIVE} · 4:30", "Spray olive oil into your skillet.", c2, c3),
-                             (f"{LIVE} · 5:20", "Whisk the eggs.", c3, p.dur)):
+    for brow, line, s, e in ((f"{LIVE} · 2:10", "Keep chopping the red onion.", c1, c2), (f"{LIVE} · 4:30", "Spray olive oil into your skillet.", c2, p.dur)):
         p.coach("live", brow, line, s, e)
     cid, cs, _ = p.add(p.say("asked every 10 s"), ch, p.dur, "testchip")
     p.anim_in(cid, cs)
-    p.key(0.6, "chapter 1"); p.key(c1 + 0.8, "G1 · chop"); p.key(c2 + 0.8, "G2 · oil"); p.key(c3 + 0.9, "G3 · whisk")
+    p.key(0.6, "chapter 1"); p.key(c1 + 0.8, "G1 · keep chopping"); p.key(c2 + 0.8, "G2 · spray")
 
 
 def beat_3(p):
-    """Four minutes of answers, and the recipe's first step never comes up."""
+    """1:30 to 5:10, and the recipe's first step never comes up; then 5:20, with the egg already cracking."""
     t, t2 = p.word(0, "twenty-three"), p.word(0, "not")
-    p.footage("G4", "P08", 137.0, 0, p.dur)
+    c = p.cut(1)
+    p.footage("G4", "P08", 137.0, 0, c)
+    p.footage("G3", "P08", 319.5, c, p.dur)
     p.shade(t, p.dur)
-    p.coach("live", f"{LIVE} · 1:30–5:10", "23 answers", t, p.dur, counter=[(t2, "Eggs: 0")])
-    p.key(1.0, "G4 · chopping"); p.key(p.dur - 0.8, "23 answers, eggs 0")
+    p.coach("live", f"{LIVE} · 1:30–5:10", "23 answers", t, c, counter=[(t2, "Eggs: 0")])
+    p.coach("live", f"{LIVE} · 5:20", "Whisk the eggs.", c, p.dur)
+    p.key(1.0, "G4 · chopping"); p.key(c - 0.8, "23 answers, eggs 0"); p.key(p.dur - 0.6, "G3 · whisk, at 5:20")
 
 
 def beat_4(p):

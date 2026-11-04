@@ -32,12 +32,11 @@
    "time": "0:15",
    "label": "Chapter 1 · Gemini Live",
    "tone": "live",
-   "say": "So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet. Whisk the eggs.",
-   "screen": "On a pale card, a grey numbered square \"1\" and the title \"Gemini Live\" for one second. Then three hard cuts, each with a white card whose grey eyebrow gives the time, plus a small chip \"asked every 10 s\" for the whole beat. 2:10, the onion under the knife: \"Keep chopping the red onion.\" 4:30, the learner picks up the oil spray and sprays the pan: \"Spray olive oil into your skillet.\" 5:20, an egg cracking into the bowl: \"Whisk the eggs.\"",
+   "say": "So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet.",
+   "screen": "On a pale card, a grey numbered square \"1\" and the title \"Gemini Live\" for one second. Then two hard cuts, each with a white card whose grey eyebrow gives the time, plus a small chip \"asked every 10 s\" for the whole beat. 2:10, the onion under the knife: \"Keep chopping the red onion.\" 4:30, the learner picks up the oil spray and sprays the pan: \"Spray olive oil into your skillet.\"",
    "clips": [
     "G1",
-    "G2",
-    "G3"
+    "G2"
    ],
    "sound": "Pop on each card. The lines use Gemini's own recorded voice if the paid-tier rerun says the same words, the coach voice otherwise."
   },
@@ -46,10 +45,11 @@
    "time": "0:25",
    "label": "Not one mention",
    "tone": "live",
-   "say": "But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe.",
-   "screen": "The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:30–5:10. A big counter rolls to \"23 answers\" while it is spoken, then a second line lands beneath it: \"Eggs: 0\".",
+   "say": "But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe. Coach: Whisk the eggs.",
+   "screen": "The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:30–5:10. A big counter rolls to \"23 answers\" while it is spoken, then a second line lands beneath it: \"Eggs: 0\". Then a hard cut to 5:20, an egg already cracking into the bowl, with a white card, grey eyebrow GEMINI LIVE · 5:20, \"Whisk the eggs.\"",
    "clips": [
-    "G4"
+    "G4",
+    "G3"
    ],
    "sound": "A soft tick as the counter rolls."
   },

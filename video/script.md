@@ -22,9 +22,9 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 
 **0:06 The catch.** We try Gemini Live with this recipe. We give it our learner's video too. But you'll need to constantly ask questions to get the coaching step.
 
-**0:15 Chapter 1 · Gemini Live.** So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet. Whisk the eggs.
+**0:15 Chapter 1 · Gemini Live.** So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet.
 
-**0:25 Not one mention.** But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe.
+**0:25 Not one mention.** But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe. Coach: Whisk the eggs.
 
 **0:32 Again and again.** And when a step has to wait, it just says it again. Pour the eggs. Twenty times in three minutes.
 
@@ -52,8 +52,8 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`. Film lines and count
 | The seven steps on screen, "this recipe" | `P08_R03`, the same seven steps our coach and Gemini were given, in short form |
 | "You'll need to constantly ask questions" | No reply during the film with only the video and the recipe: eggs and sandwich `A_2_paid`; free tier eggs `A_1`, `A_2`, `B_2`, sandwich `A_2`. It answered every question in the runs that asked. We infer that it needs a turn; the docs don't say so directly. API only |
 | "We asked, every ten seconds" | Eggs `D10_2_paid`: 70 questions to 11:50, 70 answers. Our own setting, stated on screen |
-| "It answers well": keep chopping the red onion, spray olive oil into your skillet, whisk the eggs | Eggs `D10_2_paid`: 2:10, 4:30, 5:20. Narrations: the onion is cut 1:09–2:35; the spray is picked up 4:34 and sprayed 4:36; the eggs cracked 5:13–5:29, whisked 7:25–7:41. It also errs: 3:30–3:40 says to sauté before the oil, 6:30 and 7:00 to pour unwhisked eggs |
-| "Over three minutes … twenty-three answers, and not one mentions the eggs, the first step in the recipe" | 23 answers from 1:30 to 5:10, none matching "egg", in both `D10_2_paid` and `D10_2`; the next mention is 5:20 in both, after cracking began at 5:13. **Before 1:30 it does push them**: `D10_2_paid` asks for the eggs in all 8 answers from 0:10 to 1:20. Cracking the eggs is step 1 of `P08_R03`. The learner chose this order and was not forgetting the eggs |
+| "It answers well": keep chopping the red onion, spray olive oil into your skillet | Eggs `D10_2_paid`: 2:10, 4:30. Narrations: the onion is cut 1:09–2:35; the spray is picked up 4:34 and sprayed 4:36. It also errs: 3:30–3:40 says to sauté before the oil, 6:30 and 7:00 to pour unwhisked eggs |
+| "Over three minutes … twenty-three answers, and not one mentions the eggs, the first step in the recipe" | 23 answers from 1:30 to 5:10, none matching "egg", in both `D10_2_paid` and `D10_2`; the next mention is "Whisk the eggs" at 5:20 in both (`D10_2_paid`: "Now, whisk the eggs until they are smooth"), after cracking began at 5:13; whisked 7:25–7:41. **Before 1:30 it does push them**: `D10_2_paid` asks for the eggs in all 8 answers from 0:10 to 1:20. Cracking the eggs is step 1 of `P08_R03`. The learner chose this order and was not forgetting the eggs |
 | "Pour the eggs. Twenty times in three minutes" | Eggs `D10_2_paid`: 20 of 20 answers from 8:30 to 11:40 (`D10_2`: 18 of 20). Pouring was a fair next step, and it happened at 11:47: repetition, not wrong advice |
 | The shots under it: onions being stirred, cottage cheese on the plate | Step annotations: onions 8:33–9:46, cottage cheese 8:53–9:13 and 10:04–10:19 |
 | "Fine, do it in parallel" | Our run, 0:39: "fine to do in parallel" |

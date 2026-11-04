@@ -30,15 +30,11 @@
   ],
   [
    4.45,
-   "G1 \u00b7 chop"
+   "G1 \u00b7 keep chopping"
   ],
   [
    6.72,
-   "G2 \u00b7 oil"
-  ],
-  [
-   9.52,
-   "G3 \u00b7 whisk"
+   "G2 \u00b7 spray"
   ]
  ],
  "3": [
@@ -47,8 +43,12 @@
    "G4 \u00b7 chopping"
   ],
   [
-   8.23,
+   7.89,
    "23 answers, eggs 0"
+  ],
+  [
+   10.1,
+   "G3 \u00b7 whisk, at 5:20"
   ]
  ],
  "4": [

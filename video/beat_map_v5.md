@@ -20,19 +20,19 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 0:15 · Chapter 1 · Gemini Live
 
-**What we say**: So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet. Whisk the eggs.
+**What we say**: So we asked, every ten seconds, and it answers well. Coach: Keep chopping the red onion. Spray olive oil into your skillet.
 
-**What's on screen**: On a pale card, a grey numbered square "1" and the title "Gemini Live" for one second. Then three hard cuts, each with a white card whose grey eyebrow gives the time, plus a small chip "asked every 10 s" for the whole beat. 2:10, the onion under the knife: "Keep chopping the red onion." 4:30, the learner picks up the oil spray and sprays the pan: "Spray olive oil into your skillet." 5:20, an egg cracking into the bowl: "Whisk the eggs."
+**What's on screen**: On a pale card, a grey numbered square "1" and the title "Gemini Live" for one second. Then two hard cuts, each with a white card whose grey eyebrow gives the time, plus a small chip "asked every 10 s" for the whole beat. 2:10, the onion under the knife: "Keep chopping the red onion." 4:30, the learner picks up the oil spray and sprays the pan: "Spray olive oil into your skillet."
 
-**Clips**: G1, G2, G3 · **Sound**: Pop on each card. The lines use Gemini's own recorded voice if the paid-tier rerun says the same words, the coach voice otherwise.
+**Clips**: G1, G2 · **Sound**: Pop on each card. The lines use Gemini's own recorded voice if the paid-tier rerun says the same words, the coach voice otherwise.
 
 ## 0:25 · Not one mention
 
-**What we say**: But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe.
+**What we say**: But for over three minutes, while the onion gets done, twenty-three answers, and not one mentions the eggs, the first step in the recipe. Coach: Whisk the eggs.
 
-**What's on screen**: The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:30–5:10. A big counter rolls to "23 answers" while it is spoken, then a second line lands beneath it: "Eggs: 0".
+**What's on screen**: The onion being chopped, full screen. Grey eyebrow GEMINI LIVE · 1:30–5:10. A big counter rolls to "23 answers" while it is spoken, then a second line lands beneath it: "Eggs: 0". Then a hard cut to 5:20, an egg already cracking into the bowl, with a white card, grey eyebrow GEMINI LIVE · 5:20, "Whisk the eggs."
 
-**Clips**: G4 · **Sound**: A soft tick as the counter rolls.
+**Clips**: G4, G3 · **Sound**: A soft tick as the counter rolls.
 
 ## 0:32 · Again and again
 
