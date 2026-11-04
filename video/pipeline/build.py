@@ -447,19 +447,19 @@ def beat_8(p):
 
 
 def beat_9(p):
-    """Bacon & Egg on the demo page's video. B1, 6:47: the learner cuts the baguette while the 6:17 cheese answer is
+    """Bacon & Egg on the demo page's video. B1, 6:45: the learner gets the baguette ready and cuts it while the 6:17 cheese answer is
     the latest (card, reply lifted with the cheese line marked); the world model's "cut bread" and d1's "cut bread
-    (step 6)" turn out right. B2: the 7:01 answer (season first) arrives at the cut. B3, 9:20: salt into the hand;
+    (step 6)" turn out right (the cut at 6:49.1, after the reply has dropped back). B2: the 7:01 answer (season first) arrives at the cut. B3, 9:20: salt into the hand;
     the world model's "pour salt" and d1's "take salt" (done 9:24.3) get their ticks. No step row: the memory marks
     seasoning only at 9:42."""
     c1 = round(p.word(0, "and", 1) - 0.1, 3)
     c2 = round(p.sent(0)[1] + 0.15, 3)
-    p.panel_shot("B1", "P02", 407.0, 0, c1)
+    p.panel_shot("B1", "P02", 405.0, 0, c1)
     p.panel_shot("B2", "P02", 421.6, c1, c2)
     p.panel_shot("B3", "P02", 560.0, c2, p.dur)
     p.coach("mem", "MEMORY · 6:17", "Shred cheese meanwhile.", 0.3, c1)
     p.coach("mem", "MEMORY · 7:01", "Season the eggs first.", c1, c2)
-    p.zoom("P02", 0, 407.0, 0.8, 3.0, "shredding the cheddar cheese while the eggs and bacon continue cooking", "B1")
+    p.zoom("P02", 0, 405.0, 0.8, 3.0, "shredding the cheddar cheese while the eggs and bacon continue cooking", "B1")
     p.key(1.8, "B1 · reply lifted, cheese marked"); p.key(c1 - 0.8, "B1 · cut bread ticked"); p.key(c1 + 1.6, "B2 · season first")
     p.key(p.dur - 0.3, "B3 · salt ticked")
 

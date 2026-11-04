@@ -25,7 +25,7 @@ SR = 48000
 MUSIC_DB = {0: -9, 1: -19, 2: -19, 3: -19, 4: -19, 5: None, 6: -10, 7: -10, 8: -11, 9: -10, 10: -16, 11: -16, 12: -16, 13: -9}
 RAMP = 0.6            # crossfade between beat levels, seconds
 FADE_OUT = 2.5        # at the end of the film
-SFX_DB = {"pop": -15, "tick": -21, "check": -19, "whoosh": -22}
+SFX_DB = {"pop": -11, "tick": -16, "check": -15, "whoosh": -18}   # peaks; ticks at -21 were lost under the voice
 
 
 def env(n, attack, decay):

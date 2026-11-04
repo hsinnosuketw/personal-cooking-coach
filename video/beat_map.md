@@ -78,7 +78,7 @@ One home for the beat map: video/review/build_review.py renders it on the review
 
 **What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich.
 
-**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:47: the learner cuts the baguette while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 9:19: salt goes into the learner's hand; the world model says pour salt and d1 says take salt and sprinkle salt, and each gets a tick as it happens.
+**What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 9:19: salt goes into the learner's hand; the world model says pour salt and d1 says take salt and sprinkle salt, and each gets a tick as it happens.
 
 **Clips**: B1, B2, B3 · **Sound**: Pops for the cards, a whoosh for the reply, soft ticks on the green ticks.
 
