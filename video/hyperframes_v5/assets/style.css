@@ -143,5 +143,5 @@ video.full { object-fit: cover; display: block; }
 .restick { width: 56px; height: 56px; border-radius: 50%; background: var(--mem); display: grid; place-items: center; }
 .restick svg { width: 32px; height: 32px; }
 .resdash { width: 56px; height: 56px; display: grid; place-items: center; color: var(--muted); font-weight: 600; font-size: 52px; line-height: 1; }
-.recipelist { left: 96px; top: 188px; display: grid; gap: 8px; color: #fff; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 72px; line-height: 1.05; white-space: nowrap; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6); font-variant-numeric: tabular-nums; }
-.recipelist small { font-family: var(--mono); font-style: normal; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; color: #fff; margin-bottom: 10px; }
+.recipelist { left: 96px; top: 150px; display: grid; gap: 8px; color: #fff; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 72px; line-height: 1.05; white-space: nowrap; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6); font-variant-numeric: tabular-nums; }
+.recipelist .head { font-size: 92px; margin-bottom: 10px; }

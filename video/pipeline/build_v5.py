@@ -39,7 +39,7 @@ def beat_1(p):
     sid, ss, _ = p.add("", a, z, "full shade dim")
     p.js.append(f'tl.fromTo("#{sid}", {{opacity: 0}}, {{opacity: 1, duration: {IN_DUR}, ease: "none"}}, {ss});')
     rows = "".join(f"<div>{k + 1}. {p.label(r)}</div>" for k, r in enumerate(RECIPE))
-    lid, ls, _ = p.add(f"<small>{p.label('SCRAMBLED EGGS · THE RECIPE')}</small>{rows}", a, z, "recipelist")
+    lid, ls, _ = p.add(f'<div class="head">{p.label("The Recipe")}</div>{rows}', a, z, "recipelist")
     p.js.append(f'tl.fromTo("#{lid} div", {{opacity: 0, y: 10}}, {{opacity: 1, y: 0, duration: {IN_DUR}, stagger: 0.06, ease: EASE}}, {ls});')
     p.anim_out(lid, z)
     p.anim_out(sid, z)
