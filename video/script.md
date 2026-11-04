@@ -12,7 +12,7 @@ The footage is prerecorded, so our learner never hears either coach. No line may
 3. **Fair to Gemini**: asked every ten seconds, it answers well, but follows what is in front of it and repeats itself.
 4. **"So we designed an entire system around the chef"**: one learner's story.
 5. **The whole system**: what each model takes in and gives back, and what the memory records.
-6. **One number about us, and one honest limit.** No Gemini number: the count of questions depends on how often we chose to ask.
+6. **The steps it raised early, and one honest limit.** No counts: how many times Gemini answers depends on how often we chose to ask.
 7. **A tagline that echoes the question.**
 
 The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `beat_map.md` and on the review page.
@@ -36,13 +36,13 @@ The beat-by-beat version, with what is on screen, is `beats.json`, rendered as `
 
 **1:06 Only when it's needed.** It only speaks up when something is needed. The eggs still aren't cracked, so it brings them up, without being asked. Then Liquid AI's d1 decision model lines up the next moves. Open the carton. Take an egg. Crack it. Those are the next three things our learner does.
 
-**1:26 Another dish.** On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers in a row say: build the sandwich. Ours still says: season first.
+**1:26 Another dish.** On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers say: build the sandwich. Ours still says: season first.
 
 **1:50 Chapter 3 · How it works.** Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three likeliest next actions. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what's next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.
 
 **2:23 What the memory records.** Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.
 
-**2:40 The result.** Across both dishes, it raised six of eleven steps before they started, with nobody asking. It still misses what the camera can't see, and that's what we're working on next.
+**2:40 The result.** On the sandwich, ours brings up the bacon, the eggs, the cheese and the seasoning before they start. On its own, Gemini Live brings up none. It still misses what the camera can't see, and that's what we're working on next.
 
 **2:52 The close.** Your own coaching chef, designed as a whole system.
 
@@ -62,7 +62,7 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 | "The decision model lines up the next moves: open the carton, take an egg, crack it. Those are the next three things our learner does." | d1's top 3 from 4:49 to 5:13: open package, break egg, take egg. Narrations (main action): open egg carton 5:12.1, pick up egg 5:13.1, crack egg 5:13.7 |
 | Panel ticks (beats 6, 8, 9) | `video/pipeline/find_moments.py`: world model top 3 holds an action of a narration overlapping 0.5–2 s ahead; d1 move = a narration's main action within 8 s. B1 6:45–6:51 cut bread (both; the cut at 6:49.1); B3 9:20 pour salt (world model), take salt 9:24.4 (d1) |
 | Cheese while the eggs cook; season before the sandwich | Our sandwich run, 6:17 and 7:01; cheese shredded 7:25, seasoned 9:19 |
-| "Gemini Live mentions seasoning twice, then eight answers in a row say: build the sandwich" | Sandwich `D10_2`: seasoning at 7:40 and 7:50; 8 of 8 answers from 8:00 to 9:10 name the baguette or sandwich, none names seasoning; seasoned 9:19. It raises paprika again at 10:00 |
+| "Gemini Live mentions seasoning twice, then eight answers say: build the sandwich" | Sandwich `D10_2`: seasoning at 7:40 and 7:50; 8 of 8 answers from 8:00 to 9:10 name the baguette or sandwich, none names seasoning; seasoned 9:19. It raises paprika again at 10:00 |
 | "Ours still says: season first" | Our sandwich run, 8:55: "Pause the buttering / bread handling briefly and season the eggs" |
 | V-JEPA 2: "last few seconds of video", "the three likeliest next actions" | `coach.perception.clips`: 32 frames at 8 fps, predicting about 1 s ahead. The run keeps the top 3 per second (`ticks[].wm`). README says 3.2 s and 0.8 s; the film says "last few seconds" |
 | Memory: "takes in those actions", "a record for every recipe step" | `coach.coaching.reminders.memory_lines_parallel`, `coach.memory.checklist`. The coach's own status answers feed it too, which the film leaves out |
@@ -70,7 +70,8 @@ Gemini runs are `results/gemini_live_<video>_<label>.json`, on the free tier for
 | d1: takes in "the coach's advice, the predictions and the checklist"; "one next move, every second" | `coach.decision.d1`: `d1_state`, `with_checklist`, `d1_questions`. One answer per tick (877 of 877, 812 of 812), ranked top 3 kept. It also gets the tracker's step |
 | The memory's fields: status, first and last seen, which step needs it, times reminded | `memory_lines_parallel`: state, first sign, last, needed before step, reminded Nx |
 | The memory table at 4:53 | Our run's answer at 4:53 ("Where"), and its `REMIND` lines before it: step 2 ×5 (0:21–2:07). It shows what the system believed, errors included: onions "done, first 0:06" are early (cut from 1:09, in the pan 5:34) |
-| "Six of eleven steps before they started" | `coach.evaluation.goals.reminder_scores`, "steps reminded before the cook started them": eggs 1/5, sandwich 5/6 |
+| "Ours brings up the bacon, the eggs, the cheese and the seasoning before they start" | Our sandwich run (`STEP` and `REMIND` lines), then the annotations. Bacon 0:19, started 1:07. Eggs 2:48, started 3:01; cooking them 3:09, started 4:56. Cheese 5:47, started 7:25. Seasoning 7:20, started 9:19. `goals.reminder_scores`: 5/6 here. On the egg dish it is only 1/5, which the line does not claim |
+| "On its own, Gemini Live brings up none" | Sandwich `A_2`, video and recipe only: no reply during the film. **Asked every 10 s it does raise them** (`D10_2`: cheese 6:22, seasoning 7:40), so "on its own" must stay. Only this API was tested, so the film does not say "other agents" |
 | "Misses what the camera can't see" | Our run said "step 1 not seen yet" from 3:39 to 7:46, although the eggs were cracked at 5:13 |
 
 ## What the film does not claim, and why

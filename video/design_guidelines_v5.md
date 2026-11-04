@@ -18,7 +18,7 @@ The five-word rule stays for what the viewer reads while watching. Two exception
 - **Counters**: "26 answers" then "Eggs: 0" (beat 3), "×1" to "×18" (beat 4), "×8" (beat 9).
 - **IN/OUT strip (beat 10)**: under the card row and left of the kitchen square. Mono labels IN and OUT at 24 px, text at 40 px, changing with the lit card. It replaces the question under each card.
 - **Memory table (beat 11)**: seven rows on paper, Figtree 32 px, tabular figures. Status is an icon (filled, half, empty). A column lights in green as it is named. On "The eggs", row 1 fills green and the others dim to 40%.
-- **Result (beat 12)**: one tinted panel, "6 of 11". No comparison panels.
+- **Result (beat 12)**: a small table on paper, four steps by two columns, Our system and Gemini Live: a green tick per step named, then a grey dash per row. No numbers.
 - **Chapters**: 1 "Gemini *Live*", 2 "With our *system*", 3 "How it *works*".
 
 ## 8. Sound

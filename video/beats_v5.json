@@ -118,7 +118,7 @@
    "time": "1:26",
    "label": "Another dish",
    "tone": "mem",
-   "say": "On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers in a row say: build the sandwich. Ours still says: season first.",
+   "say": "On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers say: build the sandwich. Ours still says: season first.",
    "screen": "The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card \"Shred cheese meanwhile.\" (eyebrow OUR SYSTEM · 6:17) and the reply lifts to the centre, its line \"shredding the cheddar cheese while the eggs and bacon continue cooking\" marked. The world model's \"cut bread\" and d1's \"cut bread (step 6)\" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card \"Season the eggs first.\" Hard cut to 8:06: the learner has the baguette and butter out. A white card, grey eyebrow GEMINI LIVE · 8:00–9:10, \"Build the sandwich.\", with a counter rolling to \"×8\". Hard cut to the demo page at 8:55: green card, eyebrow OUR SYSTEM · 8:55, \"Season first.\" The reply lifts to the centre, its line \"season the eggs\" marked in green. Hard cut to 9:19: salt goes into the learner's hand; the world model's \"pour salt\" and d1's \"take salt\" get their ticks.",
    "clips": [
     "B1",
@@ -156,8 +156,8 @@
    "time": "2:40",
    "label": "The result",
    "tone": "neutral",
-   "say": "Across both dishes, it raised six of eleven steps before they started, with nobody asking. It still misses what the camera can't see, and that's what we're working on next.",
-   "screen": "One pale green panel, centred, under a small eyebrow STEPS BROUGHT UP BEFORE THEY STARTED · NOBODY ASKED. A big number counts up: \"6 of 11\". It holds while the limit is said.",
+   "say": "On the sandwich, ours brings up the bacon, the eggs, the cheese and the seasoning before they start. On its own, Gemini Live brings up none. It still misses what the camera can't see, and that's what we're working on next.",
+   "screen": "On paper, a small table under the eyebrow BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING. Four rows: Bacon, Eggs, Cheese, Seasoning. Two columns, Our system and Gemini Live. A green tick lands in the Our system column as each step is named. Then, on \"none\", a grey dash lands in each row of the Gemini Live column. It holds while the limit is said.",
    "clips": [],
    "sound": "The music lifts slightly."
   },

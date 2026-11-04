@@ -80,12 +80,13 @@ def beat_9(p):
     c1 = round(p.word(0, "and", 1) - 0.1, 3)
     c2 = round(p.sent(0)[1] + 0.15, 3)
     c3 = p.cut(2)
-    c4 = round(p.dur - 4.4, 3)
+    c4 = round(p.dur - 3.0, 3)
+    assert c4 - c3 >= 3.4, c4 - c3      # the 8:55 reply lifts for 2.6 s and drops back in 0.4 s
     p.panel_shot("B1", "P02", 405.0, 0, c1)
     p.panel_shot("B2", "P02", 421.6, c1, c2)
     p.footage("G8", "P02", 486.0, c2, c3)
     p.panel_shot("B4", "P02", 536.0, c3, c4)
-    p.panel_shot("B3", "P02", 560.5, c4, p.dur)
+    p.panel_shot("B3", "P02", 561.9, c4, p.dur)
     p.coach("mem", "OUR SYSTEM · 6:17", "Shred cheese meanwhile.", 0.3, c1)
     p.coach("mem", "OUR SYSTEM · 7:01", "Season the eggs first.", c1, c2)
     p.shade(c2, c3)
@@ -197,14 +198,28 @@ def beat_11(p):
 
 
 def beat_12(p):
-    """The result: one number about us, and the limit."""
+    """The result: which steps it raised before they started, with nobody asking. No counts."""
     p.add("", 0, p.dur, "full paper")
-    eid, es, _ = p.add(p.label("STEPS BROUGHT UP BEFORE THEY STARTED · NOBODY ASKED"), 0.2, p.dur, "eyebrow", "left:0;width:1920px;top:232px;text-align:center;color:#8a8a8e;font-size:24px;")
+    eid, es, _ = p.add(p.label("BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING"), 0.2, p.dur, "eyebrow",
+                       "left:0;width:1920px;top:196px;text-align:center;color:#8a8a8e;font-size:24px;")
     p.anim_in(eid, es)
-    pid, ps, _ = p.add(f'<div class="big">{p.say("6 of 11")}</div>', p.word(0, "six"), p.dur, "panel mem solo", "left:480px;top:300px;")
-    p.anim_in(pid, ps)
-    p.cue(ps, "pop")
-    p.key(p.word(0, "six") + 0.8, "6 of 11"); p.key(p.dur - 1.0, "held under the limit")
+    rows = ["Bacon", "Eggs", "Cheese", "Seasoning"]
+    cells = '<div class="head"></div><div class="head ours">Our system</div><div class="head live">Gemini Live</div>'
+    cells += "".join(f"<div>{p.label(r)}</div><div></div><div></div>" for r in rows)
+    tid, ts, _ = p.add(cells, 0.3, p.dur, "restable")
+    p.anim_in(tid, ts)
+    X_OURS, X_LIVE, Y0, HEAD, ROW = 360 + 480 + 24, 360 + 480 + 360 + 24, 262, 72, 112
+    y = lambda k: Y0 + HEAD + k * ROW + (ROW - 64) // 2
+    for k, r in enumerate(rows):
+        t = p.word(0, r.lower())
+        mid, ms, _ = p.add(b.CHECK_SVG, t, p.dur, "restick", f"left:{X_OURS}px;top:{y(k)}px;")
+        p.anim_in(mid, ms)
+        p.cue(ms, "tick")
+    t_none = p.word(1, "none")
+    for k in range(4):
+        did, ds, _ = p.add("—", t_none + k * 0.08, p.dur, "resdash", f"left:{X_LIVE}px;top:{y(k)}px;")
+        p.anim_in(did, ds)
+    p.key(p.word(0, "cheese") + 0.5, "ticks landing"); p.key(t_none + 0.8, "Gemini Live, on its own: none"); p.key(p.dur - 1.0, "held under the limit")
 
 
 def beat_13(p):

@@ -36,7 +36,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 0:32 · Again and again
 
-**What we say**: And when a step has to wait, it just says it again. Pour the eggs. Eighteen times in three minutes, while our learner cooks the onions and gets the cheese ready.
+**What we say**: And when a step has to wait, it just says it again. Pour the eggs. Eighteen times in three minutes.
 
 **What's on screen**: Three hard cuts: 9:00 the plate on the scale, 9:36 the onions being stirred, 10:06 oil going onto the cottage cheese. The same card stays top-left, eyebrow GEMINI LIVE · 8:30–11:40, "Pour the eggs." The counter beside it rolls from "×1" to a red "×18". It is the only red in the film.
 
@@ -76,7 +76,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 1:26 · Another dish
 
-**What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers in a row say: build the sandwich. Ours still says: season first.
+**What we say**: On a bacon and egg sandwich, it suggests shredding the cheese while the eggs cook, and reminds you to season the eggs before you build the sandwich. Gemini Live mentions seasoning twice, then eight answers say: build the sandwich. Ours still says: season first.
 
 **What's on screen**: The demo page's video of the Bacon & Egg run, footage left, model panel right. 6:45: the learner readies the baguette and cuts it (6:49) while the coach's 6:17 answer is on the panel; green card "Shred cheese meanwhile." (eyebrow OUR SYSTEM · 6:17) and the reply lifts to the centre, its line "shredding the cheddar cheese while the eggs and bacon continue cooking" marked. The world model's "cut bread" and d1's "cut bread (step 6)" get green ticks as the cutting happens. Hard cut to 7:01, the next answer arrives; card "Season the eggs first." Hard cut to 8:06: the learner has the baguette and butter out. A white card, grey eyebrow GEMINI LIVE · 8:00–9:10, "Build the sandwich.", with a counter rolling to "×8". Hard cut to the demo page at 8:55: green card, eyebrow OUR SYSTEM · 8:55, "Season first." The reply lifts to the centre, its line "season the eggs" marked in green. Hard cut to 9:19: salt goes into the learner's hand; the world model's "pour salt" and d1's "take salt" get their ticks.
 
@@ -84,7 +84,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 1:50 · Chapter 3 · How it works
 
-**What we say**: Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three actions most likely to come next. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what to do next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.
+**What we say**: Here's the whole system. Meta's V-JEPA 2 world model takes in the last few seconds of video, and gives back the three likeliest next actions. The memory takes in those actions, and keeps a record for every recipe step. Muse Glimmer, the coach, takes in the recipe, the memory and the recent actions, and says where you are, what's next, and which step not to forget. And Liquid AI's d1 takes in the coach's advice, the predictions and the checklist, and picks one next move, every second.
 
 **What's on screen**: A numbered square "3" and "How it works". On pale green paper, white cards appear one at a time, joined by dashed arrows: Video, V-JEPA 2, Memory, Muse Glimmer, Liquid AI d1, Next move. The card being named lights up green. Under the row, one strip for that card, with mono labels: IN and OUT. V-JEPA 2: IN "Last few seconds of video", OUT "Top 3 next actions". Memory: IN "Actions seen, with times", OUT "A record per step". Muse Glimmer: IN "Recipe, memory, recent actions", OUT "Where you are, what's next, what not to forget". Liquid AI d1: IN "Advice, predictions, checklist", OUT "One next move, every second". The kitchen keeps playing in a small rounded square, bottom-right.
 
@@ -92,7 +92,7 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 2:23 · What the memory records
 
-**What we say**: Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; when it was first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.
+**What we say**: Here is the memory, at four fifty-three. For each step it records: done, in progress, or not seen yet; first and last seen; which step needs it; and how many times it has reminded you. The eggs: not seen yet, and needed before step four. That's why it spoke up.
 
 **What's on screen**: On paper, the real memory at 4:53, seven rows, one per recipe step, with columns that light up as they are named. Status (a filled, half or empty icon), First seen, Last seen, Needed before, Reminded. 1 Eggs: not seen yet, needed before 4. 2 Oil: done, 3:17, 4:33, needed before 3, reminded ×5. 3 Onions: done, 0:06, 4:28, needed before 4. 4 Pour: not seen yet, needed before 5. 5 Stir: not seen yet, needed before 6. 6 Off heat: not seen yet. 7 Plate: in progress, 0:06, 4:28. On "The eggs", row 1 fills green and the others dim.
 
@@ -100,9 +100,9 @@ One home for film v5's beat map (v4 keeps video/beats.json): DEMO_VERSION=v5 pyt
 
 ## 2:40 · The result
 
-**What we say**: Across both dishes, it brought up six of eleven steps before our learner started them, with nobody asking. It still misses what the camera can't see, and that's what we're working on next.
+**What we say**: On the sandwich, ours brings up the bacon, the eggs, the cheese and the seasoning before they start. On its own, Gemini Live brings up none. It still misses what the camera can't see, and that's what we're working on next.
 
-**What's on screen**: One pale green panel, centred, under a small eyebrow STEPS BROUGHT UP BEFORE THEY STARTED · NOBODY ASKED. A big number counts up: "6 of 11". It holds while the limit is said.
+**What's on screen**: On paper, a small table under the eyebrow BROUGHT UP BEFORE THE LEARNER STARTED · NOBODY ASKING. Four rows: Bacon, Eggs, Cheese, Seasoning. Two columns, Our system and Gemini Live. A green tick lands in the Our system column as each step is named. Then, on "none", a grey dash lands in each row of the Gemini Live column. It holds while the limit is said.
 
 **Clips**: graphic only · **Sound**: The music lifts slightly.
 
