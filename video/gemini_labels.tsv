@@ -1,0 +1,90 @@
+run	time	category	step	note	reply
+C_2	00:30	next	3	cook is at the fridge; takes the onion at 0:34	You'll need a red onion for this recipe. Grab it and start by finely chopping both the onion and your finger chillies.
+C_2	01:00	current	3	onion on the board at 0:58	Go ahead and finely chop the red onion and the finger chillies.
+C_2	01:30	current	3		Keep going with the recipe by chopping the red onion and the chillies.
+C_2	02:00	current	3		Now, continue by finely chopping that red onion and the finger chillies.
+C_2	02:30	current	3		After the onions, make sure to finely chop the finger chillies too so you can add them to the pan.
+C_2	03:00	current	3		Go ahead and finely chop the finger chillies so you can add them to the pan with the onions.
+C_2	03:30	next	3	says add to the pan before the oil; corrected at 4:00	Great job chopping. Now, add the chopped red onions and finger chillies to the pan and sauté until soft.
+C_2	04:00	next	2	oil sprayed at 4:29	Let's get the pan ready. Spray olive oil in your skillet and bring it to medium heat.
+C_2	04:30	next	3		The oil in your pan is ready. Go ahead and add the chopped red onions and finger chillies to sauté.
+C_2	05:00	next	3	cook goes to the eggs at 5:06	Go ahead and add the chopped red onions and finger chillies to the pan and sauté until soft.
+C_2	05:30	current	1	cracked 5:14-5:30; whisking still ahead	Crack the eggs into a medium bowl, then whisk until smooth and combined with no streaks of egg white remaining.
+C_2	06:00	reminder	1	eggs in the bowl, not whisked, cook elsewhere	Make sure to whisk those eggs vigorously until they're perfectly smooth and combined.
+C_2	06:30	current	3		Keep stirring the red onion and chillies until they are nice and soft.
+C_2	07:00	wrong	4	says pour the whisked eggs; whisking is 7:22-7:42	The onions and chillies are softening nicely. Go ahead and pour the whisked eggs into the pan.
+C_2	07:30	current	1		Keep whisking the eggs until they're a uniform yellow and no streaks of egg white remain.
+C_2	08:00	next	4		Give those onions and chillies a final stir, then pour the whisked eggs into the pan.
+C_2	08:30	next	4		You can now pour the egg mixture into the pan and let them cook for a few seconds without stirring.
+C_2	09:00	next	4	cook is on step 7	Pour the whisked eggs into the pan and let them cook for a few seconds without stirring.
+C_2	09:30	wrong	5	says fold the eggs; they are poured at 11:43	Keep your attention on the eggs. Fold and stir them gently to form soft curds.
+C_2	10:00	next	4		Go ahead and pour the whisked eggs into the pan with the sautéd onions and chillies.
+C_2	10:30	next	4		Pour the whisked eggs into the pan right now and let them cook for a few seconds without stirring.
+C_2	11:00	next	4	phone in hand, seen in the frame	Please step away from the phone and pour those whisked eggs into the pan right now.
+C_2	11:30	next	4	phone mention about 10 s late	Put the phone down and pour the whisked eggs into the pan right now.
+C_2	12:00	current	4		Let the eggs cook for a few seconds without stirring to form nice, soft curds.
+C_2	12:30	current	5		Continue folding and stirring the eggs gently to form those large, soft curds.
+C_2	13:00	next	6		Season your eggs with salt and pepper while they finish cooking.
+C_2	13:30	next	6	plated from 13:40	Remove the pan from the heat now, while the eggs are still slightly moist and mostly set.
+C_2	14:00	next	7	step 7 at 14:09	Season the scrambled eggs and cottage cheese with salt, pepper, oregano, and olive oil.
+C_2	14:30	redo	7	step 7 annotated done by 14:26	Don't forget to add a drizzle of olive oil to finish off your cottage cheese and eggs.
+C_2	15:00	redo	7	same line, cook at the sink	Don't forget to add a drizzle of olive oil to finish off your cottage cheese and eggs.
+C_2	15:30	closing			Everything looks great, your meal is ready to be enjoyed!
+C_2	16:00	closing			The cooking is complete, enjoy your delicious meal!
+C_2	16:30	closing			You're all done with the cleanup, your scrambled eggs are ready to eat!
+C_2	17:00	closing			Now that everything is cleaned up, enjoy your scrambled eggs!
+C_2	17:30	closing			Everything is nice and clean, enjoy your meal!
+C_2	18:00	closing			Great job today, your meal is all set and your workspace is clean!
+D_2	00:30	next	1	recites step 1 while cook is at the fridge	Please crack the eggs into a medium bowl and whisk them until smooth.
+D_2	01:00	current	3		Go ahead and chop the red onion, then add it to the pan with the chillies and sauté until soft.
+D_2	01:30	current	3		Don't forget to chop the finger chillies, then add them and the onions to the pan to sauté.
+D_2	02:00	current	3	peel the onion: not in the recipe	Remember to peel the skin off the onion before chopping it into small pieces.
+D_2	02:30	current	3		Keep chopping the red onion until it's finely diced, then add it to the pan with the finger chillies to sauté.
+D_2	03:00	current	3		Go ahead and chop the finger chilli now, then add it to the pan with the onions to sauté.
+D_2	03:30	next	3		Now, place the pan on medium heat and add the chopped onions and chillies to sauté until soft.
+D_2	04:00	next	2		Spray the olive oil into the skillet and heat the pan over medium heat.
+D_2	04:30	next	3		Add the chopped onions and chillies to the pan and sauté until they're soft.
+D_2	05:00	next	3		Add the chopped onions and finger chillies to the pan and sauté them until they're soft.
+D_2	05:30	next	1	whisk, just after cracking	Whisk the eggs in the bowl until they're smooth and fully combined, with no streaks of egg white left.
+D_2	06:00	reminder	1		Whisk the eggs in the bowl until they're smooth and fully combined, with no streaks of egg white remaining.
+D_2	06:30	current	3		Continue sauteing the onions and chillies until they are soft and translucent.
+D_2	07:00	reminder	1	whisked from 7:22	Whisk the eggs in the bowl until they're smooth and fully combined, ensuring no streaks of egg white remain.
+D_2	07:30	current	1		Continue whisking until the eggs are smooth and combined, with no streaks of egg white remaining.
+D_2	08:00	current	3		Keep stirring the onions and chillies to make sure they cook evenly and soften up nicely.
+D_2	08:30	next	4		Pour the whisked eggs into the pan and let them sit for a few seconds to cook.
+D_2	09:00	next	4		Go ahead and pour the whisked eggs into the pan with the onions and chillies.
+D_2	09:32	current	7	cottage cheese in the frame	Now, season the cottage cheese with salt, pepper, oregano, and a drizzle of olive oil.
+D_2	10:00	next	4		Pour the whisked eggs into the pan and let them cook for a few seconds without stirring.
+D_2	10:30	next	4		Go ahead and pour the whisked eggs into the pan, then use your spatula to form large, soft curds.
+D_2	11:00	next	4		Pour the eggs into the pan and use your spatula to form soft, fluffy curds.
+D_2	11:30	next	4		Go ahead and pour the whisked eggs into the pan, then let them sit for a few seconds without stirring.
+D_2	12:00	current	4		Let the eggs cook undisturbed for a few seconds before pulling your spatula across the pan to form soft curds.
+D_2	12:30	current	5		Keep folding and stirring the eggs gently to form soft curds and prevent them from drying out.
+D_2	13:00	next	6		Remove the pan from the heat while the eggs are still soft and slightly moist to prevent them from overcooking.
+D_2	13:30	next	6		Remove the pan from the heat now and season the eggs with salt and pepper to taste.
+D_2	14:00	next	7		You've plated the eggs, so now just mix them gently with the seasoned cottage cheese and enjoy your meal!
+D_2	14:32	closing			Your delicious meal is ready to enjoy, so go ahead and dig in!
+D_2	15:00	closing			Your dish is beautifully plated and seasoned, so it's ready to enjoy!
+D_2	15:30	closing			Everything is cooked and your cooking is complete, so enjoy eating your delicious meal!
+D_2	16:00	closing			Congratulations on finishing your meal, as all the cooking steps are complete!
+D_2	16:30	closing			All the dishes are washed and the meal is finished, so your cooking is complete!
+D_2	17:00	closing			You've finished washing everything and the meal is complete, so you're all set!
+D_2	17:30	closing			You've finished cleaning up, so your session is complete and you're all set!
+D_2	18:00	closing			You have cleaned up the kitchen, so your cooking session is finished. You are all set to enjoy your meal!
+ours	00:21	wrong	3	says step 3 is starting; cook is at the fridge	Step 3 appears to be starting, but step 2 is a prerequisite for it and has not been seen yet. The most useful support now is to confirm the skillet is on medium heat and lightly oiled before the onions and chillies go in, so they can sauté properly. Keep the current onion prep going, and once the pan is hot and oiled you can continue with the sauté.
+ours	00:39	current	7		The cook appears to have shifted attention to the cottage cheese plate, which is fine to do in parallel. Keep supporting that plate prep for now. When they return to the pan, confirm the skillet is lightly oiled and at medium heat before the onions and chillies go in, since step 2 is still not seen and is a prerequisite for a proper sauté.
+ours	01:01	current	7		The cook is currently in a fridge/drawer loop consistent with plate prep for the cottage cheese, so keep supporting step 7 in parallel. Do not push step 3 further until step 2 is verified, because the onions/chillies need a lightly oiled skillet at medium heat first. When they return to the pan, confirm oil and heat before sautéing.
+ours	01:45	current	7		Keep supporting the parallel work that is actually happening, step 7 plate prep and step 3 onion prep, without forcing step 3 forward. Step 2 is still not verified and is a prerequisite for sautéing, so the most useful nudge is to get the skillet oiled and heated before the onions go in. Do not ask to redo anything already done.
+ours	02:07	reminder	2		The cook is actively working on parallel plate prep for step 7 and onion prep for step 3. Since step 2 Spray olive oil in a small nonstick skillet and bring to medium heat is still not seen yet and is a prerequisite for proper sautéing, the most useful nudge is to confirm the skillet is oiled and heating before more onion work continues. Support the ongoing step 7 plating without forcing step 3 forward and do not ask to redo anything already marked done.
+ours	03:33	current	7		Support the parallel plating work for step 7 that is already underway and let the current prep continue. Since step 2 oiling/heating the skillet is still in progress and is a prerequisite for proper sautéing, keep that as the next cooking-critical check before the eggs can be poured. No new nudge to redo completed step 3 is needed.
+ours	03:55	reminder	1		The egg workflow is blocked because Step 1 cracking and whisking the eggs has not been seen yet and Step 4 needs it. Step 3 is done so the pan is ready, but you cannot pour eggs until they are prepared. Gently steer back to the egg prep now and hold off on further plating/seasoning until the scrambled eggs can actually be made.
+ours	04:53	reminder	1	eggs are cracked from 5:06	The egg workflow is still blocked because Step 1 has not been seen and Step 4 cannot start without it. Step 3 and the pan heating are already done, so the only thing missing to make the scramble is the egg prep. Gently guide the cook back to cracking and whisking the eggs now so Step 4 can proceed, and hold further plating/seasoning until the eggs are actually made.
+ours	05:48	current	1		The cook has returned to egg prep after a detour with phone/cupboard. Step 1 is still the gating item for the scramble. Keep finishing cracking all eggs into the medium bowl and whisk until smooth and streak-free now so Step 4 can start, and hold further plating/seasoning until the eggs are made.
+ours	06:08	reminder	1		The scramble cannot start until the eggs are fully cracked into the medium bowl and whisked smooth and streak-free. Step 1 is still the gating item for Step 4, while Step 7 plating work can continue in parallel. Keep finishing the whisk now so Pour in the eggs can begin, and hold final seasoning/plating until the eggs are cooked.
+ours	07:46	redo	1	whisked by 7:41	Step 1 is still unfinished and it gates Step 4, so the scramble cannot start until the eggs are fully cracked in and whisked smooth and streak-free. Step 7 plating can continue in parallel, but finishing the whisk now will unblock the cooking sequence. Keep the current plating prep going and return to finish whisking the eggs so Pour in the eggs can begin.
+ours	09:16	wrong	7	says whisking is unfinished	The cook is actively engaged with Step 7 plating prep now, and Step 7 has no dependencies so it can continue in parallel. Step 4 is needed now because it is a prerequisite for the cooking sequence, but Step 4 cannot start until Step 1 whisking is finished and Step 1 is still in progress. Keep supporting the current plating work while noting the egg whisk remains the gating item for pouring.
+ours	09:33	wrong	7	says step 4 happened and was missed	The cook is currently engaged with Step 7 plating work and the step tracker also places them on Step 7. Step 7 has no dependencies so it can continue. Step 4 is flagged as needed now in the checklist, but Step 5 which requires Step 4 is already done at 7:28-7:50, suggesting Step 4 was completed and missed by the camera. Do not interrupt the active plating; support Step 7 now.
+ours	10:07	current	7		The cook is currently engaged in finishing/plating work for Step 7 with recent put phone, take container, add sauce, mix onion, take spoon actions. Step 7 has no dependencies so it can continue now. Do not interrupt the active plating to chase the missed camera sign for Step 4; support the plating and seasoning that is underway.
+ours	11:30	wrong	7	says step 4 happened; poured at 11:43	The cook is clearly continuing plating/finishing work for step 7 with recent put phone, pour oil, apply oil actions. Step 5 is already marked done, so step 4 must have occurred even if the camera has no sign for it. Do not interrupt the active step 7 work to chase a missed sign for step 4. Support the seasoning and plating that is underway now.
+ours	13:09	wrong	7	support plating, while the eggs are frying	The cook is clearly continuing the plating/finishing work for step 7 now. Step 5 is already marked done, so the dependency for step 4 is satisfied in practice. Support the seasoning and plating that is underway rather than interrupting for a missed sign for step 4.
+ours	14:34	wrong	7	asks to finish the eggs; already plated	The cook is clearly in a finishing/plating phase for step 7 with recent bottle opening and mixing actions, and step 5 is already marked in progress so the egg cooking dependency is satisfied in practice. Support the seasoning and plating that is underway now rather than interrupting for a missed camera sign for step 4. A gentle prompt to finish the eggs and move to plating will keep flow without redoing done work.
